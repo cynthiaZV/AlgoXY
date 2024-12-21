@@ -435,7 +435,7 @@ even(n): & \dfrac{1}{2}(x[\dfrac{n}{2}] + x[\dfrac{n}{2}+1]) \\
 \begin{Answer}[ref = {ex:binary-search}]
 \Question{证明$k$选择的平均复杂度为$O(n)$。
 
-参考快速排序的复杂度分析\cref{sec:quick-sort-big-o}。}
+参考快速排序的复杂度分析\ref{sec:quick-sort-big-o}。}
 
 \Question{为了查找$A$中的前$k$小元素，我们可以获取$x = \max\ (take\ k\ A), y = \min\ (drop\ k\ A)$。如果$x < y$，则$A$的前$k$个元素就是答案；否则我们用$x$划分前$k$个元素，用$y$划分剩余元素，然后在子序列$[a \gets A, x < a < y]$中递归查找前$k'$个元素，其中$k' = k - |[a \gets A, a \leq x]|$。请实现这一算法，并分析复杂度。
 
@@ -908,7 +908,7 @@ maxSum = maximum . (map maxS) . acc . rows where
                      s' = max m' s in (m', s')
 \end{Haskell}
 
-其中\texttt{tails}的定义见\cref{ex:list-tails}，\texttt{zipWith}的定义见\cref{sec:list-zipwith}，\texttt{concatMap}的定义见\cref{sec:list-concatmap}。$scanl$和$foldl$类似，但它每次把结果都保存到一个列表中。$scanl1$是$scanl$的一个特殊情况，初始值是列表的第一个元素。
+其中\texttt{tails}的定义见\cref{ex:list-tails}，\texttt{zipWith}的定义见\ref{sec:list-zipwith}，\texttt{concatMap}的定义见\ref{sec:list-concatmap}。$scanl$和$foldl$类似，但它每次把结果都保存到一个列表中。$scanl1$是$scanl$的一个特殊情况，初始值是列表的第一个元素。
 
 \[
 \begin{array}{rcl}
@@ -2408,7 +2408,7 @@ $move$把棋子$L[k]$移动$d$成为：$move\ L\ (k, d) = map\ (+ d)\ L[k]$。$u
 \begin{Answer}[ref = {ex:conway-slide-puzzle}]
 \Question{按层遍历一棵二叉树。
 
-按广度优先顺序访问各个节点，使用\cref{sec:finger-tree}中的序列作为队列：
+按广度优先顺序访问各个节点，使用\ref{sec:finger-tree}中的序列作为队列：
 \begin{Haskell}
 data Tr a = E | Br (Tr a) a (Tr a)
 

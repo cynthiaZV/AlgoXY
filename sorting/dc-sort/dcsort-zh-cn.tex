@@ -85,7 +85,7 @@ sort\ (x \cons xs) & = & sort\ [y | y \gets xs, y \leq x] \doubleplus [x] \doubl
 \end{array}
 \ee
 
-我们使用了ZF表达式（见\cref{sec:zf-expr}、\cref{sec:list-filter}）划分列表，如下面的例子代码：
+我们使用了ZF表达式（见\ref{sec:zf-expr}、\ref{sec:list-filter}）划分列表，如下面的例子代码：
 
 \lstset{frame = single}
 \begin{Haskell}
@@ -93,7 +93,7 @@ sort [] = []
 sort (x:xs) = sort [y | y<-xs, y <= x] ++ [x] ++ sort [y | y<-xs, x < y]
 \end{Haskell}
 
-我们假设按递增顺序排序。可以把比较条件（$\leq$）抽象出来，对数字、字符串等进行各种排序。我们并不要求一定是全序，但是至少要满足\textbf{严格弱序}\cite{wiki-total-order}、\cite{wiki-sweak-order}(见\cref{sec:strict-weak-order})。
+我们假设按递增顺序排序。可以把比较条件（$\leq$）抽象出来，对数字、字符串等进行各种排序。我们并不要求一定是全序，但是至少要满足\textbf{严格弱序}\cite{wiki-total-order}、\cite{wiki-sweak-order}(见\ref{sec:strict-weak-order})。
 
 \subsection{划分}
 \index{快速排序!划分（partition）}

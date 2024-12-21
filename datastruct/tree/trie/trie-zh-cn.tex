@@ -991,7 +991,7 @@ enum = concatMap (\(k, t) -> [(k ++ a, b) | (a, b) <- startsWith [] t])
 \EndFunction
 \end{algorithmic}
 
-其中函数\textproc{Expand}($s, T, n$)从$T$中扩展出$n$个结果，并将$s$附加在每个键的前面。我们可以用广度优先搜索方法实现它（见\cref{sec:DFS-BFS}）：
+其中函数\textproc{Expand}($s, T, n$)从$T$中扩展出$n$个结果，并将$s$附加在每个键的前面。我们可以用广度优先搜索方法实现它（见\ref{sec:DFS-BFS}）：
 
 \begin{algorithmic}[1]
 \Function{Expand}{$s, T, n$}
