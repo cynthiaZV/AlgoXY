@@ -1,5 +1,4 @@
 \ifx\wholebook\relax \else
-% ------------------------
 
 \documentclass[b5paper]{article}
 \usepackage[nomarginpar
@@ -20,13 +19,13 @@
 
 \author{Xinyu LIU
 \thanks{{\bfseries Xinyu LIU} \newline
-  Email: liuxinyu95@gmail.com \newline}
+  Email: liuxinyu99@hotmail.com \newline}
   }
 
 \maketitle
 \fi
 
-\markboth{Insertion sort}{Elementary Algorithms}
+%\markboth{Insertion sort}{Elementary Algorithms}
 
 \ifx\wholebook\relax
 \chapter{Insertion sort}
@@ -36,7 +35,8 @@
 \section{Introduction}
 \label{sec:isort-introduction} \index{insertion sort}
 
-Insertion sort is a straightforward sort algorithm\footnote{We skip the `Bubble sort' method}. We give its preliminary definition for list in chapter 1. For a collection of comparable elements, we repeatedly pick one, insert them to a list and maintain the ordering. As every insertion takes linear time, its performance is bound to $O(n^2)$ where $n$ is the number of elements. This performance is not as good as the divide and conqueror sort algorithms, like quick sort and merge sort. However, we can still find its application today. For example, a well tuned quick sort implementation falls back to insertion sort for small data set. The idea of insertion sort is similar to sort a deck of a poker cards(\cite{CLRS} pp.15). The cards are shuffled. A player takes card one by one. At any time, all cards on hand are sorted. When draws a new card, the player inserts it in proper position according to the order of points as shown in figure \ref{fig:hand-of-cards}.
+\lstset{frame = single}
+Insertion sort is a straightforward sort algorithm\footnote{We skip the `Bubble sort' method}. We give its preliminary definition for list in chapter 1. For a collection of comparable elements, we repeatedly pick one, insert them to a list and maintain the ordering. As every insertion takes linear time, its performance is bound to $O(n^2)$ where $n$ is the number of elements. This performance is not as good as the divide and conqueror sort algorithms, like quick sort and merge sort. However, we can still find its application today. For example, a well tuned quick sort implementation falls back to insertion sort for small data set. The idea of insertion sort is similar to sort a deck of a poker cards(\cite{CLRS} pp.15). The cards are shuffled. A player takes card one by one. At any time, all cards on hand are sorted. When draws a new card, the player inserts it in proper position according to the order of points as shown in \cref{fig:hand-of-cards}.
 
 \begin{figure}[htbp]
   \centering
@@ -49,7 +49,7 @@ Based on this idea, we can implement insertion sort as below:
 
 \begin{algorithmic}[1]
 \Function{Sort}{$A$}
-  \State $S \gets$ NIL
+  \State $S \gets [\ ]$
   \For{each $a \in A$}
     \State \Call{Insert}{$a, S$}
   \EndFor
@@ -67,11 +67,11 @@ We store the sorted result in a new array, alternatively, we can change it to in
 \EndFunction
 \end{algorithmic}
 
-Where the index $i$ ranges from 1 to $n = |A|$. We start from 2, because the singleton sub-array $[A[1]]$ is ordered. When process the $i$-th element, all elements before $i$ are sorted. We continuously insert elements till consuming all the unsorted ones, as shown in figure \ref{fig:in-place-sort}.
+Where the index $i$ ranges from 1 to $n = |A|$. We start from 2, because the singleton sub-array of $A[1]$ is ordered. When process the $i$-th element, all elements before $i$ are sorted. We continuously insert elements till $n$, as shown in \cref{fig:in-place-sort}.
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=0.8]{img/in-place-sort}
+  \includegraphics[scale=0.7]{img/insert-sort}
   \caption{Continuously insert elements to the sorted part.}
   \label{fig:in-place-sort}
 \end{figure}
@@ -79,7 +79,7 @@ Where the index $i$ ranges from 1 to $n = |A|$. We start from 2, because the sin
 \section{Insertion}
 \index{insertion sort!insertion}
 
-In chapter 1, we give the ordered insertion algorithm for list. For array, we also scan it to locate the insert position either from left or right. Below algorithm is from right:
+In chapter 1, we define the ordered insertion for list. For array, we scan to locate the insert position either from left or right. Below algorithm is from right:
 
 \begin{algorithmic}[1]
 \Function{Sort}{$A$}
@@ -96,7 +96,7 @@ In chapter 1, we give the ordered insertion algorithm for list. For array, we al
 \EndFunction
 \end{algorithmic}
 
-It's expensive to insert at arbitrary position, as array stores elements continuously. When insert $x$ at position $i$, we need shift all elements after $i$ (i.e. $A[i + 1], A[i + 2], ...$) one cell to right. After free up the cell at $i$, we put $x$ in, as shown in figure \ref{fig:array-shift}.
+It's expensive to insert at arbitrary position, as array stores elements continuously. When insert $x$ at position $i$, we need shift all elements after $i$ (i.e. $A[i + 1], A[i + 2], ...$) right. then put $x$ in the freed cell, as shown in \cref{fig:array-shift}.
 
 \begin{figure}[htbp]
   \centering
@@ -105,12 +105,49 @@ It's expensive to insert at arbitrary position, as array stores elements continu
   \label{fig:array-shift}
 \end{figure}
 
-For the array of length $n$, suppose after comparing $x$ to the first $i$ elements, we located the position to insert. Then we shift the rest $n - i + 1$ elements, and put $x$ in the $i$-th cell. Overall, we need traverse the whole array if scan from left. On the other hand, if scan from right to left, we examine $n - i + 1$ elements, and perform the same amount of shifts. We can also define a separated \textproc{Insert}() function, and call it inside the loop. The insertion takes linear time no matter scans from left or right, hence the sort algorithm is bound to $O(n^2)$, where $n$ is the number of elements.
+For the array of length $n$, suppose after comparing $x$ to the first $i$ elements, we located the position to insert. Then we shift the rest $n - i + 1$ elements, and put $x$ in the $i$-th cell. Overall, we traverse the entire array if scan from left. While, if scan from right, we examine $n - i + 1$ elements, and do the same amount of shifts. The insertion takes linear time no matter scans from left or right, hence the sort algorithm is bound to $O(n^2)$. We can also define a separated \textproc{Insert}() function, and call it inside the loop.
 
-\begin{Exercise}
+\begin{Exercise}[label={ex:isort-insert}]
 \Question{Implement the insert to scan from left to right.}
 \Question{Define the insert function, and call it from the sort algorithm.}
 \end{Exercise}
+
+\begin{Answer}[ref = {ex:isort-insert}]
+\Question{Implement the insert to scan from left to right.
+\begin{Bourbaki}
+Void insert([T] xs, T x) {
+    Int i = 0, n = length(xs)
+    append(xs, x)
+    while i < n and xs[i] < x { i++ }
+    while i < n {
+        xs[n] = xs[n - 1]
+        n = n - 1
+    }
+    xs[i] = x
+}
+\end{Bourbaki}
+}
+\Question{Define the insert function, and call it from the sort algorithm.
+\begin{Bourbaki}
+Void insert([T] xs, T x) {
+    append(xs, x)
+    Int i = length(xs) - 1
+    while i > 0 and xs[i] < xs[i-1] {
+        swap(xs[i], xs[i-1])
+        i--
+    }
+}
+
+[T] sort([T] xs) {
+    [T] ys = []
+    for x in xs {
+        insert(ys, x)
+    }
+    return ys
+}
+\end{Bourbaki}
+}
+\end{Answer}
 
 \section{Binary search}
 \index{Insertion sort!binary search}
@@ -130,7 +167,7 @@ When insert a poker card, human does not scan, but takes a quick glance at the d
 \EndFunction
 \end{algorithmic}
 
-Binary search utilize the fact that the slice $A[1...(i-1)]$ is ordered. Suppose it is ascending without loss of generality (as we can define $\leq$ abstract). To find the position $j$ that satisfies $A[j-1] \leq x \leq A[j]$, we compare $x$ to the middle element $A[m]$, where $m = \lfloor \dfrac{i}{2} \rfloor$. If $x < A[m]$, we then recursively apply binary search to the first half; otherwise, we search the second half. As every time, we halve the elements, binary search takes $O(\lg i)$ time to locate the insert position.
+Because the slice $A[1...(i-1)]$ is already ordered, to find the position $j$ such that$A[j-1] \leq x \leq A[j]$, we compare $x$ to the middle element $A[m]$, where $m = \lfloor \dfrac{i}{2} \rfloor$. If $x < A[m]$, we then recursively apply binary search to the first half; otherwise, we search the second half. As we halve the elements every time, binary search takes $O(\lg i)$ time to locate the insert position.
 
 \begin{algorithmic}[1]
 \Function{Binary-Search}{$x, A$}
@@ -149,38 +186,32 @@ Binary search utilize the fact that the slice $A[1...(i-1)]$ is ordered. Suppose
 \EndFunction
 \end{algorithmic}
 
-The improved sort algorithm is still bound to $O(n^2)$. The one with scan takes $O(n^2)$ comparisons and $O(n^2)$ shifts; with binary search, it overall takes $O(n \lg n)$ comparisons and $O(n^2)$ shifts.
+The improved sort algorithm is still bound to $O(n^2)$. The one with scan takes $O(n^2)$ comparisons and $O(n^2)$ shifts; with binary search, it takes $O(n \lg n)$ comparisons and $O(n^2)$ shifts.
 
-\begin{Exercise}
-\Question{Implement the recursive binary search.}
-\end{Exercise}
+%% \begin{Exercise}
+%% \Question{Implement the recursive binary search.}
+%% \end{Exercise}
 
 \section{List}
 \index{Insertion sort!linked-list setting}
 
-With binary search, the search time improved to $O(n \lg n)$. However, as we need shift array cells when insert, the overall time is still bound to $O(n^2)$. On the other hand, when use list, the insert operation is constant time at a given node reference. In chapter 1, we define the insertion sort algorithm for list as below:
+With binary search, the total number of comparisons reduced to $O(n \lg n)$. However, as we need shift array cells when insert, the overall time is still bound to $O(n^2)$. On the other hand, when use list, the insert operation is constant time at a given node reference. In chapter 1, we define the insertion sort algorithm for list as below:
 
 \be
 \begin{array}{rcl}
-sort(\nil) & = & \nil \\
-sort(x:xs) & = & insert(x, sort(xs)) \\
+sort\ [\ ] & = & [\ ] \\
+sort\ (x \cons xs) & = & insert\ x\ (sort\ xs) \\
 \end{array}
 \ee
 
-Or with $fold_l$ in Curried form:
-
-\be
-sort = fold_l(insert, \nil)
-\ee
-
-However, the list $insert$ algorithm still takes linear time, because we need scan to locate the insert position:
+Or define with $foldr$ in Curried form: $sort = foldr\ insert\ [\ ]$. However, the list $insert$ algorithm still takes linear time, because we need scan to locate the insert position:
 
 \be
 \begin{array}{rcl}
-insert(x,\ \nil) & = & [x] \\
-insert(x,\ y : ys) & = & \begin{cases}
+insert\ x\ [\ ] & = & [x] \\
+insert\ x\ (y \cons ys) & = & \begin{cases}
   x \leq y : & x : y : ys \\
-  otherwise : & y : insert(x, ys) \\
+  \text{otherwise}: & y : insert\ x\ ys \\
   \end{cases}
 \end{array}
 \ee
@@ -210,9 +241,25 @@ Instead of using node reference, we can also realize list through an additional 
 
 With list, although the insert operation changes to constant time, we need traverse the list to locate the position. It is still bound to $O(n^2)$ times comparison. Unlike array, list does not support random access, hence we can not use binary search to speed up.
 
-\begin{Exercise}
+\begin{Exercise}[label={ex:list-index-array-reorder}]
 \Question{For the index array based list, we return the re-arranged index as result. Design an algorithm to re-order the original array $A$ from the index $Next$.}
 \end{Exercise}
+
+\begin{Answer}[ref = {ex:list-index-array-reorder}]
+\Question{For the index array based list, we return the re-arranged index as result. Design an algorithm to re-order the original array $A$ from the index $Next$.
+\begin{Bourbaki}
+[K] reorder([K] xs, [Int] next) {
+    Int i = -1
+    [Int] ys = []
+    while next[i] != -1 {
+        append(ys, xs[next[i]])
+        i = next[i]
+    }
+    return ys
+}
+\end{Bourbaki}
+}
+\end{Answer}
 
 \section{Binary search tree}
 \index{Insertion sort!binary search tree}
@@ -229,12 +276,14 @@ We drive into a corner. We want to improve both comparison and insertion at the 
 \EndFunction
 \end{algorithmic}
 
-Where \textproc{Insert-Tree}() and \textproc{To-List}() are defined in chapter 2. In average case, the performance of tree sort is bound to $O(n \lg n)$, where $n$ is the number of elements. This is the lower limit of comparison based sort(\cite{Knuth} pp.180-193). However, in the worst case, if the tree is poor balanced the performance drops to $O(n^2)$.
+Or $sort = toList \circ \textit{fromList}$ for list, where \textproc{Insert-Tree}(), \textproc{To-List}(), and \textit{fromList} are defined in chapter 2. In average case, the performance of tree sort is bound to $O(n \lg n)$. This is the lower limit of comparison based sort(\cite{Knuth-V3} pp.180-193). However, in the worst case that the tree is poor balanced the performance drops to $O(n^2)$.
 
-\section{Summary}
 Insertion sort is often used as the first example of sorting. It is straightforward and easy to implement. However its performance is quadratic. Insertion sort does not only appear in textbooks, it has practical use case in the quick sort implementation. It is an engineering practice to fallback to insertion sort when the number of elements is small.
 
 \ifx\wholebook\relax \else
+\section{Answers}
+\shipoutAnswer
+
 \begin{thebibliography}{99}
 
 \bibitem{CLRS}

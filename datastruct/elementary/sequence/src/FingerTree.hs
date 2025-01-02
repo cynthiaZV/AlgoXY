@@ -20,171 +20,206 @@ module FingerTree where
 
 import Test.QuickCheck
 
--- Based on Ralf Hinze and Ross Paterson's work [1].
+-- 2-3 tree
+data Node a = Tr2 Int a a
+            | Tr3 Int a a a
+            deriving (Show, Eq)
 
-data Node a = Br Int [a] deriving (Show) -- size, branches
-
-data Tree a = Empty 
+-- Finger Tree
+data Tree a = Empty
             | Lf a
-            | Tr Int [a] (Tree (Node a)) [a] -- size, front, middle, rear
-              deriving (Show)
+            | Br Int [a] (Tree (Node a)) [a] -- size, front, mid, rear
+            deriving (Show, Eq)
 
-type FList a = Tree (Node a)
+newtype Elem a = Elem { getElem :: a } deriving (Show, Eq)
 
--- Auxiliary functions for calculate size of node and tree
+newtype Seq a = Seq (Tree (Elem a)) deriving (Show, Eq)
 
-size :: Node a -> Int
-size (Br s _) = s
+class Sized a where
+  size :: a -> Int
 
-sizeL :: [Node a] -> Int
-sizeL = sum .(map size)
+instance Sized (Elem a) where
+  size _ = 1
 
-sizeT :: FList a -> Int
-sizeT Empty = 0
-sizeT (Lf a) = size a
-sizeT (Tr s _ _ _) = s
+instance Sized (Node a) where
+  size (Tr2 s _ _) = s
+  size (Tr3 s _ _ _) = s
 
--- Auxiliary functions for building and unboxing node(s)
+instance Sized a => Sized (Tree a) where
+  size Empty = 0
+  size (Lf a) = size a
+  size (Br s _ _ _) = s
 
-wrap :: a -> Node a
-wrap x = Br 1 [x]
+instance Sized (Seq a) where
+  size (Seq xs) = size xs
 
-unwrap :: Node a -> a
-unwrap (Br 1 [x]) = x
+tr2 a b = Tr2 (size a + size b) a b
+tr3 a b c = Tr3 (size a + size b + size c) a b c
 
-wraps :: [Node a] -> Node (Node a)
-wraps xs = Br (sizeL xs) xs
+nodesOf (Tr2 _ a b) = [a, b]
+nodesOf (Tr3 _ a b c) = [a, b, c]
 
-unwraps :: Node a -> [a]
-unwraps (Br _ xs) = xs
+-- Add from left
+x <| Seq xs = Seq (Elem x `cons` xs)
 
--- Helper function for building tree
+cons :: (Sized a) => a -> Tree a -> Tree a
+cons a Empty = Lf a
+cons a (Lf b) = Br (size a + size b) [a] Empty [b]
+cons a (Br s [b, c, d] m r) = Br (s + size a) [a] ((tr3 b c d) `cons` m) r
+cons a (Br s f m r) = Br (s + size a) (a:f) m r
 
-tree :: [Node a] -> FList (Node a) -> [Node a] -> FList a
-tree f Empty [] = foldr cons' Empty f
-tree [] Empty r = foldr cons' Empty r
-tree [] m r = let (f, m') = uncons' m in tree (unwraps f) m' r
-tree f m [] = let (m', r) = unsnoc' m in tree f m' (unwraps r)
-tree f m r = Tr (sizeL f + sizeT m + sizeL r) f m r
+-- Remove from left
+head' (Seq xs) = getElem $ fst $ uncons xs
+tail' (Seq xs) = Seq $ snd $ uncons xs
 
--- Operations at the front of the sequence
+uncons :: (Sized a) => Tree a -> (a, Tree a)
+uncons (Lf a) = (a, Empty)
+uncons (Br _ [a] Empty [b]) = (a, Lf b)
+uncons (Br s [a] Empty (r:rs)) = (a, Br (s - size a) [r] Empty rs)
+uncons (Br s [a] m r) = (a, Br (s - size a) (nodesOf f) m' r) where (f, m') = uncons m
+uncons (Br s (a:f) m r) = (a, Br (s - size a) f m r)
 
-cons :: a -> FList a -> FList a
-cons a t = cons' (wrap a) t
+-- Add from right
+Seq xs |> x  = Seq (xs `snoc` Elem x)
 
-cons' :: (Node a) -> FList a -> FList a
-cons' a Empty = Lf a
-cons' a (Lf b) = tree [a] Empty [b]
-cons' a (Tr _ [b, c, d, e] m r) = tree [a, b] (cons' (wraps [c, d, e]) m) r
-cons' a (Tr _ f m r) = tree (a:f) m r
+snoc :: (Sized a) => Tree a -> a -> Tree a
+snoc Empty a = Lf a
+snoc (Lf a) b = Br (size a + size b) [a] Empty [b]
+snoc (Br s f m [a, b, c]) d = Br (s + size d) f (m `snoc` (tr3 a b c)) [d]
+snoc (Br s f m r) a = Br (s + size a) f m (r ++ [a])
 
-uncons :: FList a -> (a, FList a)
-uncons ts = let (t, ts') = uncons' ts in (unwrap t, ts')
+-- Remove from right
+last' (Seq xs) = getElem $ snd $ unsnoc xs
+init' (Seq xs) = Seq $ fst $ unsnoc xs
 
-uncons' :: FList a -> ((Node a), FList a)
-uncons' (Lf a) = (a, Empty)
-uncons' (Tr _ [a] Empty [b]) = (a, Lf b)
-uncons' (Tr _ [a] Empty (r:rs)) = (a, tree [r] Empty rs)
-uncons' (Tr _ [a] m r) = (a, tree (unwraps f) m' r) where (f, m') = uncons' m
-uncons' (Tr _ (a:f) m r) = (a, tree f m r)
+unsnoc :: (Sized a) => Tree a -> (Tree a, a)
+unsnoc (Lf a) = (Empty, a)
+unsnoc (Br _ [a] Empty [b]) = (Lf a, b)
+unsnoc (Br s f@(_:_:_) Empty [a]) = (Br (s - size a) (init f) Empty [last f], a)
+unsnoc (Br s f m [a]) = (Br (s - size a) f m' (nodesOf r), a) where (m', r) = unsnoc m
+unsnoc (Br s f m r) = (Br (s - size a) f m (init r), a) where a = last r
 
-head' :: FList a -> a
-head' = fst . uncons
+-- Concatenate
+Seq xs +++ Seq ys = Seq (xs >+< ys)
 
-tail' :: FList a -> FList a
-tail' = snd . uncons
+xs >+< ys = merge xs [] ys
 
--- Operations at the rear of the sequence
+t <<< xs = foldl snoc t xs
+xs >>> t = foldr cons t xs
 
-snoc :: FList a -> a -> FList a
-snoc t a = snoc' t (wrap a)
+merge :: (Sized a) => Tree a -> [a] -> Tree a -> Tree a
+merge Empty es t2 = es >>> t2
+merge t1 es Empty = t1 <<< es
+merge (Lf a) es t2 = merge Empty (a:es) t2
+merge t1 es (Lf a) = merge t1 (es++[a]) Empty
+merge (Br s1 f1 m1 r1) es (Br s2 f2 m2 r2) =
+    Br (s1 + s2 + (sum $ map size es)) f1 (merge m1 (trees (r1 ++ es ++ f2)) m2) r2
 
-snoc' :: FList a -> Node a -> FList a
-snoc' Empty a = Lf a
-snoc' (Lf a) b = tree [a] Empty [b]
-snoc' (Tr _ f m [a, b, c, d]) e = tree f (snoc' m (wraps [a, b, c])) [d, e]
-snoc' (Tr _ f m r) a = tree f m (r++[a])
+trees [a, b] = [tr2 a b]
+trees [a, b, c] = [tr3 a b c]
+trees [a, b, c, d] = [tr2 a b, tr2 c d]
+trees (a:b:c:es) = (tr3 a b c):trees es
 
-unsnoc :: FList a -> (FList a, a)
-unsnoc ts = let (ts', t) = unsnoc' ts in (ts', unwrap t)
+-- Index
+data Place a = Place Int a deriving (Show, Eq)
 
-unsnoc' :: FList a -> (FList a, (Node a))
-unsnoc' (Lf a) = (Empty, a)
-unsnoc' (Tr _ [a] Empty [b]) = (Lf a, b)
-unsnoc' (Tr _ f@(_:_) Empty [a]) = (tree (init f) Empty [last f], a)
-unsnoc' (Tr _ f m [a]) = (tree f m' (unwraps r), a) where (m', r) = unsnoc' m
-unsnoc' (Tr _ f m r) = (tree f m (init r), (last r))
+getAt :: Seq a -> Int -> Maybe a
+getAt (Seq xs) i | i < size xs = case lookupTree i xs of
+                     Place _ (Elem x) -> Just x
+                 | otherwise = Nothing
 
-last' :: FList a -> a
-last' = snd . unsnoc
+lookupTree :: (Sized a) => Int -> Tree a -> Place a
+lookupTree _ Empty = error "lookup of empty tree"
+lookupTree n (Lf a) = Place n a
+lookupTree n (Br s f m r) | n < sf = lookups n f
+                          | n < sm = case lookupTree (n - sf) m of
+                                            Place n' xs -> lookupNode n' xs
+                          | n < s = lookups (n - sm) r
+                          | otherwise = error "out of bound"
+  where sf = sum $ map size f
+        sm = sf + size m
 
-init' :: FList a -> FList a
-init' = fst . unsnoc
+lookupNode :: (Sized a) => Int -> Node a -> Place a
+lookupNode n (Tr2 _ a b) | n < sa = Place n a
+                         | otherwise = Place (n - sa) b
+  where sa = size a
+lookupNode n (Tr3 _ a b c) | n < sa = Place n a
+                           | n < sab = Place (n - sa) b
+                           | otherwise = Place (n - sab) c
+  where sa = size a
+        sab = sa + size b
 
--- Concatenation
+lookups :: (Sized a) => Int -> [a] -> Place a
+lookups _ [] = error "empty list"
+lookups n (x:xs) = if n < sx then Place n x
+                   else lookups (n - sx) xs
+  where sx = size x
 
-concat' :: FList a -> FList a -> FList a
-concat' t1 t2 = merge t1 [] t2
+-- | Cut
+-- | Inspired by Dedekind cut, we cut *on* an element
+-- |  unless the sequence is empty, or out of bound
 
-merge :: FList a -> [Node a] -> FList a -> FList a
-merge Empty ts t2 = foldr cons' t2 ts
-merge t1 ts Empty = foldl snoc' t1 ts
-merge (Lf a) ts t2 = merge Empty (a:ts) t2
-merge t1 ts (Lf a) = merge t1 (ts++[a]) Empty
-merge (Tr s1 f1 m1 r1) ts (Tr s2 f2 m2 r2) = 
-    Tr (s1 + s2 + (sizeL ts)) f1 (merge m1 (nodes (r1 ++ ts ++ f2)) m2) r2
+cut :: Int -> Seq a -> (Seq a, Maybe a, Seq a)
+cut i (Seq xs) | i < 0 = (Seq Empty, Nothing, Seq xs)
+               | i < size xs = case cutTree i xs of
+                 (a, Just (Place _ (Elem x)), b) -> (Seq a, Just x, Seq b)
+                 (a, Nothing, b) -> (Seq a, Nothing, Seq b)
+               | otherwise = (Seq xs, Nothing, Seq Empty)
 
-nodes :: [Node a] -> [Node (Node a)]
-nodes [a, b] = [wraps [a, b]]
-nodes [a, b, c] = [wraps [a, b, c]]
-nodes [a, b, c, d] = [wraps [a, b], wraps [c, d]]
-nodes (a:b:c:xs) = (wraps [a, b, c]):nodes xs
+cutTree :: (Sized a) => Int -> Tree a -> (Tree a, Maybe (Place a), Tree a)
+cutTree _ Empty = (Empty, Nothing, Empty)
+cutTree i (Lf a) | i < size a = (Empty, Just (Place i a), Empty)
+                 | otherwise = (Lf a, Nothing, Empty)
+cutTree i (Br s f m r)
+  | i < sf = case cutList i f of
+               (xs, x, ys) -> (Empty <<< xs, x, tree ys m r)
+  | i < sm = case cutTree (i - sf) m of
+               (t1, Just (Place i' a), t2) -> let (xs, x, ys) = cutNode i' a
+                 in (tree f t1 xs, x, tree ys t2 r)
+  | i < s  = case cutList (i - sm) r of
+               (xs, x, ys) -> (tree f m xs, x, ys >>> Empty)
+  | otherwise = error "cut tree: out of bound"
+  where
+    sf = sum $ map size f
+    sm = sf + size m
 
--- Splitting
+cutList :: (Sized a) => Int -> [a] -> ([a], Maybe (Place a), [a])
+cutList _ [] = ([], Nothing, [])
+cutList i (x:xs) | i < sx = ([], Just (Place i x), xs)
+             | otherwise = let (xs', y, ys) = cutList (i - sx) xs in (x:xs', y, ys)
+  where sx = size x
 
-splitAt' :: Int -> FList a -> (FList a, Node a, FList a)
-splitAt' _ (Lf x) = (Empty, x, Empty)
-splitAt' i (Tr _ f m r) 
-    | i < szf = let (xs, y, ys) = splitNodesAt i f
-                in ((foldr cons' Empty xs), y, tree ys m r)
-    | i < szf + szm = let (m1, t, m2) = splitAt' (i-szf) m
-                          (xs, y, ys) = splitNodesAt (i-szf - sizeT m1) (unwraps t)
-                      in (tree f m1 xs, y, tree ys m2 r)
-    | otherwise = let (xs, y, ys) = splitNodesAt (i-szf -szm) r
-                  in (tree f m xs, y, foldr cons' Empty ys)
-    where
-      szf = sizeL f
-      szm = sizeT m
+cutNode :: (Sized a) => Int -> Node a -> ([a], Maybe (Place a), [a])
+cutNode i (Tr2 _ a b) | i < sa = ([], Just (Place i a), [b])
+                      | otherwise = ([a], Just (Place (i - sa) b), [])
+  where sa = size a
+cutNode i (Tr3 _ a b c) | i < sa = ([], Just (Place i a), [b, c])
+                        | i < sab = ([a], Just (Place (i - sa) b), [c])
+                        | otherwise = ([a, b], Just (Place (i - sab) c), [])
+  where sa = size a
+        sab = sa + size b
 
-splitNodesAt :: Int -> [Node a] -> ([Node a], Node a, [Node a])
-splitNodesAt 0 [x] = ([], x, [])
-splitNodesAt i (x:xs) | i < size x = ([], x, xs)
-                      | otherwise = let (xs', y, ys) = splitNodesAt (i-size x) xs 
-                                    in (x:xs', y, ys)
+tree as Empty [] = as >>> Empty
+tree [] Empty bs = Empty <<< bs
+tree [] m r = Br (size m + sum (map size r)) (nodesOf f) m' r where (f, m') = uncons m
+tree f m [] = Br (size m + sum (map size f)) f m' (nodesOf r) where (m', r) = unsnoc m
+tree f m r = Br (size m + sum (map size f) + sum (map size r)) f m r
 
--- Random access operations
+setAt s i x = case cut i s of
+  (_, Nothing, _) -> s
+  (xs, Just y, ys) -> xs +++ (x <| ys)
 
-getAt :: FList a -> Int -> a
-getAt t i = unwrap x where (_, x, _) = splitAt' i t
+extractAt s i = case cut i s of (xs, Just y, ys) -> (y, xs +++ ys)
 
-extractAt :: FList a -> Int -> (a, FList a)
-extractAt t i = let (l, x, r) = splitAt' i t in (unwrap x, concat' l r)
+moveToFront s i = if i < 0 || i >= size s then s
+                  else let (a, s') = extractAt s i in a <| s'
 
-setAt :: FList a -> Int -> a -> FList a
-setAt t i x = let (l, _, r) = splitAt' i t in concat' l (cons x r)
+fromList :: [a] -> Seq a
+fromList = foldr (<|) (Seq Empty)
 
--- move the i-th element to front
-moveToFront :: FList a -> Int -> FList a
-moveToFront t i = let (a, t') = extractAt t i in cons a t'
-
--- auxiliary functions
-
-fromList :: [a] -> FList a
-fromList = foldr cons Empty
-
-toList :: FList a -> [a]
-toList Empty = []
-toList t = (head' t):(toList $ tail' t)
+toList :: Seq a -> [a]
+toList (Seq Empty) = []
+toList xs = (head' xs) : (toList $ tail' xs)
 
 -- testing
 
@@ -192,27 +227,46 @@ prop_cons :: [Int] -> Bool
 prop_cons xs = xs == (toList $ fromList xs)
 
 prop_snoc :: [Int] -> Bool
-prop_snoc xs = xs == (toList' $ foldl snoc Empty xs) where
-    toList' Empty = []
-    toList' t = (toList' $ init' t)++[last' t]
+prop_snoc xs = xs == (reverse $ reversed $ foldl (|>) (Seq Empty) xs) where
+    reversed (Seq Empty) = []
+    reversed s = (last' s) : (reversed $ init' s)
 
-prop_concat :: [Int]->[Int]->Bool
-prop_concat xs ys = (xs ++ ys) == (toList $ concat' (fromList xs) (fromList ys))
+prop_concat :: [Int] -> [Int] -> Bool
+prop_concat xs ys = (xs ++ ys) == (toList ((fromList xs) +++ (fromList ys)))
 
-prop_lookup :: [Int] -> Int -> Property
-prop_lookup xs i = (0 <=i && i < length xs) ==> (getAt (fromList xs) i) == (xs !! i)
+prop_lookup :: [Int] -> Bool
+prop_lookup xs = and [Just (xs !! i) == getAt s i | i <- [0 .. length xs - 1]] where
+  s = fromList xs
 
-prop_update :: [Int] -> Int -> Int -> Property
-prop_update xs i y = (0 <=i && i < length xs) ==> toList (setAt (fromList xs) i y) == xs' where
-    xs' = as ++ [y] ++ bs
-    (as, (_:bs)) = splitAt i xs
+prop_cut :: [Int] -> Bool
+prop_cut xs = and [(splitAt i xs) `eq` (cut i s) | i <- [-1 .. length xs]] where
+   s = fromList xs
+   eq (xs, ys) (s1, Nothing, s2) = xs == toList s1 && ys == toList s2
+   eq (xs, ys) (s1, Just x, s2) = xs == toList s1 && ys == x : toList s2
 
-prop_mtf :: [Int] -> Int -> Property
-prop_mtf xs i = (0 <=i && i < length xs) ==> (toList $ moveToFront (fromList xs) i) == mtf
+prop_update :: [Int] -> Bool
+prop_update xs = and [(updateAt i xs (i + 1)) == toList (setAt s i (i + 1))
+                     | i <- [-1 .. length xs]] where
+  s = fromList xs
+  updateAt i xs x = if i < 0 then xs else case splitAt i xs of
+    (as, _:bs) -> as ++ (x:bs)
+    (as, []) -> xs
+
+prop_mtf :: [Int] -> Bool
+prop_mtf xs  =and [(toList $ moveToFront s i) == mtf xs i | i <-[-1 .. length xs]]
     where
-      mtf = b : as ++ bs
-      (as, (b:bs)) = splitAt i xs
+      s = fromList xs
+      mtf xs i = if i < 0 || i >= length xs then xs
+        else let (as, (b:bs)) = splitAt i xs in b : as ++ bs
 
+testAll = do
+  quickCheck prop_cons
+  quickCheck prop_snoc
+  quickCheck prop_concat
+  quickCheck prop_lookup
+  quickCheck prop_cut
+  quickCheck prop_update
+  quickCheck prop_mtf
 
 -- Reference
 -- [1]. Ralf Hinze and Ross Paterson. ``Finger Trees: A Simple General-purpose Data Structure,'' in Journal of Functional Programming 16:2 (2006), pages 197-217. http://www.soi.city.ac.uk/~ross/papers/FingerTree.html

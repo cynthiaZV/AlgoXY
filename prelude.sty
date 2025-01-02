@@ -1,42 +1,20 @@
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{prelude}[2020/10/06 AlgoXY Prelude LaTeX package]
-%
-% loading packages
-%
 
 \usepackage[hyphens]{url}
 \urlstyle{rm}
 \RequirePackage{ifpdf}
 \RequirePackage{ifxetex}
 
-\ifpdf
-  \RequirePackage[pdftex,%
-       bookmarksnumbered,%
-              colorlinks,%
-          linkcolor=blue,%
-              hyperindex,%
-        plainpages=false,%
-       pdfstartview=FitH]{hyperref}
-\else\ifxetex
-  \RequirePackage[bookmarksnumbered,%
-               colorlinks,%
-           linkcolor=blue,%
-               hyperindex,%
-         plainpages=false,%
-        pdfstartview=FitH]{hyperref}
-\else
-  \RequirePackage[dvipdfm,%
-        bookmarksnumbered,%
-               colorlinks,%
-           linkcolor=blue,%
-               hyperindex,%
-         plainpages=false,%
-        pdfstartview=FitH]{hyperref}
-\fi\fi
-%\usepackage{hyperref}
+\RequirePackage[bookmarksnumbered,
+             colorlinks,
+         linkcolor=blue,
+             hyperindex,
+       plainpages=false,
+      pdfstartview=FitH]{hyperref}
 
-% other packages
-%--------------------------------------------------------------------------
+\usepackage{fontspec}
+\usepackage[nil,english]{babel}
 \usepackage{graphicx, color}
 \usepackage{adjustbox}
 \usepackage{wrapfig}
@@ -45,7 +23,7 @@
 \usepackage{enumerate}
 \usepackage{multicol}
 \usepackage{pdfpages}    % to include pdf
-\usepackage[table]{xcolor} % for colored table
+\usepackage{xcolor}      % for colored table
 \usepackage{hhline}
 \usepackage[super, square]{natbib}
 \usepackage{tikz}
@@ -62,13 +40,10 @@
 \usepackage{pict2e}   % for customize lens brackets
 \usepackage[normalem]{ulem}
 \usepackage{suffix}   % for starred command
-
 \usepackage{import} % for nested input
 \usepackage{standalone}
+\usepackage{tocloft}
 
-%
-% for programming
-%
 \usepackage{verbatim}
 \usepackage{fancyvrb}
 \usepackage{listings}
@@ -79,13 +54,12 @@
 \usepackage{titlesec}
 \usepackage{epigraph}
 \usepackage{ifplatform} % for platform detection
-
-\usepackage{fontspec}
-\usepackage{xunicode}
 \usepackage{textcomp}
 \usepackage{mdframed}
-\usepackage{xeCJK}
 \usepackage{sourcecodepro}
+\usepackage{etoolbox}
+\usepackage{csquotes}
+\usepackage{cleveref}
 
 \titleformat{\paragraph}
 {\normalfont\normalsize\bfseries}{\theparagraph}{1em}{}
@@ -96,6 +70,8 @@
 %\newcommand\doubleplus{+\kern-1.3ex+\kern0.8ex}
 %\newcommand\mdoubleplus{\ensuremath{\mathbin{+\mkern-10mu+}}}
 
+\newcommand\cons{\ensuremath{\mathbin{\!:\!}}}
+
 % for literate Haskell code
 \lstdefinestyle{Haskell}{
   language=Haskell,
@@ -103,7 +79,7 @@
   numberstyle=\ttfamily\tiny,
   emphstyle={\bf},
   escapeinside={*'}{'*},
-  stringstyle=\mdseries\rmfamily,
+  stringstyle=\mdseries\ttfamily, %rmfamily,
   keywordstyle=\bfseries\ttfamily, %rmfamily
   basicstyle=\footnotesize\ttfamily, %sffamily
   commentstyle = \footnotesize\rmfamily,
@@ -131,7 +107,7 @@
 \lstdefinelanguage{Bourbaki}{
   morekeywords={abstract, case, catch, class, struct,
     and, or, not, data, void, to, loop, in, then, repeat, until,
-    do, else, false, for, if, new, null, return,
+    do, else, false, for, if, new, null, return, break,
     throw, true, try, type, val, var, while, yield },
   otherkeywords={=>,<-,<\%,<:,>:,\#,@},
   literate={+}{{$+$}}1 {/}{{$/$}}1 {*}{{$*$}}1 {=}{{$=$}}1
@@ -167,7 +143,12 @@
     style=Haskell,
     #1}}{}
 
-\newcommand{\inlineHaskell}{\lstinline[language=Haskell, basicstyle=\ttfamily]}
+\lstnewenvironment{Bourbaki}[1][]
+{\lstset{
+    language = Bourbaki,
+    #1}}{}
+
+\newcommand{\inlineHaskell}{\lstinline[style=Haskell]}
 
 \newcommand{\arrowto}[2][]{\xlongrightarrow[#1]{\displaystyle #2}}
 \newcommand{\lbb}{\llparenthesis} % left banana bracket
@@ -208,7 +189,7 @@
 \newcommand{\llb}{\lbparen} % left lens bracket
 \newcommand{\rlb}{\rbparen} % right lens bracket
 
-% ======================================================================
+% =================================================================
 
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
@@ -227,6 +208,18 @@
 \WithSuffix\newcommand{\bea}*[1]{\[ \begin{array}{#1}}
 \WithSuffix\newcommand{\eea}*{\end{array} \]}
 
+% left aligned equations (but not right/left aligned for odd/even col)
+\newenvironment{laligned}{
+  \begin{array}{l@{\hspace{0.5\arraycolsep}}ll@{\hspace{0.5\arraycolsep}}l}
+}{\end{array}}
+
+\newenvironment{lalign}{\begin{equation}\begin{laligned}}{\end{laligned}\end{equation}}
+
+\newenvironment{lalign*}{\[ \begin{laligned}}{\end{laligned} \]}
+
+% single eq-number for aligned equations
+\newenvironment{salign}{\begin{equation}\begin{aligned}}{\end{aligned}\end{equation}}
+
 % begin/end reasoning
 \newcommand{\bre}{\[ \begin{array}{rcll}}
 \newcommand{\ere}{\end{array} \]}
@@ -239,6 +232,9 @@
 \DeclareMathOperator{\gcm}{gcm}
 \DeclareMathOperator{\fold}{fold}
 
+\newcommand{\foldn}{\textit{foldn}}
+\newcommand{\foldr}{\textit{foldr}}
+
 \newcommand{\btab}[1]{\vspace{5mm} \begin{center} \begin{tabular}{#1}}
 \newcommand{\etab}{\end{tabular} \end{center} \vspace{5mm}}
 
@@ -247,9 +243,14 @@
 \makeatother
 
 \setcounter{tocdepth}{4}
-%\setcounter{secnumdepth}{4}
+\setcounter{secnumdepth}{4}
+\renewcommand{\thesubsubsection}{} % \arabic{subsubsection}, \Alph{subsubsection}, {}
+\setlength{\cftsubsubsecindent}{30pt} % indent for \subsubsection
 
-%\verbatimfont{\footnotesize}
+\renewcommand{\theQuestion}{\theExercise.\arabic{Question}} % for question reference
+\renewcommand{\QuestionNB}{\theExercise.\arabic{Question}.\ } % for question presentation
+\crefname{Exercise}{Exercise}{Exercises}
+\crefalias{Question}{Exercise}
 
 % For Chinese Language support
 \DeclareOption{cn}{
@@ -260,31 +261,49 @@
   % fc-list :mono       % list all mono fonts
   % fc-cache            % refresh cache to load new installed fonts
 
-  \ifmacosx{ % Mac OS X
-    \message{Apply CN font: STSong, STHeiti, STFangsong}
-    \setCJKmainfont[BoldFont=STHeiti, ItalicFont=STKaiti]{STSong}
-    \setCJKsansfont{STHeiti}
-    \setCJKmonofont{STFangsong}
-  }\else{
-    \ifwindows{ % Windows
-      \message{Apply CN font: SimSun, SimHei}
-      \setCJKmainfont{SimSun}
+  \IfFontExistsTF{Noto Serif CJK SC}{ % prefer Noto CJK for all platforms
+    \message{Apply CN font: Noto CJK}
+    \setCJKmainfont{Noto Serif CJK SC} % Noto Serif CJK SC (思源宋体)
+    \setCJKsansfont{Noto Sans CJK SC}  % Noto Sans CJK SC(思源黑体)
+    \setCJKmonofont{Noto Sans Mono CJK SC}
+  }{ % else
+    \ifwindows{
+      \message{Apply CN font for Windows: SimSun, SimHei}
+      \setCJKmainfont{SimSun} % you can replace with other font, e.g. Microsoft YaHei
       \setCJKsansfont{SimHei}
-    }\else{ % unknown OS
-      \IfFontExistsTF{Noto Serif CJK SC}{ % prefer Noto to the default font Fandol
-        \message{Apply CN font: Noto CJK}
-        \setCJKmainfont{Noto Serif CJK SC} % (思源宋体)
-        \setCJKsansfont{Noto Sans CJK SC}  % (思源黑体)
-        \setCJKmonofont{Noto Sans Mono CJK SC}
-      }{
-        \message{Apply CN font: xeCJK default Fandol}
-      }
-    }\fi
-  }\fi
+    }\else{
+      % ifplatform need --shell-escape being turned on to detect Mac OS X
+      \IfFontExistsTF{STSong}{
+        \message{Apply CN font for Mac OS X: STSong, STHeiti, STFangsong}
+        %
+        % Mac OS X specific:
+        % Some system fonts, e.g. STKaiti were moved to
+        %    /System/Library/AssetsV2/com_apple_MobileAsset_Font7 (or Font6 in Catalina)
+        % as of Monterey, we need add the path into local TeXLive configuration:
+        % sudo tlmgr conf texmf OSFONTDIR /System/Library/AssetsV2/com_apple_MobileAsset_Font7
+        %
+        \setCJKmainfont[BoldFont=STHeiti, ItalicFont=STKaiti]{STSong} % or DengXian, Ping Fang SC
+        \setCJKsansfont{STHeiti}
+        \setCJKmonofont{STFangsong}
+      }{ % else
+        \message{Apply CN font: default}
+      } % end if exits STSong
+    }\fi % end if windows
+  } % end if exits noto cjk
 
-  \xeCJKsetup{PunctStyle=kaiming}
-  \XeTeXlinebreaklocale "zh"  % to solve the line breaking issue
-  \XeTeXlinebreakskip = 0pt plus 1pt minus 0.1pt
+  %%   \XeTeXlinebreaklocale "zh"  % to solve the line breaking issue
+  %%   \XeTeXlinebreakskip = 0pt plus 1pt minus 0.1pt
+
+  % Simplified way to customize Chinese. Or \usepackage[chinese, english]{babel}
+  % However, it need install the additional texlive-lang-chinese.
+
+  \addto\captionsenglish{\renewcommand{\contentsname}{目录}}
+  \addto\captionsenglish{\renewcommand{\appendixname}{附录}}
+  \addto\captionsenglish{\renewcommand\bibname{参考文献}}
+  \addto\captionsenglish{\renewcommand\indexname{索引}}
+  \addto\captionsenglish{\renewcommand{\figurename}{图}}
+  \addto\captionsenglish{\renewcommand{\tablename}{表}}
+  \addto\captionsenglish{\renewcommand{\proofname}{证明}}
 
   \newtheorem{axiom}{公理}[section]
   \newtheorem{theorem}{定理}[section]
@@ -296,19 +315,78 @@
 
   \renewcommand\ExerciseName{练习}
   \renewcommand\AnswerName{答案}
-  \renewcommand{\sectionautorefname}{节}
+  \renewcommand\AnswerListName{答案}
+  \crefname{Exercise}{练习}{练习}
+  \crefname{equation}{式}{式}
+  \crefname{figure}{图}{图}
+  \crefname{table}{表}{表}
+  \crefname{theorem}{定理}{定理}
+  \crefname{lemma}{引理}{引理}
+  \crefname{corollary}{推论}{推论}
+  \crefname{section}{章节}{章节}
+  \crefname{appendix}{附录}{附录}
+  \crefname{page}{页}{页}
+
+  \AtEndEnvironment{Exercise}{
+    \par \rightline{\AnswerListName: \labelcpageref{\ExerciseLabel-Answer}页}}
 }
 
 \DeclareOption{en}{
-  \newtheorem{axiom}{Axiom}[section]
-  \newtheorem{theorem}{Theorem}[section]
-  \newtheorem{lemma}[theorem]{Lemma}
-  \newtheorem{proposition}[theorem]{Proposition}
-  \newtheorem{corollary}[theorem]{Corollary}
-  \newtheorem{definition}{Definition}[section]
-  \newtheorem{example}{Example}[section]
-}
+  \IfFontExistsTF{Noto Serif CJK SC}{
+      \message{Apply Noto Serif CJK SC for bible}
+      \babelfont[chinese]{rm}{Noto Serif CJK SC}
+  }{ % else
+      \IfFontExistsTF{Noto Serif SC}{
+          \message{Apply Noto Serif SC for bible}
+          \babelfont[chinese]{rm}{Noto Serif SC}
+      }{ % else
+          \ifwindows{
+              \message{Apply SimSun for bible}
+              \babelfont[chinese]{rm}{SimSun}
+          }\else{
+              \IfFontExistsTF{STSong}{
+                  \message{Apply STSong for bible}
+                  \babelfont[chinese]{rm}{STSong}
+              }{ % else
+                  \message{No CN default font}
+              } % end if exits STSong
+          }\fi % end if windows
+      } % end if exits Noto Serif SC
+  } % end if exits Noto Serif CJK SC
 
+  \theoremstyle{plain}
+  \ifdefined\theorem\else
+  \newtheorem{theorem}{Theorem}[section]
+  \fi
+
+  \ifdefined\lemma\else
+  \newtheorem{lemma}[theorem]{Lemma}
+  \fi
+
+  \ifdefined\proposition\else
+  \newtheorem{proposition}[theorem]{Proposition}
+  \fi
+
+  \ifdefined\corollary\else
+  \newtheorem{corollary}[theorem]{Corollary}
+  \fi
+
+  \theoremstyle{definition}
+  \ifdefined\axiom\else
+  \newtheorem{axiom}{Axiom}[section]
+  \fi
+
+  \ifdefined\definition\else
+  \newtheorem{definition}{Definition}[section]
+  \fi
+
+  \ifdefined\example\else
+  \newtheorem{example}{Example}[section]
+  \fi
+
+  \AtEndEnvironment{Exercise}{
+    \par \rightline{\AnswerListName: \cpageref{\ExerciseLabel-Answer}}}
+}
 
 \DeclareOption*{\PackageWarning{prelude}{Unknown ‘\CurrentOption’}}
 \ProcessOptions\relax

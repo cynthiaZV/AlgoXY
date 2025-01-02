@@ -18,13 +18,13 @@
 
 \author{Xinyu LIU
 \thanks{{\bfseries Xinyu LIU} \newline
-  Email: liuxinyu95@gmail.com \newline}
+  Email: liuxinyu99@hotmail.com \newline}
   }
 
 \maketitle
 \fi
 
-\markboth{B-Tree}{Elementary Algorithms}
+%\markboth{B-Tree}{Elementary Algorithms}
 
 \ifx\wholebook\relax
 \chapter{B-Tree}
@@ -35,11 +35,11 @@
 \index{B-tree}
 \label{introduction}
 
-The integer prefix tree in previous chapter gives a way to encode the information in the edge of the binary tree. Another way to extend the binary search tree is to increase the sub-trees from 2 to $k$. B-tree is such a data structure, that can be considered as a generic form of $k$-ary search tree. It is also developed to be self-balanced\cite{wiki-b-tree}. B-tree is widely used in computer file system (some are based on B+ tree, an extension of B-tree) and database system. Figure \ref{fig:btree-example} gives an example B-tree, we can find the difference and similarity between B-tree and binary search tree.
+The integer prefix tree in previous chapter gives a way to encode the information in the edge of the binary tree. Another way to extend the binary search tree is to increase the sub-trees from 2 to $k$. B-tree is such a data structure, that can be considered as a generic form of $k$-ary search tree. It is also developed to be self-balancing\cite{wiki-b-tree}. B-tree is widely used in computer file system (some are based on B+ tree, an extension of B-tree) and database system. \Cref{fig:btree-example} gives an example B-tree, we can find the difference and similarity between B-tree and binary search tree.
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=0.33]{img/btree-del-before}
+  \includegraphics[scale=0.5]{img/btree-del-before}
   \caption{A B-Tree}
   \label{fig:btree-example}
 \end{figure}
@@ -50,12 +50,12 @@ A binary search tree is either empty or contains a key $k$ and two sub-trees $l$
 \forall\ x \in l, y \in r \Rightarrow x < k < y
 \ee
 
-Extend to multiple keys and sub-trees, we obtain the B-tree. A B-tree is either empty or contains $n$ keys and $n + 1$ sub-trees, each sub-tree is also a B-Tree. We denote these keys and sub-trees as $k_1, k_2, ..., k_n$ and $t_1, t_2, ..., t_n, t_{n+1}$, as shown in figure \ref{fig:btree-node}.
+Extend to multiple keys and sub-trees: a B-tree is either empty or contains $n$ keys and $n + 1$ sub-trees, each sub-tree is also a B-tree, denoted as $k_1, k_2, ..., k_n$ and $t_1, t_2, ..., t_n, t_{n+1}$, as shown in \cref{fig:btree-node}.
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=0.5]{img/btree-node}
-  \caption{A B-Tree node}
+  \includegraphics[scale=0.5, page=1]{img/btrees}
+  \caption{A B-tree node}
   \label{fig:btree-node}
 \end{figure}
 
@@ -71,7 +71,7 @@ For every node, the keys and sub-trees satisfy the following rules:
 \label{eq:btree-order}
 \end{equation}
 
-Leaf node has no sub-tree. There can be optional values bound to the keys in B-tree node. We skip the values for simplicity. Let the type of keys be $K$, the type of the B-tree is $BTree\ K$, or denoted as \texttt{BTree<K>}. On top of it, we also need define a set of self-balance rules:
+Leaf node has no sub-tree (accurately, all sub-trees are empty). There can be optional values bound to the keys. We skip the values for simplicity. The type of B-tree is $BTree\ K$ (or \texttt{BTree<K>}), where $K$ is the type of keys. On top of it, we also need define a set of self-balancing rules:
 
 \begin{enumerate}
 \item All leaves have the same depth;
@@ -117,28 +117,27 @@ Hence B-tree is balanced. The simplest B-tree is called 2-3-4 tree, where $d = 2
 data BTree a = BTree [a] [BTree a]
 \end{Haskell}
 
-The empty node is in the form of $(\nil, \nil)$ or \texttt{BTree [] []}. Instead of storing $d$ in every node, we pass it together with B-tree $t$ as a pair $(d, t)$.
+Let the empty node be $(\nil, \nil)$ (or \texttt{BTree [] []}). Instead of storing $d$ in every node, we pass it together with B-tree $t$ as a pair $(d, t)$.
 
 \section{Insert}
 \label{btree-insertion} \index{B-tree!insert}
 
-The idea is similar to the binary search tree. While we need deal with multiple keys and sub-trees. When insert key $x$ to B-tree $t$, starting from the root, we examine the keys in the node to locate a position\footnote{In fact, it is sufficient to only support less-than and equality. See exercise \ref{ex:btree-leq}.} where all keys on the left are less than $x$, while the rest keys on the right are greater than $x$. If the node is a leaf, and it is not full ($|keys(t)| < 2d - 1$), we insert $x$ at this position. Otherwise, this position points to a sub-tree $t'$, we recursively insert $x$ to $t'$.
+The idea is similar to the binary search tree. While we need deal with multiple keys and sub-trees. When insert key $x$ to B-tree $t$, starting from the root, we examine the keys in the node to locate a position\footnote{In fact, it is sufficient to only support less-than and equality. See \cref{ex:btree-leq}.} where all keys on the left are less than $x$, while the rest keys on the right are greater than $x$. If the node is a leaf, and it is not full ($|keys(t)| < 2d - 1$), we insert $x$ at this position. Otherwise, this position points to a sub-tree $t'$, we recursively insert $x$ to $t'$.
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=0.4]{img/btree-insert-example}
+  \includegraphics[scale=0.38]{img/btree-insert-example}
   \caption{Insert 22 to a 2-3-4 tree. $22 > 20$, go to the right sub-tree; next as $22 < 26$, go to the first sub-tree; finally, $21 < 22 < 25$, and the leaf is not full.}
   \label{fig:btree-insert-simple}
 \end{figure}
 
-As an example, consider the 2-3-4 tree in figure \ref{fig:btree-insert-simple}. when insert $x = 22$, because $20 < 22$, we next examine the sub-tree on the right, which contains 26, 38, 45. Since $22 < 26$, we next go to the first sub-tree containing 21 and 25. This is a leaf, and it is not full. Hence we insert 22 to this node.
+For example, consider the 2-3-4 tree in \cref{fig:btree-insert-simple}. when insert $x = 22$, because $20 < 22$, we next examine the sub-tree on the right, which contains 26, 38, 45. Since $22 < 26$, we next go to the first sub-tree containing 21 and 25. This is a leaf, and it is not full. Hence we insert 22 to this node.
 
-However, if there are $2d - 1$ keys in the leaf, we will break the B-tree rules after insert $x$, as the node will be too 'full'. For the same B-tree in figure \ref{fig:btree-insert-simple}, we'll meet this issue when insert 18. There are two solutions: insert then split, and split before insert.
+However, if there are already $2d - 1$ keys in the leaf, we will break the B-tree rules after insert (too 'full'). For the same B-tree in \cref{fig:btree-insert-simple}, we'll meet this issue when insert 18. There are two solutions: insert then split, and split before insert.
 
 \subsection{Insert then split}
 
-We can adopt the similar `insert then fix' method for the red-black tree. First, we insert the key to the proper ordering position without considering the B-tree balance rules. As the next step, if the new tree violates the balance rules, we perform a recursive bottom-up fixing by splitting the overly full node. We need define the function to test whether a given node satisfies the minimum degree constraint or not.
-
+We can adopt the similar `insert then fix' method for the red-black tree. First, we insert the key to the proper ordering position without considering the B-tree balancing rules. Next, if the new tree violates any rule, we recursively bottom-up split and fix the overly full node. Define a function to test whether a node satisfies the minimum degree constraint:
 
 \be
 \begin{cases}
@@ -147,11 +146,11 @@ low\  d\ (ks, ts) & = |ks| < d - 1 \\
 \end{cases}
 \ee
 
-When the node contains too many keys and sub-trees, we define $split$ function to break it into 3 parts at a given position $m$ as shown in figure \ref{fig:node-split}:
+When the node contains too many keys and sub-trees, define $split$ function to break it into 3 parts at position $m$ as shown in \cref{fig:node-split}:
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=0.4]{img/split}
+  \includegraphics[scale=0.4, page=2]{img/btrees}
   \caption{Split the node into 3 parts at $m$}
   \label{fig:node-split}
 \end{figure}
@@ -160,7 +159,7 @@ When the node contains too many keys and sub-trees, we define $split$ function t
 split\ m\ (ks, ts) = ((ks_l, ts_l), k, (ks_r, ts_r))
 \ee
 
-We reuse the list $splitAt$ function defined in chapter 1 (\autoref{eq:split-at}) to realize it.
+We reuse the list $splitAt$ function in \cref{eq:split-at}.
 
 \[
 \begin{cases}
@@ -169,14 +168,14 @@ We reuse the list $splitAt$ function defined in chapter 1 (\autoref{eq:split-at}
 \end{cases}
 \]
 
-We can define the reversed operation $unsplit$ to combine the 3 parts back into a B-tree node.
+Conversely, $unsplit$ combines the 3 parts back into a B-tree node:
 
 \be
 unsplit\ (ks_l, ts_l)\ k\ (ks_r, ts_r) = (ks_l \doubleplus [k] \doubleplus ks_r, ts_l \doubleplus ts_r)
 \label{eq:btree-unsplit}
 \ee
 
-Below function first inserts $x$ to the tree $t$, then calls $fix$ to resume the B-tree balance rules with the given degree $d$.
+We first insert $x$ to the tree $t$, then call $fix$ to resume the B-tree balancing rules with degree $d$.
 
 \be
 insert\ x\ (d, t) = fix\ (d, ins\ t)
@@ -191,13 +190,13 @@ fix\ (d, t) = \begin{cases}
 \end{cases}
 \ee
 
-$ins$ need handle two cases: for leaf node, we can reuse the list ordered $insert$ function defined in chapter 1 (\autoref{eq:list-ordered-insert}); otherwise, we need find the position to recursively insert to sub-tree. To do that, we define a $partition$ function as:
+$ins$ need handle two cases: for leaf, reuse the list ordered $insert$ defined in \cref{eq:list-ordered-insert}; otherwise, we need find the position of the sub-tree where recursively insert to. Define a $partition$ as:
 
 \be
 partition\ x\ (ks, ts) = (l, t', r)
 \ee
 
-Where $l = (ks_l, ts_l)$ and $r = (ks_r, ts_r)$. It further uses the list partition function $span$ defined in chapter 1 (\autoref{eq:span}):
+Where $l = (ks_l, ts_l)$ and $r = (ks_r, ts_r)$. It further calls the list partition function $span$ defined in \cref{eq:span}:
 
 \[
 \begin{cases}
@@ -206,7 +205,7 @@ Where $l = (ks_l, ts_l)$ and $r = (ks_r, ts_r)$. It further uses the list partit
 \end{cases}
 \]
 
-As such, we separate all the keys and sub-trees less than $x$ on the left as $l$, and those greater than $x$ on the right as $r$. The last sub-tree that less than $x$ is extracted as $t'$. We then recursively insert $x$ to $t'$, as shown in figure \ref{fig:recursive-insert}.
+As such, we separate all the keys and sub-trees less than $x$ on the left as $l$, and those greater than $x$ on the right as $r$. The last sub-tree that less than $x$ is extracted as $t'$. We then recursively insert $x$ to $t'$, as shown in \cref{fig:recursive-insert}.
 
 \be
 \begin{array}{rcll}
@@ -217,7 +216,7 @@ As such, we separate all the keys and sub-trees less than $x$ on the left as $l$
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=0.45]{img/partition}
+  \includegraphics[scale=0.45, page=3]{img/btrees}
   \caption{partition a node with $x$}
   \label{fig:recursive-insert}
 \end{figure}
@@ -231,7 +230,7 @@ balance\ d\ (ks_l, ts_l)\ t\ (ks_r, ts_r) = \begin{cases}
   \end{cases}
 \ee
 
-where $fix_f$ splits sub-tree $t$ with degree $d$ as $(t_1, k, t_2) = split\ d\ t$, then combine them to a new B-tree node:
+where $fix_f$ splits sub-tree $t$ as $(t_1, k, t_2) = split\ d\ t$, then combine them to a new node:
 
 \be
 fix_f = (ks_l \doubleplus [k] \doubleplus ks_r, ts_l \doubleplus [t_1, t_2] \doubleplus ts_r)
@@ -266,18 +265,18 @@ balance d (ks1, ts1) t (ks2, ts2)
                 BTree (ks1 ++ [k] ++ ks2) (ts1 ++ [t1, t2] ++ ts2)
 \end{Haskell}
 
-Figure \ref{fig:btree-insert-fp} shows the example B-trees built by repeatedly insert elements from list ``GMPXACDEJKNORSTUVYZ''.
+\Cref{fig:btree-insert-fp} shows the example B-trees built from ``GMPXACDEJKNORSTUVYZ''.
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=0.4]{img/btree-insert-fp}
+  \includegraphics[scale=0.4, page=4]{img/btrees}
   \caption{Repeatedly insert elements from ``GMPXACDEJKNORSTUVYZ''. above: $d = 2$ (2-3-4 tree), below: $d = 3$}
   \label{fig:btree-insert-fp}
 \end{figure}
 
 \subsection{Split before insert}
 
-The second method is to split a node before insertion to prevent it becoming overly full. We often see this method in imperative implementations. When perform top-down recursive insert, if we reach to a node with $2d - 1$ keys, we divide it into 3 parts as shown in figure \ref{fig:node-split}, such that each new node has $d - 1$ keys. They will be valid B-tree node after insertion. For node $x$, let $K(x)$ be the keys, $T(x)$ be the sub-trees. Denote the $i$-th key of $x$ as $k_i(x)$, the $j$-th sub-tree as $t_j(x)$. Below algorithm splits the $i$-th sub-tree of node $z$:
+The second method is to split a node before insertion to prevent it overly full. We often see this method in imperative implementation. When perform top-down recursive insert, if we reach to a node with $2d - 1$ keys, we divide it into 3 parts as shown in \cref{fig:node-split}, such that each new node has $d - 1$ keys. They will be valid B-tree node after insertion. For node $x$, let $K(x)$ be the keys, $T(x)$ be the sub-trees. Denote the $i$-th key of $x$ as $k_i(x)$, the $j$-th sub-tree as $t_j(x)$. Below algorithm splits the $i$-th sub-tree of node $z$:
 
 \begin{algorithmic}[1]
 \Procedure{Split}{$z, i$}
@@ -311,7 +310,7 @@ When split the node $x = t_i(z)$, we push the $d$-th key $k_d(x)$ up to the pare
 \end{algorithmic}
 
 Where \textproc{Insert-Nonfull} assumes the node $r$ passed in
-is not full. If $r$ is a leaf, we insert $k$ to the keys based on order (Exercise \ref{ex:btree-binary-search} asks to realize the ordered insert with binary search); otherwise, we locate the position, where $k_i(r) < k < k_{i+1}(r)$. Split the sub-tree $t_i(r)$ if it is full, and go on insert to this sub-tree.
+is not full. If $r$ is a leaf, we insert $k$ to the keys based on order (\Cref{ex:btree-binary-search} asks to realize the ordered insert with binary search); otherwise, we locate the position, where $k_i(r) < k < k_{i+1}(r)$. Split the sub-tree $t_i(r)$ if it is full, and go on insert to this sub-tree.
 
 \begin{algorithmic}[1]
 \Function{Insert-Nonfull}{$r, k$}
@@ -339,7 +338,7 @@ is not full. If $r$ is a leaf, we insert $k$ to the keys based on order (Exercis
 \EndFunction
 \end{algorithmic}
 
-This algorithm is recursive. Exercise \ref{ex:btree-loop-insert} asks to eliminate the recursion with pure loops. Figure \ref{fig:btree-insert} gives the result with the same input of ``GMPXACDEJKNORSTUVYZ''.
+This algorithm is recursive. \Cref{ex:btree-loop-insert} asks to eliminate the recursion with pure loops. \Cref{fig:btree-insert} gives the result with the same input of ``GMPXACDEJKNORSTUVYZ''.
 
 \begin{figure}[htbp]
   \centering
@@ -350,32 +349,32 @@ This algorithm is recursive. Exercise \ref{ex:btree-loop-insert} asks to elimina
 
 \subsection{Paired lists}
 
-When use list to store ordered keys, we always start from the first key, and scan the list to find the insert position. If the keys are stored in array, we can improve it with binary search. Can we start somewhere in the node, go left or right depending on the order of keys? One idea is to separate the B-tree node into three parts: left $l$, a sub-tree $t'$, and right $r$. Where left and right are lists of pairs, each pair contains a key and a sub-tree: $(k_i, t_i)$. However, $l$ is reversed. In other words, $l$ and $r$ are head-to-head connected by $t'$ as a U-shape shown in figure \ref{fig:paired-lists}. We can move forward and backward both in constant time.
+When use list to store ordered keys, we always start from the first key, and scan the list to find the insert position. If the keys are stored in array, we can improve it with binary search. Can we start somewhere in the node, go left or right depending on the order of keys? One idea is to separate the B-tree node into three parts: left $l$, a sub-tree $t'$, and right $r$. Where left and right are lists of pairs, each pair contains a key and a sub-tree: $(k_i, t_i)$. However, $l$ is reversed. In other words, $l$ and $r$ are head-to-head connected by $t'$ as a U-shape shown in \cref{fig:paired-lists}. We can move forward and backward both in constant time.
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=0.45]{img/paired-lists}
+  \includegraphics[scale=0.45, page=5]{img/btrees}
   \caption{Define the B-tree node with a sub-tree and paired lists}
   \label{fig:paired-lists}
 \end{figure}
 
-Below example program defines B-tree node. It's either empty, or contains 3 parts: the left (key, sub-tree) list in reversed order, a sub-tree, and the right (key, sub-tree) list. We denoted the none empty node as $(l, t', r)$.
+Below example program defines B-tree node. It's either empty, or contains 3 parts: the left list of (key, sub-tree) pairs in reversed order, a sub-tree, and the right list of (key, sub-tree) pairs. We denoted the none empty node as $(l, t', r)$.
 
 \begin{Haskell}
 data BTree a = Empty
-           | BTree [(a, BTree a)] (BTree a) [(a, BTree a)]
+             | BTree [(a, BTree a)] (BTree a) [(a, BTree a)]
 \end{Haskell}
 
 When move to right by a step, we take the first pair $(k, t)$ from $r$, then form another pair $(k, t')$ in front of $l$, and replace $t'$ with $t$. When move to left a step, it is symmetric. Both operations take constant time.
 
 \be
 \begin{array}{lcl}
-  step_l\ ((k, t):l, t', r) & = & (l, t, (k, t'):r) \\
-  step_r\ (l, t', (k, t):r) & = & ((k, t'):l, t, r) \\
+  step_l\ ((k, t) \cons l, t', r) & = & (l, t, (k, t') \cons r) \\
+  step_r\ (l, t', (k, t) \cons r) & = & ((k, t') \cons l, t, r) \\
 \end{array}
 \ee
 
-With the left/right moves, we can implement a generic partition function $partition\ p\ t$, that separates the tree $t$ with a given predicate $p$ into 3 parts: left, middle, right: $(l, m, r)$, such that all sub-trees in $l$ and $m$ satisfy $p$, while the sub-trees in $r$ do not. Let the function $hd = fst \circ head$, which picks the first pair $(a, b)$ from a list, then extracts $a$ out.
+With the left/right moves, we can implement a generic $partition\ p\ t$, that separates the tree $t$ with a predicate $p$ into 3 parts: left, middle, right: $(l, m, r)$, such that all sub-trees in $l$ and $m$ satisfy $p$, while the sub-trees in $r$ do not. Let $hd = fst \circ head$, picks the first pair $(a, b)$ from a list, then extracts $a$ out.
 
 \be
 \begin{array}{lcl}
@@ -410,7 +409,7 @@ partition p t@(BTree l m r)
   | (not . p) (hd l) = partition p (stepL t)
 \end{Haskell}
 
-We can also use $step_l/step_r$ to split a B-tree at position $d$ when it becomes overly full. Let $n = |l|$ be the number of keys/sub-trees of the left part. $f^n(x)$ means repeatedly apply function $f$ to $x$ for $n$ times.
+We can use $step_l/step_r$ to split a B-tree at position $d$ when it's overly full. Let $n = |l|$ be the number of keys/sub-trees of the left part. $f^n(x)$ means repeatedly apply function $f$ to $x$ for $n$ times.
 
 \be
 split\ d\ t = \begin{cases}
@@ -423,7 +422,7 @@ split\ d\ t = \begin{cases}
 Where $sp$ does the separation work as below:
 
 \be
-sp\ (l, t, (k, t'):r) = ((l, t, \nil), k, (\nil, t', r))
+sp\ (l, t, (k, t') \cons r) = ((l, t, \nil), k, (\nil, t', r))
 \ee
 
 With $partition$ and $split$ defined, we can define B-tree insert algorithm for the paired lists implementation. Firstly, we need modify the low/full testing to count both left and right parts:
@@ -463,7 +462,7 @@ Function $ins$ need handle both $t = \nil$, and $t \neq \nil$ cases. For empty c
 \begin{array}{lcl}
   ins\ \nil & = & (\nil, \nil, [(x, \nil)]) \\
   ins\ t & = & \begin{cases}
-    t' = \nil: & balance\ d\ l\ \nil\ ((x, \nil):r) \\
+    t' = \nil: & balance\ d\ l\ \nil\ ((x, \nil) \cons r) \\
     t' \neq \nil: & balance\ d\ l\ (ins\ t')\ r \\
   \end{cases}
 \end{array}
@@ -478,7 +477,7 @@ balance\ d\ l\ t\ r = \begin{cases}
   \end{cases}
 \ee
 
-Where $fixFull = (l, t_1, ((k, t_2):r)$, and $(t_1, k, t_2) = split\ d\ t$. Below example program implements the insert algorithm:
+Where $fixFull = (l, t_1, ((k, t_2) \cons r)$, and $(t_1, k, t_2) = split\ d\ t$. Below example program implements the insert algorithm:
 
 \begin{Haskell}
 insert x (d, t) = fixRoot (d, ins t) where
@@ -505,19 +504,77 @@ split d t@(BTree l _ _) | n < d = sp $ iterate stepR t !! (d - n)
     sp (BTree l t ((k, t'):r)) = (BTree l t [], k, BTree [] t' r)
 \end{Haskell}
 
-\begin{Exercise}
+\begin{Exercise}[label={ex:btree-insert}]
 \Question{Can we use $\leq$ to support duplicated keys in B-Tree?} \label{ex:btree-leq}
 \Question{For the `split then insert' algorithm, eliminate the recursion with loops.}
 \label{ex:btree-loop-insert}
 \Question{We use linear search among keys to find the proper insert position. Improve the imperative implementation with binary search. Is the big-O performance improved?}
 \label{ex:btree-binary-search}
-% No, is still linear, although the search speed up to O(\lg n), the insertion takes O(n) time to shift elements.
 \end{Exercise}
 
-\section{Look up}
-\index{B-tree!look up}
+\begin{Answer}[ref = {ex:btree-insert}]
+\Question{Can we use $\leq$ to support duplicated keys in B-Tree?
 
-For look up, we can extend from the binary search tree to multiple branches, and obtain the generic B-tree look up solution. There are only two directions when look up the binary search tree: left and right, while, there are multiple ways in B-tree. Consider look up $k$ in B-tree $t = (ks, ts)$, if $t$ is a leaf ($ts$ is empty), then the problem becomes list look up; otherwise, we partition the $t$ with $k$ into three parts: $l = (ks_l, ts_l), t', r = (ks_r, ts_r)$, where all keys in $l$ and sub-tree $t'$ are less then $k$, and the remaining ($\geq k$) is in $r$. If the first key in $ks_r$ equals $k$, then we find the answer; otherwise, we recursive look up in sub-tree $t'$.
+We can use $\leq$ to allow duplicated keys in B-tree: all left ones are $\leq x$, while $x \leq$ all right ones. However, we need additional logic to handle duplicated keys when lookup and delete a key. Typically, we constraint the key to be unique, while a key can map to multiple values: $k \mapsto [v_1, v_2, ...]$, called {\em multi-map}.
+}
+
+\Question{For the `split then insert' algorithm, eliminate the recursion with loops.
+
+\begin{Bourbaki}
+BTree<K, deg> insertNonfull(BTree<K, deg> tr, K key) {
+    var root = t
+    while not is_leaf(t) {
+        Int i = length(t.keys)
+        while i > 0 and key < t.keys[i-1] {
+            i = i - 1
+        }
+        if full(d, t.subTrees[i]) {
+            split(d, t, i)
+            if key > t.keys[i] then i = i + 1
+        }
+        t = t.subTrees[i]
+    }
+    orderedInsert(t.keys, key)
+    return root
+\end{Bourbaki}
+}
+
+\Question{We use linear search among keys to find the proper insert position. Improve the imperative implementation with binary search. Is the big-O performance improved?
+
+\begin{Bourbaki}
+void orderedInsert([K] xs, K x) {
+    append(xs, x)
+    Int p = binarySearch(xs, x)
+    for Int i = length(lst), i > p, i = i - 1 {
+        xs[i] = xs[i-1]
+    }
+    xs[p] = x
+}
+
+Int binarySearch([K] xs, K x) {
+    Int l = 0, u = length(xs)
+    while l < u {
+        Int m = (l + u) / 2
+        if xs[m] == x {
+            return m
+        } else if xs[m] < x {
+            l = m + 1
+        } else {
+            u = m
+        }
+    }
+    return l
+}
+\end{Bourbaki}
+
+The performance is still linear. Although the binary search speed up to $O(\lg n)$, the insertion takes $O(n)$ time to shift elements.
+}
+\end{Answer}
+
+\section{Lookup}
+\index{B-tree!lookup}
+
+For lookup, we extend from the binary search tree to multiple branches, and obtain the generic B-tree lookup solution. There are only two directions when lookup the binary search tree: left and right, while, there are multiple ways in B-tree. Consider lookup $k$ in B-tree $t = (ks, ts)$, if $t$ is a leaf ($ts$ is empty), then the problem becomes list lookup; otherwise, we partition $t$ with $k$ into three parts: $l = (ks_l, ts_l), t', r = (ks_r, ts_r)$, where all keys in $l$ and sub-tree $t'$ are less then $k$, and the remaining ($\geq k$) is in $r$. If the first key in $ks_r$ equals $k$, then we find the answer; otherwise, we recursive look up in sub-tree $t'$.
 
 \be
 \begin{array}{lcl}
@@ -537,7 +594,7 @@ Where $((ks_l, ts_l), t', (ks_r, ts_r)) = partition\ k\ t$, and
 \[
 \begin{array}{lcl}
   \textit{safeHd}\ [] & = & \textit{Nothing} \\
-  \textit{safeHd}\ (x:xs) & = & \textit{Just}\ x \\
+  \textit{safeHd}\ (x \cons xs) & = & \textit{Just}\ x \\
 \end{array}
 \]
 
@@ -571,10 +628,10 @@ lookup x t = let (l, t', r) = partition (< x) t in
   else lookup x t'
 \end{Haskell}
 
-For the imperative implementation, we start from the root $r$, find a position $i$ among the keys, such that $k_i(r) \leq k < k_{i+1}(r)$. If $k_i(r) = k$ then return the node $r$ and $i$ as a pair; otherwise, move to sub-tree $t_i(r)$ to go on looking up. If $r$ is a leaf and $k$ is not in the keys, the return nothing. It means $k$ does not exit in the tree.
+For the imperative implementation, we start from the root $r$, find a position $i$ among the keys, such that $k_i(r) \leq k < k_{i+1}(r)$. If $k_i(r) = k$ then return the node $r$ and $i$ as a pair; otherwise, move to sub-tree $t_i(r)$, and go on looking up. If $r$ is a leaf and $k$ is not in the keys, then return nothing as $k$ does not exist in the tree.
 
 \begin{algorithmic}[1]
-\Function{Look-Up}{$r, k$}
+\Function{Lookup}{$r, k$}
   \Loop
     \State $i \gets 1, n \gets |K(r)|$
     \While{$i \leq n$ and $k > k_i(r)$}
@@ -592,28 +649,56 @@ For the imperative implementation, we start from the root $r$, find a position $
 \EndFunction
 \end{algorithmic}
 
-\begin{Exercise}
-  \Question{Improve the imperative look up with binary search among keys.}
+\begin{Exercise}[label={ex:btree-binary_lookup}]
+  \Question{Improve the imperative lookup with binary search among keys.}
 \end{Exercise}
+
+\begin{Answer}[ref = {ex:btree-binary_lookup}]
+\Question{Improve the imperative lookup with binary search among keys.
+
+\begin{Bourbaki}
+Optional<(BTree<K, deg>, Int)> lookup(BTree<K, deg> tr, K key) {
+    loop {
+        Int l = 0, u = length(tr.keys)
+        while l < u {
+            Int m = (l + u) / 2
+            if key == tr.keys[m] {
+                return Optional.of((tr, m))
+            } else if t.keys[m] < key {
+                l = m + 1
+            } else {
+                u = m
+            }
+        }
+        if isLeaf(tr) {
+            return Optional.Nothing
+        } else {
+            tr = tr.subTrees[l]
+        }
+    }
+}
+\end{Bourbaki}
+}
+\end{Answer}
 
 \section{Delete}
 \index{B-tree!delete}
 
-After delete a key, the number of keys may be too few to be a valid B-tree node. Except the root, the number of keys should not be less than $d - 1$, where $d$ is the minimum degree. There are two methods symmetric to insert: we can either delete then fix, or merge before delete.
+After delete a key, the number of keys may be too few to be a valid B-tree node. Except the root, the keys should not be less than $d - 1$, where $d$ is the minimum degree. There are two methods symmetric to insert: we can either delete then fix, or merge before delete.
 
 \subsection{Delete and fix}
 
-We first extend the $delete$ algorithm for binary search tree to multiple branches, then fix the B-tree balance rules. The main delete program is defined with these two steps:
+We first extend the $delete$ algorithm from binary search tree to multiple branches, then fix the B-tree balancing rules. The main program is defined with two steps:
 
 \be
-delete\ x\ (d, t) = fix (d, del\ x\ t)
+delete\ x\ (d, t) = fix\ (d, del\ x\ t)
 \ee
 
-Where function $del$ is the one we extend to support multiple branches. If $t$ is a leaf, we merely delete $x$ from the keys; otherwise, we partition the tree with $x$ into 3 parts: $(l, t', r)$. Where all the keys in $l$ and sub-tree $t'$ are less than $x$, and the rest in $r$ are great than or equal ($\geq$) to $x$. When $r$ isn't empty, we pick the first key $k_i$ from it. If the key equals to $x$, ($k_i = x$), we next replace it with the maximum key $k'$ of sub-tree $t'$ ($k' = max(t')$), and recursively delete $k'$ from $t'$ as shown in figure \ref{fig:btree-del}. Otherwise (either $r$ is empty, or $k_i \neq x$), we recursively delete $x$ from sub-tree $t'$.
+Where $del$ is the function we extend to support multiple branches. If $t$ is a leaf, we merely delete $x$ from the keys; otherwise, we partition the tree with $x$ into 3 parts: $(l, t', r)$. Where all the keys in $l$ and sub-tree $t'$ are less than $x$, and the rest in $r$ are ($\geq x$). When $r$ isn't empty, we pick the first key $k_i$ from it. If the key $k_i = x$, we next replace it with the maximum key $k' = max(t')$, and recursively delete $k'$ from $t'$ as shown in \cref{fig:btree-del}. Otherwise (either $r$ is empty, or $k_i \neq x$), we recursively delete $x$ from sub-tree $t'$.
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=0.45]{img/btree-del}
+  \includegraphics[scale=0.45, page=6]{img/btrees}
   \caption{Replace $k_i$ with $k' = max(t')$, then recursively delete $k'$ from $t'$.}
   \label{fig:btree-del}
 \end{figure}
@@ -637,7 +722,7 @@ Where $(l, t', (ks', ts')) = partition\ x\ t$, are the 3 parts partitioned by $x
 \end{array}
 \ee
 
-Function $last$ returns the last element from a list (\autoref{eq:list-last} in chapter 1). $delete_l$ is the list delete algorithm (\autoref{eq:list-delete} in chapter 1). $tail$ drops the first element from a list and returns the rest (\autoref{eq:list-head-tail}). We need modify the $balance$ function, which we defined for $insert$ before, with the additional logic to merge the node if it contains too less keys.
+Function $last$ returns the last element from a list (\cref{eq:list-last}). $delete_l$ is the list delete algorithm (\cref{eq:list-delete}). $tail$ drops the first element from a list and returns the rest (\cref{eq:list-head-tail}). We need modify the $balance$ function, which defined for $insert$ before, with the additional logic to merge the node if it contains too few keys.
 
 \be
 balance\ d\ (ks_l, ts_l)\ t\ (ks_r, ts_r) = \begin{cases}
@@ -647,7 +732,7 @@ balance\ d\ (ks_l, ts_l)\ t\ (ks_r, ts_r) = \begin{cases}
   \end{cases}
 \ee
 
-If $t$ is overly low ($< d - 1$ keys), we call $fix_l$ to merge it with the left part $(ks_l, ts_l)$ or right part $(ks_r, ts_r)$ depends on which side of keys is not empty. Use the left part for example: we extract the last element from $ks_l$ and $ts_l$ respectively, say $k_m$ and $t_m$. Then call $unsplit$ (defined in \autoref{eq:btree-unsplit}) to merge them with $t$ as $unsplit\ t_m\ k_m\ t$. It forms a new sub-tree with more keys. Finally we call balance again to build the result B-tree.
+If $t$ is overly low ($< d - 1$ keys), we call $fix_l$ to merge it with the left part $(ks_l, ts_l)$ or right part $(ks_r, ts_r)$ depends on which side of keys is not empty. Use the left part for example: we extract the last element from $ks_l$ and $ts_l$ respectively, say $k_m$ and $t_m$. Then call $unsplit$ (\cref{eq:btree-unsplit}) to merge them with $t$ as $unsplit\ t_m\ k_m\ t$. It forms a new sub-tree with more keys. Finally we call balance again to build the result B-tree.
 
 \be
 fix_l = \begin{cases}
@@ -702,25 +787,25 @@ balance d (ks1, ts1) t (ks2, ts2)
            | otherwise = t
 \end{Haskell}
 
-We leave the $delete$ function for the 'paired list' implementation as an exercise. Figure \ref{fig:btree-del-before}, \ref{fig:btree-del-CJ}, and \ref{fig:btree-del-KN} give examples of delete.
+We leave the $delete$ function for the `paired list' implementation as an exercise. \Cref{fig:btree-del-before,fig:btree-del-CJ,fig:btree-del-KN} give examples of delete.
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=0.33]{img/btree-del-before}
+  \includegraphics[scale=0.5]{img/btree-del-before}
   \caption{Before delete}
   \label{fig:btree-del-before}
 \end{figure}
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=0.33]{img/btree-del-CJ}
+  \includegraphics[scale=0.5]{img/btree-del-CJ}
   \caption{Delete `C', then delete `J'}
   \label{fig:btree-del-CJ}
 \end{figure}
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=0.33]{img/btree-del-KN}
+  \includegraphics[scale=0.5]{img/btree-del-KN}
   \caption{Delete `K', then delete `N'}
   \label{fig:btree-del-KN}
 \end{figure}
@@ -731,53 +816,53 @@ The other way is to merge the nodes before delete if there are too few keys. Con
 
 \textbf{Case 1}. If $x$ exists in node $t$, and $t$ is a leaf, we can directly remove $x$ from $t$. If $t$ is the singleton node in the tree (root), we needn't worry about too few keys.
 
-\textbf{Case 2}. If $x$ exits in node $t$, but $t$ is not a leaf. There are three sub-cases:
+\textbf{Case 2}. If $x$ exists in node $t$, but $t$ is not a leaf. There are three sub-cases:
 
-\textbf{Case 2a}. As shown in figure \ref{fig:btree-del}, let the predecessor of $k_i = x$ be $k'$, where $k' = max(t_i)$. If $t_i$ has sufficient keys ($\geq d$), we replace $k_i$ with $k'$, then recursively delete $k'$ from $t_i$.
+\textbf{Case 2a}. As shown in \cref{fig:btree-del}, let the predecessor of $k_i = x$ be $k'$, where $k' = max(t_i)$. If $t_i$ has sufficient keys ($\geq d$), we replace $k_i$ with $k'$, then recursively delete $k'$ from $t_i$.
 
-\textbf{Case 2b}. If $t_i$ does not have enough keys, but the sub-tree $t_{i+1}$ does ($\geq d$). Symmetrically, we replace $k_i$ with its successor $k''$, where $k'' = min(t_{i+1})$, then recursively delete $k''$ from $t_{i+1}$, as shown in figure \ref{fig:btree-del-case2b}.
+\textbf{Case 2b}. If $t_i$ does not have enough keys, but the sub-tree $t_{i+1}$ does ($\geq d$). Symmetrically, we replace $k_i$ with its successor $k''$, where $k'' = min(t_{i+1})$, then recursively delete $k''$ from $t_{i+1}$, as shown in \cref{fig:btree-del-case2b}.
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=0.5]{img/btree-del-case2b}
+  \includegraphics[scale=0.5, page=7]{img/btrees}
   \caption{Replace $k_i$ with $k'' = min(t_{i+1})$, then delete $k''$ from $t_{i+1}$.}
   \label{fig:btree-del-case2b}
 \end{figure}
 
-\textbf{Case 2c}. If neither $t_i$ nor $t_{i+1}$ contains sufficient keys ($|t_i| = |t_{i+1}| = d - 1$), we merge $t_i, x, t_{i+1}$ to a new node. This new node has $2d - 1$ keys, we can safely perform delete on it as shown in figure \ref{fig:btree-del-merge}.
+\textbf{Case 2c}. If neither $t_i$ nor $t_{i+1}$ contains sufficient keys ($|t_i| = |t_{i+1}| = d - 1$), we merge $t_i, x, t_{i+1}$ to a new node. This new node has $2d - 1$ keys, we can safely perform delete on it as shown in \cref{fig:btree-del-merge}.
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=0.65]{img/btree-del-merge}
+  \includegraphics[scale=0.6]{img/btree-del-merge}
   \caption{Merge before delete}
   \label{fig:btree-del-merge}
 \end{figure}
 
-Merge pushes a key $k_i$ to the sub-tree. After that, if node $t$ becomes empty, it means $k_i$ is the only key in $t$, and $t_i, t_{i+1}$ are the only two sub-trees. We need shrink the tree height as shown in figure \ref{fig:btree-del-shrink}.
+Merge pushes a key $k_i$ down to the sub-tree. After that, if node $t$ becomes empty, it means $k_i$ is the only key in $t$, and $t_i, t_{i+1}$ are the only two sub-trees. We need shrink the tree height as shown in \cref{fig:btree-del-shrink}.
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=0.65]{img/btree-del-shrink}
+  \includegraphics[scale=0.6]{img/btree-del-shrink}
   \caption{Shrink}
   \label{fig:btree-del-shrink}
 \end{figure}
 
 \textbf{Case 3}. If node $t$ does not contain $x$, we need recursively delete $x$ from a sub-tree $t_i$. There are two sub-cases if there are too few keys in $t_i$:
 
-\textbf{Case 3a}. Among the two siblings $t_{i-1}, t_{i+1}$, if either one has enough keys ($\geq d$), we move a key from $t$ to $t_i$, then move a key from the sibling up to $t$, and move the corresponding sub-tree from the sibling to $t_i$. As shown in figure \ref{fig:btree-del-borrow}, $t_i$ received one more key. We next recursively delete $x$ from $t_i$.
+\textbf{Case 3a}. Among the two siblings $t_{i-1}, t_{i+1}$, if either one has enough keys ($\geq d$), we move a key from $t$ to $t_i$, then move a key from the sibling up to $t$, and move the corresponding sub-tree from the sibling to $t_i$. As shown in \cref{fig:btree-del-borrow}, $t_i$ received one more key. We next recursively delete $x$ from $t_i$.
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=0.65]{img/btree-del-borrow}
+  \includegraphics[scale=0.5]{img/btree-del-borrow}
   \caption{Borrow from the right sibling.}
   \label{fig:btree-del-borrow}
 \end{figure}
 
-\textbf{Case 3b}. If neither sibling has sufficient keys ($|t_{i-1}| = |t_{i+1}| = d - 1$), we merge $t_i$, a key from $t$, and either sibling into a new node, as shown in figure \ref{fig:btree-del-merge-subtree}. Then recursively delete $x$ from it.
+\textbf{Case 3b}. If neither sibling has sufficient keys ($|t_{i-1}| = |t_{i+1}| = d - 1$), we merge $t_i$, a key from $t$, and either sibling into a new node, as shown in \cref{fig:btree-del-merge-subtree}. Then recursively delete $x$ from it.
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=0.65]{img/btree-del-merge-subtree}
+  \includegraphics[scale=0.5]{img/btree-del-merge-subtree}
   \caption{Merge $t_i$, $k$, $t_{i+1}$}
   \label{fig:btree-del-merge-subtree}
 \end{figure}
@@ -859,13 +944,88 @@ Where \textproc{Merge-At}($t, i$) merges sub-tree $t_i(t)$, key $k_i(t)$, and $t
 \EndProcedure
 \end{algorithmic}
 
-\begin{Exercise}
-  \Question{When delete a key $k$ from the branch node, we use the maximum key from the predecessor sub-tree $k' = max(t')$ to replace $k$, then recursively delete $k'$ from $t'$. There is a symmetric method, to replace $k$ with the minimum key from the successor sub-tree. Implement this solution.}
-  \Question{Define the $delete$ function for the `paired list' implementation.}
+\begin{Exercise}[label={ex:btree-del}]
+\Question{When delete a key $k$ from the branch node, we use the maximum key from the predecessor sub-tree $k' = max(t')$ to replace $k$, then recursively delete $k'$ from $t'$. There is a symmetric method, to replace $k$ with the minimum key from the successor sub-tree. Implement this solution.}
+\Question{Define the $delete$ function for the `paired list' implementation.}
 \end{Exercise}
 
+\begin{Answer}[ref = {ex:btree-del}]
+\Question{When delete a key $k$ from the branch node, we use the maximum key from the predecessor sub-tree $k' = max(t')$ to replace $k$, then recursively delete $k'$ from $t'$. There is a symmetric method, to replace $k$ with the minimum key from the successor sub-tree. Implement this solution.
+
+We first define the $min$ function to get the minimum key:
+\begin{Haskell}
+min' (BTree ks []) = head ks
+min' (BTree _  ts) = min' $ head ts
+\end{Haskell}
+
+When partition the tree with $x$, we need use $\leq$, but not $<$, because $x$ may be the last one on the left. We abstract the partition predicate as a parameter:
+
+\begin{Haskell}
+partitionWith p (BTree ks ts) = (l, t, r) where
+  l = (ks1, ts1)
+  r = (ks2, ts2)
+  (ks1, ks2) = L.span p ks
+  (ts1, (t:ts2)) = L.splitAt (length ks1) ts
+\end{Haskell}
+
+We can next implement the delete with $min$:
+\begin{Haskell}
+delete' x (d, t) = fixRoot (d, del x t) where
+    del x (BTree ks []) = BTree (L.delete x ks) []
+    del x t = if (Just x) == (listToMaybe $ reverse ks') then
+                let k' = min' t' in
+                  balance d ((init ks') ++ [k'], ts') (del k' t') r
+              else balance d l (del x t') r
+      where
+        (l@(ks', ts'), t', r) = partitionWith (<= x) t
+\end{Haskell}
+}
+
+\Question{Define the $delete$ function for the `paired list' implementation.
+
+\begin{Haskell}
+delete x (d, t) = fixRoot (d, del x t) where
+  del _ Empty = Empty
+  del x t = if (Just x) == fmap fst (listToMaybe r) then
+              case t' of
+                Empty -> balance d l Empty (tail r)
+                _     -> let k' = max' t' in
+                  balance d l (del k' t') ((k', snd $ head r):(tail r))
+            else balance d l (del x t') r
+    where
+      (l, t', r) = partition (< x) t
+
+max' t@(BTree _ _ []) = max' (stepL t)
+max' (BTree _ _ [(k, Empty)]) = k
+max' (BTree _ _ [(k, t)]) = max' t
+max' t = max' (stepR t)
+\end{Haskell}
+
+We need add additional logic in $balance$ to fix the too low cases after delete:
+
+\begin{Haskell}
+balance :: Int -> [(a, BTree a)] -> BTree a -> [(a, BTree a)] -> BTree a
+balance d l t r | full d t = fixFull
+                | low  d t = fixLow l t r
+                | otherwise = BTree l t r
+  where
+    fixFull = let (t1, k, t2) = split d t in BTree l t1 ((k, t2):r)
+    fixLow ((k', t'):l) t r = balance d l (unsplit t' k' t) r
+    fixLow l t ((k', t'):r) = balance d l (unsplit t k' t') r
+    fixLow l t r = t        -- l == r == []
+\end{Haskell}
+
+Where $unsplit$ is the reverse of $split$:
+
+\begin{Haskell}
+unsplit t1 k t2@(BTree (_:_) _ _) = unsplit t1 k (stepL t2)
+unsplit t1@(BTree _ _ (_:_)) k t2 = unsplit (stepR t1) k t2
+\end{Haskell}
+}
+\end{Answer}
+
 \section{Summary}
-We extend the binary search tree to multiple branches, then constrain the branches within a range to develop the B-tree. B-tree is used as a tool to control the magnetic disk access (chapter 18, \cite{CLRS}). Because all B-tree nodes store keys in a range, not too few or too many. B-tree is balanced. Most of the tree operations are proportion to the height. The performance is bound to $O(\lg n)$ time, where $n$ is the number of keys in B-tree.
+We extend the binary search tree to multiple branches, then constrain the branches within a range to develop the B-tree. B-tree is used as a tool to control the magnetic disk access (chapter 18, \cite{CLRS}). Because all B-tree nodes store keys in a range, not too few or too many, B-tree is balanced. Most of the tree operations are proportion to the height. The performance is bound to $O(\lg n)$ time, where $n$ is the number of keys.
 
 \section{Appendix: Example programs}
 
@@ -950,7 +1110,7 @@ Bool isFull(BTree<K, deg> x) = length(x.keys) >= 2 * deg - 1
 Bool isLow(BTree<K, deg> x) = length(x.keys) <= deg - 1
 \end{lstlisting}
 
-Iterative look up:
+Iterative lookup:
 
 \begin{lstlisting}[language = Bourbaki]
 Optional<(BTree<K, deg>, Int)> lookup(BTree<K, deg> tr, K key) {
@@ -959,9 +1119,9 @@ Optional<(BTree<K, deg>, Int)> lookup(BTree<K, deg> tr, K key) {
         while i < n and key > tr.keys[i] {
             i = i + 1
         }
-        if i < n and key == tr.keys[i] then return Optional((tr, i))
+        if i < n and key == tr.keys[i] then return Optional.of((tr, i))
         if isLeaf(tr) {
-            return Optional.None
+            return Optional.Nothing
         } else {
             tr = tr.subTrees[i]
         }
@@ -1050,6 +1210,9 @@ K min(BTree<K, deg> t) {
 \end{lstlisting}
 
 \ifx\wholebook\relax \else
+\section{Answers}
+\shipoutAnswer
+
 \begin{thebibliography}{99}
 
 \bibitem{CLRS}

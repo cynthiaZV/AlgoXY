@@ -1,5 +1,4 @@
 \ifx\wholebook\relax \else
-% ------------------------
 
 \documentclass[b5paper]{ctexart}
 \usepackage[nomarginpar
@@ -20,13 +19,13 @@
 
 \author{刘新宇
 \thanks{{\bfseries 刘新宇 } \newline
-  Email: liuxinyu95@gmail.com \newline}
+  Email: liuxinyu99@hotmail.com \newline}
   }
 
 \maketitle
 \fi
 
-\markboth{基数树}{基本算法}
+%\markboth{基数树}{基本算法}
 
 \ifx\wholebook\relax
 \chapter{基数树}
@@ -36,38 +35,37 @@
 %\section{简介}
 \label{introduction} \index{基数树}
 
-排序二叉树将信息存储在节点中。我们可以用边（edge）来携带信息么？基数树（Radix tree），包括trie、前缀树、后缀树就是根据这一思路设计出的数据结构。它们产生于1960年代，被广泛用于编译器\cite{okasaki-int-map}和生物信息处理（如DNA模式匹配）\cite{wiki-suffix-tree}等领域。
+二叉搜索树将信息存储在节点中。我们可以用边（edge）来携带信息么？基数树（Radix tree），包括trie、前缀树、后缀树就是根据这一思路设计出的数据结构。它们产生于1960年代，被广泛用于编译器\cite{okasaki-int-map}和生物信息处理（如DNA模式匹配）\cite{wiki-suffix-tree}等领域。
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=0.4]{img/radix-tree}
+  \includegraphics[scale=0.6, page=1]{img/trie}
   \caption{基数树}
   \label{fig:radix-tree}
 \end{figure}
 
-图\ref{fig:radix-tree}展示了一棵基数树。它包含了二进制串1011、10、011、100、0。如果查找二进制数$k=(b_0b_1...b_n)_2$，我们首先检查左侧的最高位$b_0$。若为0，则转向左子树继续查找；若为1，则转向右子树。接着，我们检查第二位，并重复这一过程直到处理完所有的$n$位或到达某一叶子节点。我们并不需要在节点中存储键（key），这一信息由边来代表。图\ref{fig:radix-tree}标注在节点中的键仅仅是为了示意。对于整数类型的键，我们可以使用二进制，并利用位运算进行操作。
+\cref{fig:radix-tree}展示了一棵基数树。它包含了二进制串1011、10、011、100、0。如果查找二进制数$k=(b_0b_1...b_n)_2$，我们首先检查左侧的最高位$b_0$。若为0，则转向左子树继续查找；若为1，则转向右子树。接着，我们检查第二位，并重复这一过程直到处理完所有的$n$位或到达某一叶子节点。我们并不需要在节点中存储键（key），这一信息由边来代表。\cref{fig:radix-tree}标注在节点中的键仅仅是为了示意。
 
 \section{整数trie}
 \label{int-trie} \index{基数树!整数trie}
 
-我们称图\ref{fig:radix-tree}所示的数据结构为\emph{binary trie}。Trie是Edward Fredkin在1960年提出的。它来自英文单词re\textbf{trie}val。Fredkin将其读作/'tri:/，但其他人读作/'trai/(和英文单词try的发音相同)\cite{wiki-trie}。有些情况下trie也被称为前缀树，在本章中，trie和前缀树分指不同的数据结构。一棵binary trie是一种特殊的二叉树，每个键的位置由它的二进制位来决定。0表示“向左”，1表示“向右”\cite{okasaki-int-map}。考虑图\ref{fig:big-endian-trie}中的trie，3个不同串``11''、``011''、``0011''代表同一个十进制整数3。
+我们称\cref{fig:radix-tree}所示的数据结构为\emph{binary trie}。Trie是Edward Fredkin在1960年提出的。它来自英文单词re\textbf{trie}val。Fredkin将其读作/'tri:/，但其他人读作/'trai/(和英文单词try的发音相同)\cite{wiki-trie}。有些情况下trie也被称为前缀树。本章中trie和前缀树分指不同的数据结构。一棵binary trie是一种特殊的二叉树，每个键的位置由它的二进制位来决定。0表示“向左”，1表示“向右”\cite{okasaki-int-map}。考虑\cref{fig:big-endian-trie}中的trie，``11''、``011''、``0011''代表同一个十进制整数3。
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=0.4]{img/big-endian-trie}
+  \includegraphics[scale=0.6, page=2]{img/trie}
   \caption{大端（big-endian）trie}
   \label{fig:big-endian-trie}
 \end{figure}
 
-如果把前面的0也当作有效位，在一个32位整数的系统中，向空trie插入1，结果将是一棵32层的树。为了解决这一问题，Okasaki建议使用小端整数\cite{okasaki-int-map}。二进制数的最高位（MSB）通常在左边，最低位（LSB）在右边。这种形式称为大端整数，反之最高位在右边称为小端整数。使用小端，1表示为$(1)_2$,、2表示为$(01)_2$、3表示为$(11)_2$……
+在32位整数系统中，如果把前面的0也当作有效位，插入1的结果将是一棵32层的树。为了解决这一问题，冈崎建议使用小端整数\cite{okasaki-int-map}。二进制数的最高位（MSB）通常在左边，最低位（LSB）在右边。这种形式称为大端整数，反之最高位在右边称为小端整数。使用小端，1表示为$(1)_2$,、2表示为$(01)_2$、3表示为$(11)_2$……
 
 \subsection{定义}
-我们可以重用二叉树的定义。一个节点要么为空，要么包含左右子树和一个值（值可以为空）左子树编码为0，右子树编码为1。
+重用二叉树的定义，一个节点或者为空，或者包含左右子树和一个值（值可为空）左子树编码为0，右子树编码为1。
 
 \lstset{frame = single}
 \begin{Haskell}
-data IntTrie a = Empty
-               | Branch (IntTrie a) (Maybe a) (IntTrie a)
+data IntTrie a = Empty | Branch (IntTrie a) (Maybe a) (IntTrie a)
 \end{Haskell}
 
 对于binary trie中的任一节点，其对应的整数键是由节点的位置唯一确定的。因此我们无需在节点中存储键，而只需存储值。键的类型被固定为整数，如果值的类型为$A$，则树的类型为$IntTrie\ A$。
@@ -75,41 +73,40 @@ data IntTrie a = Empty
 \subsection{插入}
 \index{整数trie!插入}
 
-当插入整数键$k$和值$v$时，我们将$k$转换成二进制。如果$k$是偶数，最低位是0，我们递归向左子树插入；如果$k$是奇数，最低位是1，我们递归向右子树插入。接下来我们将$k$除以2取整以去掉最低位。对于非空的trie树$T = (l, v', r)$，其中$l$、$r$是左右子树，$v'$是值（可为空），函数$insert$的定义如下：
+当插入整数键$k$和值$x$时，我们将$k$转换成二进制。如果$k$是偶数，最低位是0，我们递归向左子树插入；如果$k$是奇数，最低位是1，我们递归向右子树插入。接下来我们将$k$除以2取整以去掉最低位。对于非空树$T = (l, v, r)$，其中$l$、$r$是左右子树，$v$是值（可为空），定义函数$insert$如下：
 
 \be
 \begin{array}{rcl}
-insert\ \nil\ k\ v & = & insert (\nil, \textit{Nothing}, \nil)\ k\ v \\
-insert\ (l, v', r)\ 0\ v & = & (l, \textit{Just}\ v, r) \\
-insert\ (l, v', r)\ k\ v & = & \begin{cases}
-  even(k): & (insert\ l\ \dfrac{k}{2}\ v, v', r) \\
-  odd(k) : & (l, v', insert\ r\ \lfloor \dfrac{k}{2} \rfloor\ v) \\
+insert\ k\ x\ \nil & = & insert\ k\ x\ (\nil, \textit{Nothing}, \nil) \\
+insert\ 0\ x\ (l, v, r) & = & (l, \textit{Just}\ x, r) \\
+insert\ k\ x\ (l, v, r) & = & \begin{cases}
+  even(k): & (insert\ \dfrac{k}{2}\ x\ l, v, r) \\
+  odd(k) : & (l, v, insert\ \lfloor \dfrac{k}{2} \rfloor\ x\ r) \\
 \end{cases}
 \end{array}
 \ee
 
-如果$k = 0$，我们将$v$存入节点。如果$T = \nil$，结果为$(\nil, \textit{Just}\ v, \nil)$。只要$k \neq 0$，我们就根据$k$的奇偶性前进，遇到$\nil$就建立一个空叶子节点$(\nil, \textit{Nothing}, \nil)$。如果$k$已经存在，这一算法覆盖以前的值。我们也可以用一个列表存储多个值，并将$v$添加到列表中。图\ref{int-trie}的例子是依次插入映射\{$ 1 \rightarrow a, 4 \rightarrow b, 5 \rightarrow c, 9 \rightarrow d$\}的结果。下面的例子程序实现了$insert$函数：
+如果$k = 0$，我们将$x$存入节点。如果$k$已经存在，这一算法覆盖以前的值。我们也可以用一个列表存储多个值，并将$x$添加到列表中。只要$k \neq 0$，我们就根据$k$的奇偶性前进，遇到$\nil$就建立一个空叶子节点$(\nil, \textit{Nothing}, \nil)$。\cref{fig:int-trie}是插入映射\{$ 1 \rightarrow a, 4 \rightarrow b, 5 \rightarrow c, 9 \rightarrow d$\}的结果。下面的例子程序实现了$insert$函数：
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=0.5]{img/int-trie}
+  \includegraphics[scale=0.6, page=3]{img/trie}
   \caption{小端整数trie，包含映射：
           \{$ 1 \rightarrow a, 4 \rightarrow b, 5 \rightarrow c, 9 \rightarrow d$\}}
   \label{fig:int-trie}
 \end{figure}
 
 \begin{Haskell}
-insert Empty k x = insert (Branch Empty Nothing Empty) k x
-insert (Branch l v r) 0 x = Branch l (Just x) r
-insert (Branch l v r) k x | even k    = Branch (insert l (k `div` 2) x) v r
-                          | otherwise = Branch l v (insert r (k `div` 2) x)
+insert k x Empty = insert k x (Branch Empty Nothing Empty)
+insert 0 x (Branch l v r) = Branch l (Just x) r
+insert k x (Branch l v r) | even k    = Branch (insert (k `div` 2) x l) v r
+                          | otherwise = Branch l v (insert (k `div` 2) x r)
 \end{Haskell}
 
-为了判定一个数的奇偶性，我们可以判断它除以2的余数（模2）是否为0：$even(k) = (k \bmod 2 = 0)$，或者使用位运算，如：\texttt{(k \& 0x1) == 0}。我们也可以消除递归用循环实现插入算法：
+为了判定奇偶，我们可以检查除以2的余数（模2）是否为0：$even(k) = (k \bmod 2 = 0)$，或者使用位运算，如：\texttt{(k \& 0x1) == 0}。我们可以消除递归用循环实现插入算法：
 
-%\begin{algorithm}
 \begin{algorithmic}[1]
-\Function{Insert}{$T, k, v$}
+\Function{Insert}{$T, k, x$}
   \If{$T =$ NIL}
     \State $T \gets$ \Call{Empty-Node}{}  \Comment{(NIL, Nothing, NIL)}
   \EndIf
@@ -128,38 +125,47 @@ insert (Branch l v r) k x | even k    = Branch (insert l (k `div` 2) x) v r
     \EndIf
     \State $k \gets \lfloor k/2 \rfloor$
   \EndWhile
-  \State \Call{Value}{$p$} $\gets v$
+  \State \Call{Value}{$p$} $\gets x$
   \State \Return $T$
 \EndFunction
 \end{algorithmic}
-%\end{algorithm}
 
-\textproc{Insert}接受3个参数：trie树$T$、要插入的键$k$和相应的数据$v$。对于有$m$位的二进制整数$k$，这一算法访问trie中的$m$层，时间复杂度为$O(m)$。
+\textproc{Insert}接受3个参数：树$T$、要插入的键$k$和相应的数据$x$。对于有$m$位的二进制整数$k$，这一算法访问trie中$m$层，时间复杂度为$O(m)$。我们将$insert\ k\ x\ T$和\textproc{Insert}($T, k, x$)的参数顺序设计为对称的。前者用$foldr$、后者用$foldl$（或for循环）从若干键、值对构造树。如：
+
+\be
+fromList = foldr\ (uncurry\ insert)\ \nil
+\ee
+
+用法为：$fromList$\ [(1, a), (4, b), (5, c), (9, d)]，其中$uncurry$为柯里化的逆运算，它把键、值对拆开送入$insert$，其定义为：
+
+\be
+uncurry\ f\ (a, b) = f\ a\ b
+\ee
 
 \subsection{查找}
 \index{整数trie!查找}
 
-在一棵非空的小端整数trie中查找$k$时，若$k = 0$，则返回根节点中存储的数据。否则根据最后一位是0还是1，对左右子树进行递归查找。
+在小端整数trie中查找$k$时，若$k = 0$，则返回根节点中存储的数据。否则根据最后一位是0还是1，对左右子树进行递归查找。
 
 \be
 \begin{array}{rcl}
-lookup\ \nil\ k & = & \textit{Nothing} \\
-lookup\ (l, v, r)\ 0 & = & v \\
-lookup\ (l, v, r)\ k & = & \begin{cases}
-  even(k): & lookup\ l\ \dfrac{k}{2} \\
-  odd(k):  & lookup\ r\ \lfloor \dfrac{k}{2} \rfloor \\
+lookup\ k\ \nil & = & \textit{Nothing} \\
+lookup\ 0\ (l, v, r) & = & v \\
+lookup\ k\ (l, v, r) & = & \begin{cases}
+  even(k): & lookup\ \dfrac{k}{2}\ l \\
+  odd(k):  & lookup\ \lfloor \dfrac{k}{2} \rfloor\ r \\
 \end{cases}
 \end{array}
 \ee
 
-下面的例子程序实现了$lookup$函数：
+%% 下面的例子程序实现了$lookup$函数：
 
-\begin{Haskell}
-lookup Empty _ = Nothing
-lookup (Branch _ v _) 0 = v
-lookup (Branch l _ r) k | even k    = lookup l (k `div` 2)
-                        | otherwise = lookup r (k `div` 2)
-\end{Haskell}
+%% \begin{Haskell}
+%% lookup _ Empty = Nothing
+%% lookup 0 (Branch _ v _) = v
+%% lookup k (Branch l _ r) | even k    = lookup (k `div` 2) l
+%%                         | otherwise = lookup (k `div` 2) r
+%% \end{Haskell}
 
 我们也可以消除递归实现迭代式的查找算法：
 
@@ -182,35 +188,38 @@ lookup (Branch l _ r) k | even k    = lookup l (k `div` 2)
 
 对于有$m$位的整数$k$，$lookup$函数的复杂度为$O(m)$。
 
-\begin{Exercise}
+\begin{Exercise}[label={ex:int-trie-empty-node}]
 \Question{是否可以将定义\texttt{Branch (IntTrie a) (Maybe a) (IntTrie a)}变为\texttt{Branch (IntTrie a) a (IntTrie a)}，如果值不存在返回\textit{Nothing}，否则返回\textit{Just\ v}？}
 \end{Exercise}
+
+\begin{Answer}[ref = {ex:int-trie-empty-node}]
+\Question{是否可以将定义\texttt{Branch (IntTrie a) (Maybe a) (IntTrie a)}变为\texttt{Branch (IntTrie a) a (IntTrie a)}，如果值不存在返回\textit{Nothing}，否则返回\textit{Just\ v}？
+
+不仅$lookup$，我们需要在$insert$中也正确处理没有值的中间节点，如\cref{fig:int-trie}中的空白圆圈节点。如果不使用Maybe数据类型，我们还需要额外增加一个代数数据类型的定义：
+\begin{Haskell}
+data IntTrie a = Empty
+               | Branch (IntTrie a) a (IntTrie a)
+               | EmptyBranch (IntTrie a) (IntTrie a)
+\end{Haskell}
+}
+\end{Answer}
 
 \section{整数前缀树}
 \label{int-patricia} \index{整数Patricia} \index{整数前缀树}
 
-Trie的缺点是空间消耗大。在图\ref{int-trie}的例子中，只有4个节点存有数据，其它5个节点都是空的。空间利用率不足50\%。为了提高空间利用率，我们可以将链接在一起的节点压缩成一个。前缀树就是这样的数据结构，由Donald R. Morrison在1968年提出。在他的论文中，前缀树被称为Patricia。是\textbf{P}ractical \textbf{A}lgorithm \textbf{T}o \textbf{R}etrieve \textbf{I}nformation \textbf{C}oded \textbf{I}n \textbf{A}lphanumeric的首字母缩写\cite{patricia-morrison}。当键是整数时，我们称之为整数前缀树，或者在不引起歧义的情况下简称为整数树。Okasaki给出了整数前缀树的实现\cite{okasaki-int-map}。将图\ref{fig:int-trie}中链接在一起的节点合并后，可以得到一棵如图\ref{fig:little-endian-patricia}所示的树。
+Trie的缺点是空间消耗大。在\cref{fig:int-trie}的例子中，只有4个节点存有数据，其它5个节点都是空的。空间利用率不足50\%。为了提高空间利用率，我们可以将链接在一起的节点压缩成一个。前缀树就是这样的数据结构，由Donald R. Morrison在1968年提出。他称之为Patricia，是\textbf{P}ractical \textbf{A}lgorithm \textbf{T}o \textbf{R}etrieve \textbf{I}nformation \textbf{C}oded \textbf{I}n \textbf{A}lphanumeric的缩写\cite{patricia-morrison}。当键是整数时，我们称之为整数前缀树，在不引起歧义的情况下简称为整数树。冈崎给出了整数树的实现\cite{okasaki-int-map}。将\cref{fig:int-trie}中的节点合并后，得到如\cref{fig:little-endian-patricia}所示的树。在整数树中，分枝节点对应的键是它所有子树的公共前缀。子树的键在公共前缀的下一位开始不同。这样整数树消除了不必要的存储空间。
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=0.5]{img/little-endian-patricia}
+  \includegraphics[scale=0.6, page=4]{img/trie}
   \caption{小端整数树实现的映射
      \{$ 1 \rightarrow a, 4 \rightarrow b, 5 \rightarrow c, 9 \rightarrow d$\}}
   \label{fig:little-endian-patricia}
 \end{figure}
 
-在整数树中，分枝节点对应的键是它所有子树的公共前缀。这些子树的键在其公共前缀的下一位开始不同。这样整数前缀树消除了不必要的存储空间。
-
 \subsection{定义}
 
-整数前缀树是一种特殊的二叉树。它或者为空，或者是一个如下的节点：
-
-\begin{itemize}
-\item 叶子节点：包含一个整数键$k$和一个值$v$；
-\item 分枝节点：其左右子树共有一个二进制\textbf{最长公共前缀}，左子树的下一位是0，而右子树的下一位是1。
-\end{itemize}
-
-下面的例子代码定义了整数前缀树。分枝节点包含4个部分：最长公共前缀、一个掩码表明从哪一位开始分枝出子树、左右子树。掩码为$m = 2^n$的形式，其中整数$n \geq 0$。所有低于$n$位的二进制位都不属于公共前缀。
+整数前缀树是一种特殊的二叉树。或者为空$\nil$，或者是叶子节点$(k, v)$，包含整数键$k$和值$v$；或者是分枝节点$(p, m, l, r)$，其左右子树$l$、$r$共有一个二进制\textbf{最长公共前缀}$p$，左子树的下一位是0，而右子树的下一位是1。掩码$m$表明从哪一位开始分枝出子树。掩码为$m = 2^n$的形式，其中整数$n \geq 0$。所有低于$n$位的二进制位都不属于公共前缀。下面的例子代码定义了整数前缀树。
 
 \begin{Haskell}
 data IntTree a = Empty
@@ -220,80 +229,78 @@ data IntTree a = Empty
 
 \subsection{插入}
 \index{整数前缀树!插入}
-当向树$T$插入整数$y$时，若$T$为空，我们用$y$创建一个叶子节点；如果$T$本身只包含一个叶子节点$x$，我们创建一个分枝，并将两个叶子节点$x$和$y$分别设为左右子树。为了确定左右，我们需要找到$x$和$y$的最长公共前缀$p$。例如，$x = 12 = (1100)_2$、$y = 15 = (1111)_2$，则$p = (11oo)_2$，其中$o$表示我们不关心的二进制位，我们使用一个掩码整数$m$来去掉（mask）这些位。在本例中，$m = 4 = (100)_2$，最长公共前缀$p$后面的一位代表$2^1$。$x$中这一位是0，而$y$中这一位是1。因此$x$是左子树，而$y$是右子树。如图\ref{fig:int-patricia-insert-b}所示。
+当向树$T$插入整数$y$时，若$T$为空，我们用$y$创建一个叶子节点；如果$T$本身只包含一个叶子节点$x$，我们创建一个分枝，并将两个叶子节点$x$和$y$设为子树。为了确定左右，我们需要找到$x$和$y$的最长公共前缀$p$。例如，$x = 12 = (1100)_2$、$y = 15 = (1111)_2$，则$p = (11oo)_2$，其中$o$表示我们不关心的二进制位，我们使用掩码$m$来去掉（mask）这些位。在本例中，$m = 4 = (100)_2$，最长公共前缀$p$后面的一位代表$2^1$。$x$中这一位是0，而$y$中这一位是1。因此$x$是左子树，而$y$是右子树。如\cref{fig:int-patricia-insert-b}所示。
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=0.7]{img/int-patricia-insert-b}
+  \includegraphics[scale=0.6, page=5]{img/trie}
   \caption{左：$T$是叶子节点12；右：插入15后}
   \label{fig:int-patricia-insert-b}
 \end{figure}
 
-如果树$T$既不为空，也不是叶子节点，我们需要先比较$y$是否和$T$的最长公共前缀$p$匹配。如果匹配，则根据下一位是0或1递归地在左、右子树中插入。例如，若将$y = 14 = (1110)_2$插入图\ref{fig:int-patricia-insert-b}所示的树，由于最长公共前缀$p = (11oo)_2$，并且接下来的一位（$2^1$位）是1，我们递归地将$y$插入右子树。如果$y$和最长公共前缀$p$不匹配，我们需要分出一个新叶子节点。如图\ref{fig:int-patricia-insert-c}所示。
+如果树$T$既不为空，也不是叶子节点，我们需要先比较$y$是否和$T$的最长公共前缀$p$匹配。如果匹配，则根据下一位是0或1递归地在左、右子树中插入。例如，若将$y = 14 = (1110)_2$插入\cref{fig:int-patricia-insert-b}所示的树，由于最长公共前缀$p = (11oo)_2$，并且接下来的一位（$2^1$位）是1，我们递归地将$y$插入右子树。如果$y$和最长公共前缀$p$不匹配，我们需要分出一个新叶子节点。如\cref{fig:int-patricia-insert-c}所示。
 
 \begin{figure}[htbp]
   \centering
-  \subcaptionbox{插入$14 = (1110)_2$，它和最长公共前缀$p = (1100)_2$匹配，递归插入右子树。}{\includegraphics[scale=0.5]{img/int-patricia-insert-c}}\\
-  \subcaptionbox{插入$5 = (101)_2$，它和最长公共前缀$p = (1100)_2$不匹配，分出一个新叶子节点。}{\includegraphics[scale=0.5]{img/int-patricia-insert-d}}
+  \subcaptionbox{插入$14 = (1110)_2$，它和最长公共前缀$p = (1100)_2$匹配，递归插入右子树。}{\includegraphics[scale=0.6, page=6]{img/trie}}\\
+  \subcaptionbox{插入$5 = (101)_2$，它和最长公共前缀$p = (1100)_2$不匹配，分出一个新叶子节点。}{\includegraphics[scale=0.6, page=7]{img/trie}}
   \caption{根节点为分枝}
   \label{fig:int-patricia-insert-c}
 \end{figure}
 
-如果整数键为$k$值为$v$，令叶子节点为$(k, v)$。如果是分枝节点，则记为$(p, m, l, r)$，其中$p$是最长公共前缀，$m$是掩码，$l$和$r$分别是左右子树。下面的$insert$函数包含了上述三种情况：
-
 \be
 \resizebox{\textwidth}{!}{\ensuremath{
 \begin{array}{rcl}
-insert\ \nil\ k\ v\ & = & (k, v) \\
-insert\ (k, v')\ k\ v\ & = & (k, v) \\
-insert\ (k', v')\ k\ v\ & = & join\ k\ (k, v)\ k'\ (k', v') \\
-insert\ (p, m, l, r)\ k\ v\ & = & \begin{cases}
+insert\ k\ v\ \nil & = & (k, v) \\
+insert\ k\ v\ (k, v') & = & (k, v) \\
+insert\ k\ v\ (k', v') & = & join\ k\ (k, v)\ k'\ (k', v') \\
+insert\ k\ v\ (p, m, l, r) & = & \begin{cases}
   match(k, p, m): & \begin{cases}
-    zero(k, m): & (p, m, insert\ l\ k\ v) \\
-    otherwise:  & (p, m, insert\ r\ k\ v) \\
+    zero(k, m): & (p, m, insert\ k\ v\ l, r) \\
+    otherwise:  & (p, m, l, insert\ k\ v\ r) \\
   \end{cases} \\
-  otherwise: & join\ k\ (k, v)\ p\ (p, m, l, r) \\
+  \text{否则}: & join\ k\ (k, v)\ p\ (p, m, l, r) \\
 \end{cases} \\
 \end{array}
 }}
 \ee
 
-当$T = \nil$为空时，我们创建一个叶子节点；如果键相同，我们用新值覆盖此前的值。函数$match(k, p, m)$检查整数$k$和最长公共前缀$p$在掩码$m$下是否相同：$mask(k, m) = p$，其中$mask(k, m) = \overline{m-1} \& k$。它先对$m - 1$按位取反，然后和$k$按位与。函数$zero(k, m)$检查掩码$m$之后的二进制位是0还是1。我们将$m$向右移动1位，然后和$k$按位与：
+当$T = \nil$时，创建一个叶子节点$(k, v)$；如果键相同则覆盖。函数$match(k, p, m)$检查整数$k$和最长公共前缀$p$在掩码$m$下是否相同：$mask(k, m) = p$，其中$mask(k, m) = \overline{m-1} \& k$。它先对$m - 1$按位取反，然后和$k$按位与。函数$zero(k, m)$检查掩码$m$之后的二进制位是0还是1。我们将$m$向右移动1位，然后和$k$按位与：
 
 \be
-zero(k, m) = k \& (m >> 1)
+zero(k, m) = k \& (m \gg 1)
 \ee
 
-函数$join(p_1, T_1, p_2, T_2)$接受两个前缀和两棵树。它从$p_1$、$p_2$抽出最长公共前缀$(p, m) = LCP(p_1, p_2)$，创建一个新分枝，并将$T_1$、$T_2$设为子树：
+函数$join(p_1, T_1, p_2, T_2)$接受两个前缀和两棵树。从$p_1$、$p_2$抽出最长公共前缀$(p, m) = LCP(p_1, p_2)$，创建一个新分枝，并将$T_1$、$T_2$设为子树：
 
 \be
 join(p_1, T_1, p_2, T_2) = \begin{cases}
-  zero(p1, m): & (p, m, T_1, T_2) \\
-  otherwise: & (p, m, T_2, T_1) \\
+  zero(p_1, m): & (p, m, T_1, T_2) \\
+  \text{否则}: & (p, m, T_2, T_1) \\
 \end{cases}
 \ee
 
-为了计算最长公共前缀，我们先对$p_1$、$p_2$按位计算异或，然后数出最高位$highest(xor(p_1, p_2))$：
+为了计算最长公共前缀，我们先对$p_1$、$p_2$按位计算异或，然后数出最高位$h = highest(xor(p_1, p_2))$：
 
 \[
 \begin{array}{rcl}
 highest(0) & = & 0 \\
-highest(n) & = & 1 + highest(n >> 1) \\
+highest(n) & = & 1 + highest(n \gg 1) \\
 \end{array}
 \]
 
-接下来我们产生掩码$m = 2^{highest(xor(p_1,p_2))}$。最长公共前缀$p$可以用掩码$m$和$p_1$、$p_2$中的任何一个得出。例如$p = mask(p_1, m)$。下面的例子程序实现了$insert$函数：
+接下来我们产生掩码$m = 2^h$。最长公共前缀$p$可以用掩码$m$和$p_1$、$p_2$中的任何一个得出。例如$p = mask(p_1, m)$。下面的例子程序实现了$insert$函数：
 
 \begin{Haskell}
-insert t k x
+insert k x t
    = case t of
        Empty -> Leaf k x
        Leaf k' x' -> if k == k' then Leaf k x
                      else join k (Leaf k x) k' t
        Branch p m l r
           | match k p m -> if zero k m
-                           then Branch p m (insert l k x) r
-                           else Branch p m l (insert r k x)
+                           then Branch p m (insert k x l) r
+                           else Branch p m l (insert k x r)
           | otherwise -> join k (Leaf k x) p t
 
 join p1 t1 p2 t2 = if zero p1 m then Branch p m t1 t2
@@ -389,11 +396,11 @@ match k p m = (mask k m) == p
 \Statex
 \end{algorithmic}
 
-图\ref{fig:int-patricia-haskell-insert}展示了使用插入算法构造的前缀树。虽然整数前缀树压缩了链接在一起的节点，但获取最长前缀仍然需要线性扫描二进制位，对$m$位整数，插入算法的复杂度是$O(m)$。
+\cref{fig:int-patricia-haskell-insert}展示了使用插入算法构造的前缀树。虽然整数树压缩了节点，但仍然需要线性扫描二进制位以获取最长前缀，对$m$位整数，插入算法的复杂度是$O(m)$。
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=0.6]{img/int-patricia-haskell-insert}
+  \includegraphics[scale=0.6, page=8]{img/trie}
   \caption{插入映射$1 \rightarrow x, 4 \rightarrow y, 5 \rightarrow z$到大端整数前缀树}
   \label{fig:int-patricia-haskell-insert}
 \end{figure}
@@ -406,27 +413,20 @@ match k p m = (mask k m) == p
 
 \be
 \begin{array}{rcl}
-lookup\ \nil\ k & = & \textit{Nothing} \\
-lookup\ (k', v)\ k & = & \begin{cases}
+lookup\ k\ \nil & = & \textit{Nothing} \\
+lookup\ k\ (k', v) & = & \begin{cases}
   k = k': & \textit{Just}\ v \\
   otherwise: & \textit{Nothing} \\
   \end{cases} \\
-lookup\ (p, m, l, r)\ k & = & \begin{cases}
+lookup\ k\ (p, m, l, r) & = & \begin{cases}
   match(k, p, m): & \begin{cases}
-    zero(k, m): & lookup\ l\ k \\
-    otherwise: &  lookup\ r\ k \\
+    zero(k, m): & lookup\ k\ l \\
+    otherwise: &  lookup\ k\ r \\
     \end{cases} \\
   otherwise: & \textit{Nothing} \\
   \end{cases}\\
 \end{array}
 \ee
-
-%% \begin{Haskell}
-%% lookup Empty _ = Nothing
-%% lookup (Leaf k' v) k = if k == k' then Just v else Nothing
-%% lookup (Branch p m l r) k | match k p m = if zero k m then lookup l k else lookup r k
-%%                           | otherwise = Nothing
-%% \end{Haskell}
 
 我们也可以消除递归改用迭代的方式实现查找。
 
@@ -452,78 +452,158 @@ lookup\ (p, m, l, r)\ k & = & \begin{cases}
 
 对于有$m$位的二进制整数，$lookup$算法的复杂为$O(m)$。
 
-\begin{Exercise}
+\begin{Exercise}[label={ex:int-tree-lookup}]
 \Question{编写程序实现整数前缀树的$lookup$算法。}
-\Question{实现整数trie和整数树的前序遍历，仅输出值不为空的节点键。结果有何规律？}
+\Question{实现整数trie和整数树的前序遍历，仅输出值不为空的节点键。结果有何规律？}\label{qn:prefix-tree-pre-order-traverse}
 \end{Exercise}
+
+\begin{Answer}[ref = {ex:int-tree-lookup}]
+\Question{编写程序实现整数前缀树的$lookup$算法。
+\begin{Haskell}
+import Data.Bits
+
+type Key = Int
+type Prefix = Int
+type Mask = Int
+
+data IntTree a = Empty
+               | Leaf Key a
+               | Branch Prefix Mask (IntTree a) (IntTree a)
+
+lookup :: Key -> IntTree a -> Maybe a
+lookup _ Empty = Nothing
+lookup k (Leaf k' v) = if k == k' then Just v else Nothing
+lookup k (Branch p m l r) | match k p m = if zero k m then lookup k l
+                                          else lookup k r
+                          | otherwise = Nothing
+
+match :: Key -> Prefix -> Mask -> Bool
+match k p m = (mask k m) == p
+
+mask :: Int -> Mask -> Int
+mask x m = (x .&. complement (m - 1))
+
+zero :: Int -> Mask -> Bool
+zero x m = x .&. (shiftR m 1) == 0
+\end{Haskell}
+}
+\Question{实现整数trie和整数树的前序遍历，仅输出值不为空的节点键。结果有何规律？
+
+我们先考虑如何通过前序遍历将整数trie转换成关联列表。前序遍历的顺序是递归的“中-左-右”。空树的遍历结果是$[\ ]$。对分枝节点$(l, m, r)$，令左右子树的递归前序遍历结果为$as$、$bs$，中间的$m$类型是Maybe，如果是Nothing，则递归结果是$as \doubleplus bs$；如果是Just $v$，则结果是$(k, v) \cons as \doubleplus bs$，其中$k$是节点对应的二进制整数编码（0向左、1向右的小端整数）。
+
+\begin{Haskell}
+toList = go 0 1 where
+  go _ _ Empty = []
+  go k n (Branch l m r) = case m of
+    Nothing -> as ++ bs
+    (Just v) -> (k, v) : as ++ bs
+    where
+      as = go k       (2 * n) l
+      bs = go (n + k) (2 * n) r
+\end{Haskell}
+
+我们从根结点开始，令$k = 0$，深度$d = 0$。向左则$k' = 0$，向右则$k' = 1 = 2^d + k = 1 + 0$；进入下一层$d = 1$。4个节点对应的$k$为$(00)_2 = 0$、$(10)_2 = 2^1 + 0$、$(01)_2 = 1$、$(11)_2 = 2^1 + 1$。一般地，对于第$d$层节点，令$k = (a_d...a_2 a_1 a_0)_2$，向左则$k' = k$，向右则$k' = a_d 2^d + k$。因此在上述实现中，我们用$k = 0$, $n = 2^0 = 1$启动函数$go\ k\ n$。向左递归调用$go\ k\ 2n$、向右递归调用$go\ (n + k)\ 2n$。
+
+这样通过$keys = fst \circ unzip \circ toList$就可以获得前序遍历的键列表。上述实现中$as \doubleplus bs$需要线性时间。我们可以利用尾递归优化：
+
+\begin{Haskell}
+toList = go 0 1 [] where
+  go _ _ z Empty = z
+  go k n z (Branch l m r) = case m of
+    Nothing -> xs
+    (Just v) -> (k, v) : xs
+    where xs = go k (2 * n) (go (n + k) (2 * n) z r) l
+\end{Haskell}
+
+进一步，我们可以抽象出整数trie的前序叠加操作。和第二章中的$fold$相比，树中的key是计算出来的。
+
+\begin{Haskell}
+foldpre f z = go 0 1 z where
+  go _ _ z Empty = z
+  go k n z (Branch l m r) = f k m (go k (2 * n) (go (n + k) (2 * n) z r) l)
+\end{Haskell}
+
+使用叠加操作，我们可以重新定义$toList$为：
+\begin{Haskell}
+toList = foldpre f [] where
+  f _ Nothing xs = xs
+  f k (Just v) xs = (k, v) : xs
+\end{Haskell}
+
+整数前缀树的前序遍历更加简单，无需计算key。我们可以定义抽象的前序叠加：
+\begin{Haskell}
+foldpre _ z Empty = z
+foldpre f z (Leaf k v) = f k v z
+foldpre f z (Branch p m l r) = foldpre f (foldpre f z r) l
+\end{Haskell}
+
+然后实现从树转换为键-值列表：
+\begin{Haskell}
+toList = foldpre (\k v xs -> (k, v):xs) []
+keys = fst . unzip . toList
+\end{Haskell}
+
+如果前序遍历输出一棵树中的所有键，无论是小端整数trie还是大端整数前缀树，它们都是按照表示键的二进制位顺序升序排列的。为了验证，我们定义一个转换函数$bitsLE$，将小端整数转换为对应的二进制位列表。然后可以验证前序遍历的顺序如下：
+\begin{Haskell}
+verify kvs = sorted $ map bitsLE $ keys $ fromList kvs where
+  sorted [] = True
+  sorted xs = and $ zipWith (<=) xs (tail xs)
+  bitsLE 0 = []
+  bitsLE n = (n `mod` 2) : bitsLE (n `div` 2)
+\end{Haskell}
+其中$kvs$是随机输入的键-值列表。对应大端整数前缀树的验证程序如下：
+\begin{Haskell}
+verify kvs = sorted $ keys $ fromList kvs
+\end{Haskell}
+}
+\end{Answer}
 
 \section{Trie}
 \index{trie}
 
-在整数trie和整数前缀树的基础上，我们可以把键的类型从整数扩展到列表。其中一个特例是作为字符列表的字符串。前缀树和trie可以作为文本处理的有力工具。
-
-\subsection{定义}
-当键从二进制0/1扩展到通用列表时，树结构也自然从二叉树扩展为多分枝树。拿英语来说，一共有26个字符，如果忽略大小写，分枝的个数可以达到26，如图\ref{fig:trie-of-26}所示。
+我们可以把键从整数扩展到列表。其中一个特例是字符串。前缀树和trie可以作为文本处理的有力工具。当键从二进制0/1扩展到通用列表时，树结构也自然从二叉树扩展为多分枝树。拿英语来说，一共有26个字符，如果忽略大小写，分枝的个数可以达到26，如\cref{fig:trie-of-26}所示。
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=0.45]{img/trie-of-26}
+  \includegraphics[scale=0.5, page=9]{img/trie}
   \caption{含有多达26个分枝的trie，包含键：a、an、another、bool、boy、zoo}
   \label{fig:trie-of-26}
 \end{figure}
 
-并非所有的26棵子树都包含数据。在图\ref{fig:trie-of-26}的根节点分枝中，只有代表a、b、z的3棵子树不为空。其它分枝，例如代表c的子树，全部是空的。我们可以将这些空子树隐藏起来。如果区分大小写或者需要进一步将类型从字符串扩展到抽象列表，我们可以使用map等数据结构来处理动态数目的分枝。
-
-一棵trie或者为空，或者是一个节点，包含以下两种情况：
+并非所有的26棵子树都包含数据。在\cref{fig:trie-of-26}的根节点分枝中，只有代表a、b、z的3棵子树不为空。其它分枝，例如代表c的子树，全部是空的。我们可以将这些空子树隐藏起来。如果区分大小写或者需要进一步将类型从字符串扩展到抽象列表，可以使用map等数据结构来处理动态数目的分枝。一棵类型为$Trie\ K\ V$的树或者为空$\nil$，或者是一个节点，包含以下两种情况：
 
 \begin{enumerate}
-\item 值为$v$的叶子节点，不含有子树；
-\item 分枝节点，包含值$v$和多棵子树。每棵子树对应类型$K$中的某个值$k$。
+\item 值为$v$的叶子节点，不含有子树，记为$(v, \nil)$，其中$v$的类型为$V$；
+\item 分枝节点，包含值$v$和多棵子树。每棵子树对应类型$K$中的某个值$k$，记为$(v, ts)$。其中$ts = \{ k_1 \mapsto T_1, k_2 \mapsto T_2, ..., k_m \mapsto T_m \}$包含$k_i$和子树$T_i$间的映射。可以使用关联列表或者自平衡树实现映射（见第4、5章）。
 \end{enumerate}
 
-若值的类型为$V$，我们记trie的类型为$Trie\ K\ V$。下面的例子程序定义了trie：
+定义内容为空的树为：$(\textit{Nothing}, \nil)$。下面的例子程序定义了trie：
 
 \begin{Haskell}
 data Trie k v = Trie { value :: Maybe v
-                     , subTrees :: [(k, Trie k v)]}
+                     , subTrees :: Map k (Trie k v)}
 \end{Haskell}
-
-内容为空的树被定义为：$(\textit{Nothing}, \nil)$
 
 \subsection{插入}
 \index{trie!插入}
 
-考虑插入一对键、值到trie中，其中键为若干元素的列表。令trie为$T = (v, ts)$，其中$v$是树中存储的值，$ts = \{ c_1 \mapsto T_1, c_2 \mapsto T_2, ..., c_m \mapsto T_m \}$包含字符和子树间的映射。元素$c_i$映射到子树$T_i$。我们可以使用关联列表$[(c_1, T_1), (c_2, T_2), ..., (c_m, T_m)]$或者自平衡树实现映射（见第4、5章）。
+考虑插入一对键、值到trie中，其中键为若干元素的列表。令trie为$T = (v, ts)$。记$ts[k]$在映射$ts$中查找键$k$对应的值。如果没有找到返回空树；记$ts[k] \gets t$在映射$ts$中插入键$k$、树$t$，如果存在则覆盖，并返回更新后的映射。
 
 \be
 \begin{array}{rcl}
-insert\ (v, ts)\ \nil\ v' & = & (v', ts) \\
-insert\ (v, ts)\ (k:ks)\ v' & = & (v, ins\ ts) \\
+insert\ [\ ]\ v\ (v', ts)\  & = & (\textit{Just}\ v, ts) \\
+insert\ (k \cons ks)\ v\ (v', ts)\  & = & (v', ts[k] \gets insert\ ks\ v\ ts[k]) \\
 \end{array}
 \ee
 
-如果键为空，我们覆盖掉以前的值；否则，我们取出第一个元素$k$，找到映射到$k$的子树，并递归将$ks$和$v'$插入：
-
-\be
-\begin{array}{rcl}
-ins\ \nil & = & [k \mapsto insert\ (\textit{Nothing}, \nil)\ ks\ v'] \\
-ins\ ((c \mapsto t) : ts) & = & \begin{cases}
-  c = k: & (k \mapsto insert\ t\ ks\ v') : ts \\
-  otherwise: & (c \mapsto t) : (ins\ ts) \\
-  \end{cases}
-\end{array}
-\ee
-
-如果没有子树映射到$k$，我们就新建一棵空子树$t = (\textit{Nothing}, \nil)$，并将$k$映射到其上；否则，我们找到映射到$k$的子树$t$，递归地向$t$中插入$ks$和$v'$。下面的例子程序实现了$insert$函数，它使用关联列表保存映射。
+对应的例子程序：
 
 \begin{Haskell}
-insert (Trie _ ts) [] x = Trie (Just x) ts
-insert (Trie v ts) (k:ks) x = Trie v (ins ts) where
-    ins [] = [(k, insert empty ks x)]
-    ins ((c, t) : ts) = if c == k then (k, insert t ks x) : ts
-                        else (c, t) : (ins ts)
-
-empty = Trie Nothing []
+insert [] x (Trie _ ts) = Trie (Just x) ts
+insert (k:ks) x (Trie v ts) = Trie v (Map.insert k (insert ks x t) ts) where
+    t = case Map.lookup k ts of
+         Nothing -> Trie Nothing Map.empty
+         (Just t) -> t
 \end{Haskell}
 
 我们也可以消除递归，实现迭代方式的$insert$函数：
@@ -545,24 +625,24 @@ empty = Trie Nothing []
 \EndFunction
 \end{algorithmic}
 
-若键的类型为$[K]$（$K$的列表），$K$是包含$m$个元素的有限集，键的长度为$n$，则插入算法的复杂度为$O(mn)$。当键是小写英文字符串时，$m = 26$，插入操作的复杂度和字符串长度成正比。
+若键的类型为$[K]$（$K$的列表），$K$是包含$m$个元素的有限集，键的长度为$n$，则插入算法的复杂度为$O(n \lg m)$。当键是小写英文字符串时，$m = 26$，插入操作的复杂度和字符串长度成正比。
 
 \subsection{查找}
 \index{trie!查找}
 
-在$T = (v, ts)$中查找一个非空键$(k:ks)$时，我们从第一个元素$k$开始，如果存在映射到$k$的子树$T'$，则接下来递归地在$T'$中查找$ks$。当键为空时，返回当前节点的值作为结果：
+在$T = (v, ts)$中查找一个非空键$(k \cons ks)$时，我们从第一个元素$k$开始，如果存在映射到$k$的子树$T'$，则接下来递归地在$T'$中查找$ks$。当键为空时，返回当前节点的值作为结果：
 
 \be
 \begin{array}{rcl}
-lookup\ \nil\ (v, ts) & = & v \\
-lookup\ (k:ks)\ (v, ts) & = & \begin{cases}
-  lookup_{l}\ k\ ts = \textit{Nothing}: & \textit{Nothing} \\
-  lookup_{l}\ k\ ts = \textit{Just}\ t: & lookup\ ks\ t \\
+lookup\ [\ ]\ (v, ts) & = & v \\
+lookup\ (k \cons ks)\ (v, ts) & = & \begin{cases}
+  ts[k] = \textit{Nothing}: & \textit{Nothing} \\
+  ts[k] = \textit{Just}\ t: & lookup\ ks\ t \\
 \end{cases}
 \end{array}
 \ee
 
-其中函数$lookup_{l}$的定义见第一章。它在关联列表中查找键是否存在。下面是相应的迭代实现：
+下面是相应的迭代实现：
 
 \begin{algorithmic}[1]
 \Function{Look-Up}{$T, key$}
@@ -579,40 +659,33 @@ lookup\ (k:ks)\ (v, ts) & = & \begin{cases}
 \EndFunction
 \end{algorithmic}
 
-查找算法的复杂度为$O(mn)$，其中$n$是键的长度，$m$是元素所在集合的大小。
-
-\begin{Exercise}
-\Question{使用自平衡二叉树（如红黑树或AVL树）实现映射$map$数据结构，用以存储子树的映射。我们称其为$MapTrie$或$MapTree$。它们的插入和查找算法性能是怎样的？}
-\end{Exercise}
+查找算法的复杂度为$O(n \lg m)$，其中$n$是键的长度，$m$是元素所在集合的大小。
 
 \section{前缀树}
 \index{Patricia} \index{前缀树}
 
-Trie的空间利用率很低。我们可以用同样的方法压缩链接在一起的节点，这样就得到了前缀树。
-
-\subsection{定义}
-一个前缀树节点$t$包含两部分：一个可为空的值$v$、零个或若干子前缀树。每棵子树$t_i$对应到一个列表$s_i$。列表和子树的映射关系记为$[s_i \mapsto t_i]$。这些列表拥有共同的前缀$s$，而$s$映射到节点$t$。也就是说$s$是$s \doubleplus s_1$、$s \doubleplus s_2$……的最长公共前缀。对于任何$i \neq j$，列表$s_i$、$s_j$不存在非空的公共前缀。将图\ref{fig:trie-of-26}中链接在一起的节点压缩起来，可以得到如图\ref{fig:patricia-tree}的前缀树。
+Trie的空间利用率很低。我们可以用同样的方法压缩链接在一起的节点，这样就得到了前缀树。前缀树节点$t$包含两部分：一个可为空的值$v$、零个或若干子前缀树。每棵子树$t_i$对应到一个列表$s_i$。列表和子树的映射关系记为$[s_i \mapsto t_i]$。这些列表拥有共同的前缀$s$，而$s$映射到节点$t$。也就是说$s$是$s \doubleplus s_1$、$s \doubleplus s_2$……的最长公共前缀。对于任何$i \neq j$，列表$s_i$、$s_j$不存在非空的公共前缀。将\cref{fig:trie-of-26}中链接在一起的节点压缩起来，可以得到如\cref{fig:patricia-tree}的前缀树。
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=0.5]{img/patricia-tree}
+  \includegraphics[scale=0.6, page=10]{img/trie}
   \caption{一棵前缀树，包含键：a、an、another、bool、boy、zoo}
   \label{fig:patricia-tree}
 \end{figure}
 
-下面的例子程序定义了前缀树：
+下面的例子程序定义了前缀树\footnote{也可以用\texttt{Map [k] PrefixTree k v}存储子树。}：
 
 \begin{Haskell}
 data PrefixTree k v = PrefixTree { value :: Maybe v
                                  , subTrees :: [([k], PrefixTree k v)]}
 \end{Haskell}
 
-我们记前缀树为$t = (v, ts)$。特别地，$(\textit{Nothing}, \nil)$表示内容为空的节点；$(\textit{Just}\ v, \nil)$表示值为$v$的叶子节点。
+我们记前缀树为$t = (v, ts)$。特别地，$(\textit{Nothing}, [\ ])$表示内容为空的节点；$(\textit{Just}\ v, [\ ])$表示值为$v$的叶子节点。
 
 \subsection{插入}
 \index{前缀树!插入}
 
-插入字符串$s$时，若前缀树为空，我们为$s$创建一个叶子节点，如图\ref{fig:patricia-insert}(a)所示。如果$s$和某个子树$t_i$相对应的$s_i$存在公共前缀，我们创建一个新叶子节点$t_j$，抽出公共前缀，并将其映射到一个新分枝$t'$上，然后令$t_i$、$t_j$分别为$t'$的两棵子树。如图\ref{fig:patricia-insert}(b)所示。这里有两种特殊情况：$s$为$s_i$的前缀，如图\ref{fig:patricia-insert}(c) $\to$ (e)；以及$s_i$为$s$的前缀，如图\ref{fig:patricia-insert}(d) $\to$ (e)。
+插入字符串$s$时，若前缀树为空，我们为$s$创建一个叶子节点，如\cref{fig:patricia-insert}(a)所示。如果$s$和某个子树$t_i$相对应的$s_i$存在公共前缀，我们创建一个新叶子节点$t_j$，抽出公共前缀，并将其映射到一个新分枝$t'$上，然后令$t_i$、$t_j$分别为$t'$的两棵子树。如\cref{fig:patricia-insert}(b)所示。这里有两种特殊情况：$s$为$s_i$的前缀，如\cref{fig:patricia-insert}(c) $\to$ (e)；以及$s_i$为$s$的前缀，如\cref{fig:patricia-insert}(d) $\to$ (e)。
 
 \begin{figure}[htbp]
   \centering
@@ -625,8 +698,8 @@ data PrefixTree k v = PrefixTree { value :: Maybe v
 
 \be
 \begin{array}{rcl}
-insert\ (v', ts)\ \nil\ v & = & (\textit{Just}\ v, ts) \\
-insert\ (v', ts)\ s\ v & = & (v', ins\ ts) \\
+insert\ [\ ]\ v\ (v', ts) & = & (\textit{Just}\ v, ts) \\
+insert\ s\ v\ (v', ts) & = & (v', ins\ ts) \\
 \end{array}
 \ee
 
@@ -634,10 +707,10 @@ insert\ (v', ts)\ s\ v & = & (v', ins\ ts) \\
 
 \be
 \begin{array}{rcl}
-ins\ \nil\ & = & [ s \mapsto (\textit{Just}\ v, \nil) ] \\
-ins\ (s' \mapsto t) : ts' & = & \begin{cases}
+ins\ [\ ]\ & = & [ s \mapsto (\textit{Just}\ v, [\ ]) ] \\
+ins\ ((s' \mapsto t) \cons ts') & = & \begin{cases}
   match\ s\ s': & (branch\ s\ v\ s'\ t) : ts' \\
-  otherwise: & (s' \mapsto t) : ins\ ts' \\
+  \text{否则}: & (s' \mapsto t) : ins\ ts' \\
   \end{cases}
 \end{array}
 \ee
@@ -646,34 +719,34 @@ ins\ (s' \mapsto t) : ts' & = & \begin{cases}
 
 \be
 \begin{array}{rcl}
-match\ \nil\ B & = & True \\
-match\ A\ \nil & = & True \\
-match\ (a:as)\ (b:bs) & = & a = b \\
+match\ [\ ]\ B & = & True \\
+match\ A\ [\ ] & = & True \\
+match\ (a \cons as)\ (b \cons bs) & = & a = b \\
 \end{array}
 \ee
 
-我们定义函数$(C, A', B') = lcp\ A\ B$来提取列表$A$和$B$的最长公共前缀，其中$C \doubleplus A' = A$且$C \doubleplus B' = B$成立。如果$A$、$B$中的任何一个为空或者它们的第一个元素不同，则公共前缀$C = \nil$；否则，我们递归地从子列表中提取公共前缀，并将头部元素附加在前：
+我们定义函数$(C, A', B') = lcp\ A\ B$来提取列表$A$和$B$的最长公共前缀，其中$C \doubleplus A' = A$且$C \doubleplus B' = B$成立。如果$A$、$B$中的任何一个为空或者它们的第一个元素不同，则公共前缀$C = [\ ]$；否则，我们递归地从子列表中提取公共前缀，并将头部元素附加在前：
 
 \be
 \begin{array}{rcl}
-lcp\ \nil\ B & = & (\nil, \nil, B) \\
-lcp\ A\ \nil & = & (\nil, A, \nil) \\
-lcp\ (a:as)\ (b:bs) & = & \begin{cases}
-  a \neq b: & (\nil, a:as, b:bs) \\
-  otherwise: & (a:cs, as', bs')\\
+lcp\ [\ ]\ B & = & ([\ ], [\ ], B) \\
+lcp\ A\ [\ ] & = & ([\ ], A, [\ ]) \\
+lcp\ (a \cons as)\ (b \cons bs) & = & \begin{cases}
+  a \neq b: & ([\ ], a \cons as, b \cons bs) \\
+  \text{否则}: & (a \cons cs, as', bs'), \text{其中} (cs, as', bs') = lcp\ as\ bs\\
   \end{cases}
 \end{array}
 \ee
 
-其中$(cs, as', bs') = lcp\ as\ bs$是递归提取的结果，函数$branch\ A\ v\ B\ t$接受两个键$A$、$B$，一个值$v$和树$t$，它提取出$A$、$B$的最长公共前缀$C$，将其映射到新分枝节点上，并设置好子树：
+函数$branch\ A\ v\ B\ t$接受两个键$A$、$B$，一个值$v$和树$t$，它提取出$A$、$B$的最长公共前缀$C$，将其映射到新分枝节点上，并设置好子树：
 
 \be
 \begin{array}{l}
 branch\ A\ v\ B\ t = \\
 \ lcp\ A\ B = \begin{cases}
-   (C, \nil, B'): & (C, (\textit{Just}\ v, [B' \mapsto t])) \\
-   (C, A', \nil): & (C, insert\ t\ A'\ v) \\
-   (C, A', B'): & (C, (\textit{Nothing}, [A' \mapsto (\textit{Just}\ v, \nil), B' \mapsto t])) \\
+   (C, [\ ], B'): & (C, (\textit{Just}\ v, [B' \mapsto t])) \\
+   (C, A', [\ ]): & (C, insert\ A'\ v\ t) \\
+   (C, A', B'): & (C, (\textit{Nothing}, [A' \mapsto (\textit{Just}\ v, [\ ]), B' \mapsto t])) \\
 \end{cases}
 \end{array}
 \ee
@@ -681,8 +754,8 @@ branch\ A\ v\ B\ t = \\
 如果$A$是$B$的前缀，则将$A$映射到$v$所在的节点，列表的剩余部分被重新映射到分枝的唯一子树$t$；如果$B$是$A$的前缀，我们递归地将剩余列表和值插入到$t$中；否则，我们创建一个值为$v$的叶子节点，将其和$t$作为分枝的两棵子树。下面的例子程序实现了$insert$算法：
 
 \begin{Haskell}
-insert (PrefixTree _ ts) [] v = PrefixTree (Just v) ts
-insert (PrefixTree v' ts) k v = PrefixTree v' (ins ts) where
+insert [] v (PrefixTree _ ts) = PrefixTree (Just v) ts
+insert k v (PrefixTree v' ts) = PrefixTree v' (ins ts) where
     ins [] = [(k, leaf v)]
     ins ((k', t) : ts) | match k k' = (branch k v k' t) : ts
                        | otherwise  = (k', t) : ins ts
@@ -695,7 +768,7 @@ match (a:_) (b:_) = a == b
 
 branch a v b t = case lcp a b of
   (c, [], b') -> (c, PrefixTree (Just v) [(b', t)])
-  (c, a', []) -> (c, insert t a' v)
+  (c, a', []) -> (c, insert a' v t)
   (c, a', b') -> (c, PrefixTree Nothing [(a', leaf v), (b', t)])
 
 lcp [] bs = ([], [], bs)
@@ -774,11 +847,11 @@ lcp (a:as) (b:bs) | a /= b = ([], a:as, b:bs)
 \subsection{查找}
 \index{前缀树!查找}
 
-查找键$k$时，我们从根节点开始，如果$k = \nil$为空，则返回根节点的值；否则我们检查子树的映射，找到映射$s_i \mapsto t_i$，使得$s_i$是$k$的前缀，然后再递归地在子树$t_i$中查找$k - s_i$。如果所有的$s_i$都不是$k$的前缀，则树中不存在要查找的键。
+查找键$k$时，我们从根节点开始，如果$k = [\ ]$为空，则返回根节点的值；否则我们检查子树的映射，找到映射$s_i \mapsto t_i$，使得$s_i$是$k$的前缀，然后再递归地在子树$t_i$中查找$k - s_i$。如果所有的$s_i$都不是$k$的前缀，则树中不存在要查找的键。
 
 \be
 \begin{array}{rcl}
-lookup\ \nil\ (v, ts) & = & v \\
+lookup\ [\ ]\ (v, ts) & = & v \\
 lookup\ k\ (v, ts) & = & find\ ((s, t) \mapsto s \sqsubseteq k)\ ts\ =  \\
   & & \begin{cases}
     \textit{Nothing} : & Nothing \\
@@ -797,20 +870,46 @@ lookup ks (PrefixTree v ts) =
     Just (s, t) -> lookup (drop (length s) ks) t
 \end{Haskell}
 
-前缀检查所需的时间和列表的长度成比例，$lookup$算法的复杂度为$O(mn)$，其中$m$是列表元素集合的大小，$n$是列表的长度。我们略过了命令式实现，将其作为本节的练习。
+前缀检查所需的时间和列表的长度成比例，$lookup$算法的复杂度为$O(mn)$，其中$m$是列表元素集合的大小，$n$是列表的长度。
 
-\begin{Exercise}
+\begin{Exercise}[label={ex:prefix-tr-lookup}]
 \Question{消除$lookup$算法中的递归，用循环实现前缀树的查找。}
 \end{Exercise}
 
+\begin{Answer}[ref = {ex:prefix-tr-lookup}]
+\Question{消除$lookup$算法中的递归，用循环实现前缀树的查找。
+
+\begin{Bourbaki}
+Optional<V> lookup(PrefixTree<K, V> t, K key) {
+    if t == null then return Optional.Nothing
+    Bool match
+    repeat {
+        match = False
+        for k, tr in t.subtrees {
+            if k == key then return Optional.of(tr.value)
+            (K prefix, K k1, K k2) = lcp(key, k)
+            if prefix != [] and k2 == [] {
+                match = True
+                key = k1
+                t = tr
+                break
+            }
+        }
+    } until not match
+    return Optional.Nothing
+}
+\end{Bourbaki}
+}
+\end{Answer}
+
 \section{Trie和前缀树的应用}
 
-我们可以用trie和前缀树来解决许多有趣的问题，包括实现简单的词典，自动输入补齐，以及数字键盘输入法。与商业实现不同，本节给出的例子都是示意性的。
+我们可以用trie和前缀树来解决许多有趣的问题，包括词典、自动输入补齐、数字键盘输入法。与商业实现不同，本节给出的例子都是示意性的。
 
 \subsection{词典和自动补齐}
 \index{自动补齐}
 
-如图\ref{fig:e-dict}所示，当用户输入某些字符后，词典会搜索词库，列出候选单词。
+如\cref{fig:e-dict}所示，当用户输入某些字符后，词典会搜索词库，列出候选单词。
 
 \begin{figure}[htbp]
   \centering
@@ -819,7 +918,7 @@ lookup ks (PrefixTree v ts) =
   \label{fig:e-dict}
 \end{figure}
 
-词典通常存有数十万单词，全部查找的开销很大。商业词典软件会使用多种工程方法以提高性能，包括缓存、索引等。图\ref{fig:word-completion}是一个带有自动补齐功能的输入框。当输入内容后，会列出一些可能的候选项。它们以用户输入的内容为前缀。
+词典通常存有数十万单词，全部查找的开销很大。商业词典软件会使用多种工程方法以提高性能，包括缓存、索引等。\cref{fig:word-completion}是一个带有自动补齐功能的输入框。当输入内容后，会列出一些可能的候选项。它们以用户输入的内容为前缀。
 
 \begin{figure}[htbp]
   \centering
@@ -833,24 +932,25 @@ lookup ks (PrefixTree v ts) =
 \be
 \begin{array}{c}
 \begin{array}{rcl}
-startsWith\ \nil\ (\textit{Nothing}, ts) & = & enum\ ts \\
-startsWith\ \nil\ (\textit{Just}\ x, ts) & = & (\nil, x) : enum\ ts \\
+startsWith\ [\ ]\ (\textit{Nothing}, ts) & = & enum\ ts \\
+startsWith\ [\ ]\ (\textit{Just}\ x, ts) & = & ([\ ], x) : enum\ ts \\
 startsWith\ s\ (v, ts) & = & find\ ((k, t) \mapsto s \sqsubseteq k\ \text{or}\ k \sqsubseteq s)\ ts = \\
 \end{array} \\
 \quad \begin{cases}
-  \textit{Nothing}: & \nil \\
+  \textit{Nothing}: & [\ ] \\
   \textit{Just}\ (k, t): & [(k \doubleplus a, b) | (a, b) \in startsWith\ (s - k)\ t]
 \end{cases}
 \end{array}
 \ee
 
-给定一个列表$s$，函数$startsWith$在前缀树中搜索所有以$s$为前缀的结果。如果$s$为空，它枚举所有子树。如果根节点中的值$x$不为空，则将$(\nil, x)$附加到结果之前。函数$enum\ ts$定义如下：
+给定一个列表$s$，函数$startsWith$在前缀树中搜索所有以$s$为前缀的结果。如果$s$为空，它枚举所有子树。如果根节点中的值$x$不为空，则将$([\ ], x)$附加到结果之前。函数$enum\ ts$定义如下：
 
 \be
-enum = \textit{concatMap}\ (k, t) \mapsto [(k \doubleplus a, b) | (a, b) \in startsWith\ \nil\ t]
+enum = \textit{concatMap}\ (k, t) \mapsto [(k \doubleplus a, b) | (a, b) \in startsWith\ [\ ]\ t]
 \ee
 
-其中$\textit{concatMap}$（也称为$flatMap$）是列表计算中的一个重要概念。效果上相当于先对每个元素进行映射，然后将结果连接起来。通常使用build-foldr融合律来实现，以消除计算中产生的中间结果列表（见《同构——编程中的数学》第5章）。如果$s$不为空，我们检查子树映射，对于每个映射$(k, t)$，如果$s$或$k$是另外一个的前缀，我们就递归地扩展子树$t$，并将$k$附加到每个结果的键之前；否则，如果$s$不和任何子树的映射匹配，则不存在以$s$为前缀的结果。下面的例子程序实现了这一算法：
+\label{sec:list-concatmap}
+其中$\textit{concatMap}$（也称为$flatMap$）是列表计算中的一个重要概念。效果上相当于先对每个元素进行映射，然后将结果连接起来。通常使用build-foldr融合律来实现，以消除计算中产生的中间结果列表（\cite{unplugged}第5章）。如果$s$不为空，我们检查子树映射，对于每个映射$(k, t)$，如果$s$或$k$是另外一个的前缀，我们就递归地扩展子树$t$，并将$k$附加到每个结果的键之前；否则，如果$s$不和任何子树的映射匹配，则不存在以$s$为前缀的结果。下面的例子程序实现了这一算法：
 
 \begin{Haskell}
 startsWith [] (PrefixTree Nothing ts) = enum ts
@@ -891,7 +991,7 @@ enum = concatMap (\(k, t) -> [(k ++ a, b) | (a, b) <- startsWith [] t])
 \EndFunction
 \end{algorithmic}
 
-其中函数\textproc{Expand}($s, T, n$)从$T$中扩展出$n$个结果，并将$s$附加在每个键的前面。我们可以用广度优先搜索方法实现它（见14.3节）：
+其中函数\textproc{Expand}($s, T, n$)从$T$中扩展出$n$个结果，并将$s$附加在每个键的前面。我们可以用广度优先搜索方法实现它（见\ref{sec:DFS-BFS}）：
 
 \begin{algorithmic}[1]
 \Function{Expand}{$s, T, n$}
@@ -914,7 +1014,7 @@ enum = concatMap (\(k, t) -> [(k ++ a, b) | (a, b) <- startsWith [] t])
 \subsection{数字键盘输入法}
 \index{T9}
 
-2010年前，大多数手机上都提供一个如图\ref{fig:itut-keypad}所示的数字键盘，称为ITU-T键盘。它将每个数字映射到3到4个英文字母上。如果要输入英文单词home，我们可以按照下面的顺序按键：
+2010年前，大多数手机上都有一个如\cref{fig:itut-keypad}所示的数字键盘，称为ITU-T键盘。它将每个数字映射到3到4个英文字母上。如果要输入英文单词home，我们可以按照下面的顺序按键：
 
 \begin{figure}[htbp]
   \centering
@@ -952,16 +1052,16 @@ M_{T9} = \{ & 2 \mapsto \texttt{"abc"}, 3 \mapsto \texttt{"def"}, 4 \mapsto \tex
 $M_{T9}[i]$就给出数字$i$对应的若干字符。我们也可以定义从字符到数字的逆映射。
 
 \be
-M^{-1}_{T9} = \textit{concatMap}\ ((d, s) \mapsto [(c, d) | c \in s])\ M_{T9}
+M^{-1}_{T9} = \textit{concatMap}\ ((d, s) \mapsto [(c, d) | c \gets s])\ M_{T9}
 \ee
 
 通过查找$M^{-1}_{T9}$，我们可以将字符串转换成一组按键序列。
 
 \be
-digits(s) = \{ M^{-1}_{T9}[c]| c \in s \}
+digits(s) = \{ M^{-1}_{T9}[c]| c \gets s \}
 \ee
 
-对于任何不属于[\texttt{a..z}]中的字符，我们将其映射到特殊字符\texttt{'\#'}上。下面的例子程序定义了上述映射：
+对于任何不属于[\texttt{a..z}]的字符，我们将其映射到特殊字符\texttt{'\#'}上。下面的例子程序定义了上述映射：
 
 \begin{Haskell}
 mapT9 = Map.fromList [('2', "abc"), ('3', "def"), ('4', "ghi"),
@@ -982,7 +1082,7 @@ digits = map (\c -> Map.findWithDefault '#' c rmapT9)
 
 \be
 \begin{array}{rcl}
-find_{T9}\ t\ \nil & = & [ \nil ] \\
+find_{T9}\ t\ [\ ] & = & [ [\ ] ] \\
 find_{T9}\ (v, ts)\ ds & = & \textit{concatMap}\ find\ \textit{pfx} \\
 \end{array}
 \ee
@@ -1028,14 +1128,52 @@ findT9 (PrefixTree _ ts) k = concatMap find pfx where
 \EndFunction
 \end{algorithmic}
 
-\begin{Exercise}
+我们从整数trie和整数前缀树开始，通过整数的二进制表示，我们复用二叉树实现了基于整数的映射（map）数据结构。接下来我们将键的类型从整数扩展到有限集元素的列表。其中一个特例就是字符串，trie和前缀树可以用来进行文字处理。我们给出了两个应用的例子：自动补齐和预测式输入。基数树的另外一个应用是后缀树，它和trie与前缀树有着密切的关系，是文字和DNA处理的有力工具。
+
+\begin{Exercise}[label={ex:prefix-tree-app}]
 \Question{使用trie实现自动补齐和预测式输入。}
 \Question{对于返回多个候选结果的前缀树查找算法，如何保证输出的结果按照字典顺序排序？这会对性能产生怎样的影响？}
 \Question{在没有惰性求值的环境中，如何按需返回最多$n$条结果？}
 \end{Exercise}
 
-\section{小结}
-我们从整数trie和整数前缀树开始，通过整数的二进制表示，我们复用二叉树实现了基于整数的映射（map）数据结构。接下来我们将键的类型从整数扩展到有限集元素的列表。其中一个特例就是字符串，trie和前缀树可以用来进行文字处理。我们给出了两个应用的例子：自动补齐和预测式输入。基数树的另外一个应用是后缀树，它和trie与前缀树有着密切的关系，是文字和DNA处理的有力工具。
+\begin{Answer}[ref = {ex:prefix-tree-app}]
+\Question{使用trie实现自动补齐和预测式输入。
+
+对于输入的前缀$ks$，我们沿着trie前进至子节点$t$，然后将$t$下面的子树全部展开。最后截断前$n$个候选项：
+\begin{Haskell}
+import Data.Map (Map)
+import qualified Data.Map as Map
+
+startsWith :: Ord k => [k] -> Trie k v -> [([k], v)]
+startsWith [] (Trie Nothing  ts) = enum ts
+startsWith [] (Trie (Just v) ts) = ([], v) : enum ts
+startsWith (k:ks) (Trie _ ts) = case Map.lookup k ts of
+  Nothing -> []
+  Just t -> map (first (k:)) (startsWith ks t)
+
+enum :: Ord k => Map k (Trie k v) -> [([k], v)]
+enum = (concatMap (\(k, t) ->
+                    map (first (k:)) (startsWith [] t))) . Map.assocs
+
+get n k t = take n $ startsWith k t
+\end{Haskell} %$
+
+其中$\textit{first}\ f\ (a, b) = (f\ a, b)$，将函数$f$应用到一对值的前一个上。实现预测式输入时，针对每个数字，我们都在$M_{T9}$中找到所有可能的字符，然后到trie中递归查找对应的子树：
+
+\begin{Haskell}
+findT9 [] _ = [[]]
+findT9 (d:ds) (Trie _ ts) = concatMap find cts where
+  cts = case Map.lookup d mapT9 of
+    Nothing -> []
+    Just cs -> Map.assocs $ Map.filterWithKey (\c _ -> c `elem` cs) ts
+  find (c, t) = map (c:) (findT9 ds t)
+\end{Haskell}
+}
+\Question{对于返回多个候选结果的前缀树查找算法，如何保证输出的结果按照字典顺序排序？这会对性能产生怎样的影响？
+
+由\cref{qn:prefix-tree-pre-order-traverse}，对于二叉前缀树，按照前序遍历可以获得字典顺序的结果。对于多叉前缀树，我们需要对子树按字典顺序遍历。如果用自平衡二叉搜索树管理子树（如红黑树或AVL树），可以在线性时间内按序遍历子树（见\cref{itm:bst-iterate}）。如果用散列表或者关联列表管理子树，则需要$O(n\lg n)$时间对子树排序。
+}
+\end{Answer}
 
 \section{附录：例子程序}
 
@@ -1043,9 +1181,8 @@ findT9 (PrefixTree _ ts) k = concatMap find pfx where
 
 \begin{lstlisting}[language = Bourbaki]
 data IntTrie<T> {
-    IntTrie<T> left = null
-    IntTrie<T> right = null
-    Optional<T> value = Optional.None
+    IntTrie<T> left = null, right = null
+    Optional<T> value = Optional.Nothing
 }
 \end{lstlisting}
 
@@ -1053,7 +1190,7 @@ data IntTrie<T> {
 
 \begin{lstlisting}[language = Bourbaki]
 IntTrie<T> insert(IntTrie<T> t, Int key,
-                  Optional<T> value = Optional.None) {
+                  Optional<T> value = Optional.Nothing) {
     if t == null then t = IntTrie<T>()
     p = t
     while key != 0 {
@@ -1087,10 +1224,8 @@ IntTrie<T> insert(IntTrie<T> t, Int key,
 data IntTree<T> {
     Int key
     T value
-    Int prefix
-    Int mask = 1
-    IntTree<T> left = null
-    IntTree<T> right = null
+    Int prefix, mask = 1
+    IntTree<T> left = null, right = null
 
     IntTree(Int k, T v) {
         key = k, value = v, prefix = k
@@ -1164,7 +1299,7 @@ trie的定义和插入：
 
 \begin{lstlisting}[language = Bourbaki]
 data Trie<K, V> {
-  Optional<V> value = Optional.None
+  Optional<V> value = Optional.Nothing
   Map<K, Trie<K, V>> subTrees = Map.empty()
 }
 
@@ -1184,7 +1319,7 @@ Trie<K, V> insert(Trie<K, V> t, [K] key, V value) {
 
 \begin{lstlisting}[language = Bourbaki]
 data PrefixTree<K, V> {
-    Optional<V> value = Optional.None
+    Optional<V> value = Optional.Nothing
     Map<[K], PrefixTree<K, V>> subTrees = Map.empty()
 
     Self PrefixTree(V v) {
@@ -1289,8 +1424,8 @@ PrefixTree<K, V> branch([K] key1, PrefixTree<K, V> tree1,
 
 预测式输入：
 \begin{lstlisting}[language = Bourbaki]
-var T9MAP={'2':"abc", '3':"def", '4':"ghi", '5':"jkl", \
-       '6':"mno", '7':"pqrs", '8':"tuv", '9':"wxyz"}
+var T9MAP={'2':"abc", '3':"def", '4':"ghi", '5':"jkl",
+           '6':"mno", '7':"pqrs", '8':"tuv", '9':"wxyz"}
 
 var T9RMAP = { c : d for var (d, cs) in T9MAP for var c in cs }
 
@@ -1317,6 +1452,9 @@ string digits(string w) = ''.join([T9RMAP[c] for c in w])
 \end{lstlisting}
 
 \ifx\wholebook\relax\else
+\section{参考答案}
+\shipoutAnswer
+
 \begin{thebibliography}{99}
 
 \bibitem{CLRS}

@@ -18,13 +18,13 @@
 
 \author{刘新宇
 \thanks{{\bfseries 刘新宇 } \newline
-  Email: liuxinyu95@gmail.com \newline}
+  Email: liuxinyu99@hotmail.com \newline}
   }
 
 \maketitle
 \fi
 
-\markboth{B树}{基本算法}
+%\markboth{B树}{基本算法}
 
 \ifx\wholebook\relax
 \chapter{B树}
@@ -35,11 +35,11 @@
 \index{B树}
 \label{introduction}
 
-上一章介绍的整数前缀树利用二叉树的边来表达信息。另一种扩展二叉树的方法是将分枝数目从2增加到$k$。B树是一种自平衡的$k$叉搜索树\cite{wiki-b-tree}。它被广泛用于计算机文件系统（基于B+树，一种B树的扩展形势）和数据库系统。图\ref{fig:btree-example}展示了一棵B树，我们可以观察它和二叉搜索树之间的异同。
+上一章介绍的整数前缀树利用二叉树的边来表达信息。另一种扩展二叉树的方法是将分枝数目从2增加到$k$。B树是一种自平衡的$k$叉搜索树\cite{wiki-b-tree}。它被广泛用于计算机文件系统（基于B+树，一种B树的扩展形式）和数据库系统。\cref{fig:btree-example}展示了一棵B树，我们可以观察它和二叉搜索树之间的异同。
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=0.33]{img/btree-del-before}
+  \includegraphics[scale=0.5]{img/btree-del-before}
   \caption{B树}
   \label{fig:btree-example}
 \end{figure}
@@ -50,11 +50,11 @@
 \forall\ x \in l, y \in r \Rightarrow x < k < y
 \ee
 
-B树将这一思想推广到多个分枝。一棵B树或为空，或包含$n$个元素和$n + 1$个子分枝，每个分枝也都是一棵B树。记这些元素为$k_1, k_2, ..., k_n$，分枝为$t_1, t_2, ..., t_n, t_{n+1}$，如图\ref{fig:btree-node}所示。节点中的元素和分枝满足以下条件：
+B树将这一思想推广到多个分枝。一棵B树或为空，或包含$n$个元素和$n + 1$个子分枝，每个分枝也都是一棵B树。记这些元素为$k_1, k_2, ..., k_n$，分枝为$t_1, t_2, ..., t_n, t_{n+1}$，如\cref{fig:btree-node}所示。节点中的元素和分枝满足以下条件：
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=0.5]{img/btree-node}
+  \includegraphics[scale=0.5, page=1]{img/btrees}
   \caption{B树节点}
   \label{fig:btree-node}
 \end{figure}
@@ -73,7 +73,7 @@ B树将这一思想推广到多个分枝。一棵B树或为空，或包含$n$个
 
 \begin{itemize}
 \item 所有的叶子节点都有相同的深度；
-\item 定义整数$d$，称为B树的\underline{最小度数}，每个节点：
+\item 定义整数$d$，称为B树的\textbf{最小度数}，每个节点：
     \begin{itemize}
         \item 最多含有$2d - 1$个元素；
         \item 最少含有$d - 1$个元素，根节点例外。
@@ -120,18 +120,18 @@ data BTree a = BTree [a] [BTree a]
 \section{插入}
 \index{B树!插入} \label{btree-insertion}
 
-插入的思路和二叉搜索树类似，只不过需要处理多个元素和分枝。当向B树$t$插入元素$x$时，我们从根节点开始，查找这样的位置\footnote{实际上，元素只需支持小于比较和等于比较。参见练习题\ref{ex:btree-leq}。}：所有左侧的元素都小于$x$，而右侧的元素大于$x$。如果是未满的叶子节点（$|keys(t)| < 2d - 1$），就将$x$插入到此位置。否则，这一位置会指向一棵子树$t'$，我们递归地将$x$插入到$t'$。
+插入的思路和二叉搜索树类似，只不过需要处理多个元素和分枝。当向B树$t$插入元素$x$时，我们从根节点开始，查找这样的位置\footnote{实际上，元素只需支持小于比较和等于比较。参见\cref{ex:btree-leq}。}：所有左侧的元素都小于$x$，而右侧的元素大于$x$。如果是未满的叶子节点（$|keys(t)| < 2d - 1$），就将$x$插入到此位置。否则，这一位置会指向一棵子树$t'$，我们递归地将$x$插入到$t'$。
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=0.4]{img/btree-insert-example}
+  \includegraphics[scale=0.38]{img/btree-insert-example}
   \caption{将22插入到2-3-4树：$22 > 20$，插入右子树；$22 < 26$，插入第一棵子树。$21 < 22 < 25$，插入到未满的叶子节点。}
   \label{fig:btree-insert-simple}
 \end{figure}
 
-考虑向图\ref{fig:btree-insert-simple}中的2-3-4树插入元素$x = 22$。因为$20 < 22$，我们转向右侧的子树。它包含26、38、45。因为$22 < 26$，所以接下来转向第一棵子树。它包含21和25。这是一个未满的叶子节点，将22插入到21和25中间。
+考虑向\cref{fig:btree-insert-simple}中的2-3-4树插入元素$x = 22$。因为$20 < 22$，我们转向右侧的子树。它包含26、38、45。因为$22 < 26$，所以接下来转向第一棵子树。它包含21和25。这是一个未满的叶子节点，将22插入到21和25中间。
 
-但如果叶子节点已经含有$2d - 1$个元素，插入$x$后就会因为元素过多破坏B树的规则。例如向图\ref{fig:btree-insert-simple}插入18就会遇到这个问题。我们有两种解法：先插入再分拆，和先分拆再插入。
+但如果叶子节点已经含有$2d - 1$个元素，插入$x$后就会因为元素过多破坏B树的规则。例如向\cref{fig:btree-insert-simple}插入18就会遇到这个问题。我们有两种解法：先插入再分拆，和先分拆再插入。
 
 \subsection{先插入再分拆}
 
@@ -144,11 +144,11 @@ low\  d\ (ks, ts) & = |ks| < d - 1 \\
 \end{cases}
 \ee
 
-如果含有过多元素和分枝，我们定义$split$函数将其在位置$m$分拆为三部分，如图\ref{fig:node-split}所示：
+如果含有过多元素和分枝，我们定义$split$函数将其在位置$m$分拆为三部分，如\cref{fig:node-split}所示：
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=0.4]{img/split}
+  \includegraphics[scale=0.4, page=2]{img/btrees}
   \caption{在位置$m$将节点分拆为三部分。}
   \label{fig:node-split}
 \end{figure}
@@ -157,7 +157,7 @@ low\  d\ (ks, ts) & = |ks| < d - 1 \\
 split\ m\ (ks, ts) = ((ks_l, ts_l), k, (ks_r, ts_r))
 \ee
 
-我们使用第一章（\autoref{eq:split-at}）中定义的$splitAt$函数来实现：
+我们使用第一章\cref{eq:split-at}中定义的$splitAt$函数来实现：
 
 \[
 \begin{cases}
@@ -188,13 +188,13 @@ fix\ (d, t) = \begin{cases}
 \end{cases}
 \ee
 
-函数$ins$需要处理两种情况：对于叶子节点，我们可以重用第一章（\autoref{eq:list-ordered-insert}）定义的列表插入函数$insert$来处理；否则，我们需要找到合适的位置，递归地向子树插入。为此，我们定义函数$partition$：
+函数$ins$需要处理两种情况：对于叶子节点，我们可以重用第一章\cref{eq:list-ordered-insert}定义的列表插入函数$insert$来处理；否则，我们需要找到合适的位置，递归地向子树插入。为此，我们定义函数$partition$：
 
 \be
 partition\ x\ (ks, ts) = (l, t', r)
 \ee
 
-其中$l = (ks_l, ts_l)$、$r = (ks_r, ts_r)$。它进一步使用第一章（\autoref{eq:span}）中定义的列表函数$span$进行划分：
+其中$l = (ks_l, ts_l)$、$r = (ks_r, ts_r)$。它进一步使用第一章\cref{eq:span}中定义的列表函数$span$进行划分：
 
 \[
 \begin{cases}
@@ -203,7 +203,7 @@ partition\ x\ (ks, ts) = (l, t', r)
 \end{cases}
 \]
 
-这样，所有小于$x$的元素和所在的子分枝都在左侧$l$，所有大于$x$的都在右侧$r$。我们将最后一棵小于$x$的子树取出作为$t'$。接下来我们递归地将$x$插入到$t'$中，如图\ref{fig:recursive-insert}所示。
+这样，所有小于$x$的元素和所在的子分枝都在左侧$l$，所有大于$x$的都在右侧$r$。我们将最后一棵小于$x$的子树取出作为$t'$。接下来我们递归地将$x$插入到$t'$中，如\cref{fig:recursive-insert}所示。
 
 \be
 \begin{array}{rcll}
@@ -214,7 +214,7 @@ partition\ x\ (ks, ts) = (l, t', r)
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=0.45]{img/partition}
+  \includegraphics[scale=0.45, page=3]{img/btrees}
   \caption{用$x$划分节点}
   \label{fig:recursive-insert}
 \end{figure}
@@ -263,11 +263,11 @@ balance d (ks1, ts1) t (ks2, ts2)
                 BTree (ks1 ++ [k] ++ ks2) (ts1 ++ [t1, t2] ++ ts2)
 \end{Haskell}
 
-图\ref{fig:btree-insert-fp}给出了两棵B树的例子，它们都是依次将``GMPXACDEJKNORSTUVYZ''中的元素插入B树构造出的。
+\cref{fig:btree-insert-fp}给出了两棵B树的例子，它们都是依次将``GMPXACDEJKNORSTUVYZ''中的元素插入B树构造出的。
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=0.4]{img/btree-insert-fp}
+  \includegraphics[scale=0.4, page=4]{img/btrees}
   \captionsetup{justification=centering}
   \caption{依次插入``GMPXACDEJKNORSTUVYZ''。\\
 上：$d = 2$（2-3-4树），下：$d = 3$}
@@ -276,7 +276,7 @@ balance d (ks1, ts1) t (ks2, ts2)
 
 \subsection{先分拆再插入}
 
-第二种方法是在插入前先分拆节点以避免其含有过多元素。命令式实现常用这一方法。自顶向下递归插入时，当遇到含有$2d - 1$个元素的节点时，我们将其分拆为三部分，如图\ref{fig:node-split}所示。每个新节点都只含有$d - 1$个元素，即使插入元素后也仍然是合法的B树节点。对于节点$x$，令$K(x)$表示它包含的元素，$T(x)$表示它包含的子分枝。记$x$中的第$i$个元素为$k_i(x)$，第$j$棵子分枝为$t_j(x)$。下面的算法在第$i$个位置对节点$z$进行分拆：
+第二种方法是在插入前先分拆节点以避免其含有过多元素。命令式实现常用这一方法。自顶向下递归插入时，当遇到含有$2d - 1$个元素的节点时，我们将其分拆为三部分，如\cref{fig:node-split}所示。每个新节点都只含有$d - 1$个元素，即使插入元素后也仍然是合法的B树节点。对于节点$x$，令$K(x)$表示它包含的元素，$T(x)$表示它包含的子分枝。记$x$中的第$i$个元素为$k_i(x)$，第$j$棵子分枝为$t_j(x)$。下面的算法在第$i$个位置对节点$z$进行分拆：
 
 \begin{algorithmic}[1]
 \Procedure{Split}{$z, i$}
@@ -309,7 +309,7 @@ balance d (ks1, ts1) t (ks2, ts2)
 \EndFunction
 \end{algorithmic}
 
-其中算法\textproc{Insert-Nonfull}假设传入的节点$r$不满。如果$r$是叶子节点，我们按照$k$的大小将其插入到相应位置（练习\ref{ex:btree-binary-search}要求使用二分查找进行插入）。否则，我们找到一个位置，使得$k_i(r) < k < k_{i+1}(r)$，如果分枝$t_i(r)$满了，就进行分拆。然后继续向子分枝插入。
+其中算法\textproc{Insert-Nonfull}假设传入的节点$r$不满。如果$r$是叶子节点，我们按照$k$的大小将其插入到相应位置（\cref{ex:btree-binary-search}要求使用二分查找进行插入）。否则，我们找到一个位置，使得$k_i(r) < k < k_{i+1}(r)$，如果分枝$t_i(r)$满了，就进行分拆。然后继续向子分枝插入。
 
 \begin{algorithmic}[1]
 \Function{Insert-Nonfull}{$r, k$}
@@ -337,7 +337,7 @@ balance d (ks1, ts1) t (ks2, ts2)
 \EndFunction
 \end{algorithmic}
 
-这一算法是递归的。练习\ref{ex:btree-loop-insert}要求使用循环消除递归。图\ref{fig:btree-insert}给出了依次插入``GMPXACDEJKNORSTUVYZ''时的结果。
+这一算法是递归的。\cref{ex:btree-loop-insert}要求使用循环消除递归。\cref{fig:btree-insert}给出了依次插入``GMPXACDEJKNORSTUVYZ''时的结果。
 
 \begin{figure}[htbp]
   \centering
@@ -348,11 +348,11 @@ balance d (ks1, ts1) t (ks2, ts2)
 
 \subsection{列表对}
 
-用列表存储元素时，我们需要从第一个元素开始，扫描列表找到插入位置。如果用数组存储，我们可以使用二分查找。可否从节点中的某个位置开始，根据元素的大小向左或向右前进呢？我们可以将B树节点表示为三部分：某棵子分枝$t'$，它的左侧$l$，右侧$r$。其中左右侧都是“元素/子分枝”对$(k_i, t_i)$的列表。特别的，左侧$l$是逆序的。$l$和$r$经由$t'$头对头地连接起来，组成一个如图\ref{fig:paired-lists}所示的马蹄形。我们可以用常数时间前后移动。
+用列表存储元素时，我们需要从第一个元素开始，扫描列表找到插入位置。如果用数组存储，我们可以使用二分查找。可否从节点中的某个位置开始，根据元素的大小向左或向右前进呢？我们可以将B树节点表示为三部分：某棵子分枝$t'$，它的左侧$l$，右侧$r$。其中左右侧都是“元素/子分枝”对$(k_i, t_i)$的列表。特别的，左侧$l$是逆序的。$l$和$r$经由$t'$头对头地连接起来，组成一个如\cref{fig:paired-lists}所示的马蹄形。我们可以用常数时间前后移动。
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=0.45]{img/paired-lists}
+  \includegraphics[scale=0.45, page=5]{img/btrees}
   \caption{将B树表示为某个子分枝和它两侧的一对列表}
   \label{fig:paired-lists}
 \end{figure}
@@ -361,15 +361,15 @@ balance d (ks1, ts1) t (ks2, ts2)
 
 \begin{Haskell}
 data BTree a = Empty
-           | BTree [(a, BTree a)] (BTree a) [(a, BTree a)]
+             | BTree [(a, BTree a)] (BTree a) [(a, BTree a)]
 \end{Haskell}
 
 向右移动一步时，我们从$r$中取出第一对值$(k, t)$，组成另一对$(k, t')$置于$l$的最前面。然后用$t$替换$t'$。向左移动的步骤与此对称。它们都只需要常数时间。
 
 \be
 \begin{array}{lcl}
-  step_l\ ((k, t):l, t', r) & = & (l, t, (k, t'):r) \\
-  step_r\ (l, t', (k, t):r) & = & ((k, t'):l, t, r) \\
+  step_l\ ((k, t) \cons l, t', r) & = & (l, t, (k, t') \cons r) \\
+  step_r\ (l, t', (k, t) \cons r) & = & ((k, t') \cons l, t, r) \\
 \end{array}
 \ee
 
@@ -421,7 +421,7 @@ split\ d\ t = \begin{cases}
 其中$sp$进行如下的分拆：
 
 \be
-sp\ (l, t, (k, t'):r) = ((l, t, \nil), k, (\nil, t', r))
+sp\ (l, t, (k, t') \cons r) = ((l, t, \nil), k, (\nil, t', r))
 \ee
 
 利用$partition$和$split$，对于列表对表示的B树，我们可以定义出插入算法。首先我们需要修改B树含有过多、过少元素的判断：
@@ -461,7 +461,7 @@ fix\ (d, t) = \begin{cases}
 \begin{array}{lcl}
   ins\ \nil & = & (\nil, \nil, [(x, \nil)]) \\
   ins\ t & = & \begin{cases}
-    t' = \nil: & balance\ d\ l\ \nil\ ((x, \nil):r) \\
+    t' = \nil: & balance\ d\ l\ \nil\ ((x, \nil) \cons r) \\
     t' \neq \nil: & balance\ d\ l\ (ins\ t')\ r \\
   \end{cases}
 \end{array}
@@ -476,7 +476,7 @@ balance\ d\ l\ t\ r = \begin{cases}
   \end{cases}
 \ee
 
-其中$fixFull = (l, t_1, ((k, t_2):r)$，$(t_1, k, t_2) = split\ d\ t$。下面的例子程序实现了插入算法：
+其中$fixFull = (l, t_1, ((k, t_2) \cons r)$，$(t_1, k, t_2) = split\ d\ t$。下面的例子程序实现了插入算法：
 
 \begin{Haskell}
 insert x (d, t) = fixRoot (d, ins t) where
@@ -503,14 +503,70 @@ split d t@(BTree l _ _) | n < d = sp $ iterate stepR t !! (d - n)
     sp (BTree l t ((k, t'):r)) = (BTree l t [], k, BTree [] t' r)
 \end{Haskell}
 
-\begin{Exercise}
-\Question{我们是否可以用$\leq$使得B树含有重复元素？} \label{ex:btree-leq}
-\Question{使用循环消除“先分拆再插入”算法中的递归。}
-\label{ex:btree-loop-insert}
-\Question{我们使用线性查找获得元素插入的位置。请使用二分查找对命令式实现进行改进。算法复杂度会提升么？}
-\label{ex:btree-binary-search}
-% No, is still linear, although the search speed up to O(\lg n), the insertion takes O(n) time to shift elements.
+\begin{Exercise}[label={ex:btree-insert}]
+\Question{我们是否可以用$\leq$使得B树含有重复元素？}\label{ex:btree-leq}
+\Question{使用循环消除“先分拆再插入”算法中的递归。}\label{ex:btree-loop-insert}
+\Question{我们使用线性查找获得元素插入的位置。请使用二分查找对命令式实现进行改进。算法复杂度会提升么？}\label{ex:btree-binary-search}
 \end{Exercise}
+
+\begin{Answer}[ref = {ex:btree-insert}]
+\Question{我们是否可以用$\leq$使得B树含有重复元素？
+
+可以用$\leq$使B树包含重复元素：所有左侧元素小于等于$x$，而$x$小于等于所有右侧元素。但在查找、删除时需要额外处理重复元素。一般我们限制B树中的键唯一，而一个键可以对应多个值（$k \mapsto [v_1, v_2, ...]$），称为多值映射（multi-map）。
+}
+
+\Question{使用循环消除“先分拆再插入”算法中的递归。
+
+\begin{Bourbaki}
+BTree<K, deg> insertNonfull(BTree<K, deg> tr, K key) {
+    var root = t
+    while not is_leaf(t) {
+        Int i = length(t.keys)
+        while i > 0 and key < t.keys[i-1] {
+            i = i - 1
+        }
+        if full(d, t.subTrees[i]) {
+            split(d, t, i)
+            if key > t.keys[i] then i = i + 1
+        }
+        t = t.subTrees[i]
+    }
+    orderedInsert(t.keys, key)
+    return root
+\end{Bourbaki}
+}
+
+\Question{我们使用线性查找获得元素插入的位置。请使用二分查找对命令式实现进行改进。算法复杂度会提升么？
+
+\begin{Bourbaki}
+void orderedInsert([K] xs, K x) {
+    append(xs, x)
+    Int p = binarySearch(xs, x)
+    for Int i = length(lst), i > p, i = i - 1 {
+        xs[i] = xs[i-1]
+    }
+    xs[p] = x
+}
+
+Int binarySearch([K] xs, K x) {
+    Int l = 0, u = length(xs)
+    while l < u {
+        Int m = (l + u) / 2
+        if xs[m] == x {
+            return m
+        } else if xs[m] < x {
+            l = m + 1
+        } else {
+            u = m
+        }
+    }
+    return l
+}
+\end{Bourbaki}
+
+复杂度仍然是线性时间的。尽管二分查找需要$O(\lg n)$时间，但是插入需要$O(n)$时间移动数组以获取空位。
+}
+\end{Answer}
 
 \section{查找}
 \index{B树!查找}
@@ -535,7 +591,7 @@ split d t@(BTree l _ _) | n < d = sp $ iterate stepR t !! (d - n)
 \[
 \begin{array}{lcl}
   \textit{safeHd}\ [] & = & \textit{Nothing} \\
-  \textit{safeHd}\ (x:xs) & = & \textit{Just}\ x \\
+  \textit{safeHd}\ (x \cons xs) & = & \textit{Just}\ x \\
 \end{array}
 \]
 
@@ -572,7 +628,7 @@ lookup x t = let (l, t', r) = partition (< x) t in
 对于命令式实现，我们从根节点$r$开始，找到位置$i$使得$k_i(r) \leq k < k_{i+1}(r)$。如果$k_i(r) = k$，则返回节点$r$和索引$i$组成的值对；否则，我们继续在子分枝$t_i(r)$中继续查找。如果$r$是叶子节点，并且$k$不在其中，则返回空结果。
 
 \begin{algorithmic}[1]
-\Function{Look-Up}{$r, k$}
+\Function{Lookup}{$r, k$}
   \Loop
     \State $i \gets 1, n \gets |K(r)|$
     \While{$i \leq n$ and $k > k_i(r)$}
@@ -590,9 +646,37 @@ lookup x t = let (l, t', r) = partition (< x) t in
 \EndFunction
 \end{algorithmic}
 
-\begin{Exercise}
-  \Question{使用二分查找改进命令式查找算法。}
+\begin{Exercise}[label={ex:btree-binary_lookup}]
+\Question{使用二分查找改进命令式查找算法。}
 \end{Exercise}
+
+\begin{Answer}[ref = {ex:btree-binary_lookup}]
+\Question{使用二分查找改进命令式查找算法。
+
+\begin{Bourbaki}
+Optional<(BTree<K, deg>, Int)> lookup(BTree<K, deg> tr, K key) {
+    loop {
+        Int l = 0, u = length(tr.keys)
+        while l < u {
+            Int m = (l + u) / 2
+            if key == tr.keys[m] {
+                return Optional.of((tr, m))
+            } else if t.keys[m] < key {
+                l = m + 1
+            } else {
+                u = m
+            }
+        }
+        if isLeaf(tr) {
+            return Optional.Nothing
+        } else {
+            tr = tr.subTrees[l]
+        }
+    }
+}
+\end{Bourbaki}
+}
+\end{Answer}
 
 \section{删除}
 \index{B树!删除}
@@ -604,14 +688,14 @@ lookup x t = let (l, t', r) = partition (< x) t in
 我们首先扩展二叉搜索树的删除算法到多个分枝，然后再修复B树的平衡性。算法包含两步：
 
 \be
-delete\ x\ (d, t) = fix (d, del\ x\ t)
+delete\ x\ (d, t) = fix\ (d, del\ x\ t)
 \ee
 
-其中函数$del$是对多分枝扩展的删除操作。如果$t$是叶子节点，我们从节点元素中删除$x$；否则，我们用$x$将树划分为三部分：$(l, t', r)$。其中$l$和$t'$的所有元素小于$x$，而$r$中的其余元素大于等于（$\geq$）$x$。如果$r$不为空，我们取出其中的第一个元素$k_i$，若它等于$x$（即$k_i = x$），我们接下来用子分枝$t'$中的最大元素$k'$（即$k' = max(t')$）取代$k_i$。然后递归地从$t'$中删除$k'$，如图\ref{fig:btree-del}所示。否则（$r$为空或$k_i \neq x$），我们递归地从$t'$中删除$x$。
+其中函数$del$是对多分枝扩展的删除操作。如果$t$是叶子节点，我们从节点元素中删除$x$；否则，我们用$x$将树划分为三部分：$(l, t', r)$。其中$l$和$t'$的所有元素小于$x$，而$r$中的其余元素大于等于（$\geq$）$x$。如果$r$不为空，我们取出其中的第一个元素$k_i$，若它等于$x$（即$k_i = x$），我们接下来用子分枝$t'$中的最大元素$k'$（即$k' = max(t')$）取代$k_i$。然后递归地从$t'$中删除$k'$，如\cref{fig:btree-del}所示。否则（$r$为空或$k_i \neq x$），我们递归地从$t'$中删除$x$。
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=0.45]{img/btree-del}
+  \includegraphics[scale=0.45, page=6]{img/btrees}
   \caption{用$k' = max(t')$替换$k_i$，然后递归地从$t'$删除$k'$}
   \label{fig:btree-del}
 \end{figure}
@@ -635,7 +719,7 @@ del\ x\ t & = & \begin{cases}
 \end{array}
 \ee
 
-函数$last$返回列表中的最后一个元素（第一章\autoref{eq:list-last}）。$delete_l$是第一章\autoref{eq:list-delete}中定义的列表删除函数。$tail$将列表中的第一个元素去掉，并返回剩下的元素（\autoref{eq:list-head-tail}）。我们还需要修改此前在插入算法中定义的$balance$函数。如果节点中的元素太少，就进行合并。
+函数$last$返回列表中的最后一个元素（\cref{eq:list-last}）。$delete_l$是\cref{eq:list-delete}中定义的列表删除函数。$tail$将列表中的第一个元素去掉，并返回剩下的元素（\cref{eq:list-head-tail}）。我们还需要修改此前在插入算法中定义的$balance$函数。如果节点中的元素太少，就进行合并。
 
 \be
 balance\ d\ (ks_l, ts_l)\ t\ (ks_r, ts_r) = \begin{cases}
@@ -645,7 +729,7 @@ balance\ d\ (ks_l, ts_l)\ t\ (ks_r, ts_r) = \begin{cases}
   \end{cases}
 \ee
 
-如果$t$中的元素不足（$< d - 1$），我们调用$fix_l$与左侧$(ks_l, ts_l)$或右侧$(ks_r, ts_r)$合并（选择一个不为空的）。以左侧为例：我们从$ks_l$、$ts_l$中取出最后的元素$k_m$、$t_m$。然后调用$unsplit$（\autoref{eq:btree-unsplit}）和$t$合并：$unsplit\ t_m\ k_m\ t$。构造一个含有更多元素的新分枝。最后，我们再次调用$balance$函数构造最终的B树。
+如果$t$中的元素不足（$< d - 1$），我们调用$fix_l$与左侧$(ks_l, ts_l)$或右侧$(ks_r, ts_r)$合并（选择一个不为空的）。以左侧为例：我们从$ks_l$、$ts_l$中取出最后的元素$k_m$、$t_m$。然后调用$unsplit$（\cref{eq:btree-unsplit}）和$t$合并：$unsplit\ t_m\ k_m\ t$。构造一个含有更多元素的新分枝。最后，我们再次调用$balance$函数构造最终的B树。
 
 \be
 fix_l = \begin{cases}
@@ -700,25 +784,25 @@ balance d (ks1, ts1) t (ks2, ts2)
            | otherwise = t
 \end{Haskell}
 
-我们将列表对B树的删除算法留作练习。图\ref{fig:btree-del-before}、\ref{fig:btree-del-CJ}、\ref{fig:btree-del-KN}描述了删除的例子。
+我们将列表对B树的删除算法留作练习。\cref{fig:btree-del-before}、\cref{fig:btree-del-CJ}、\cref{fig:btree-del-KN}描述了删除的例子。
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=0.33]{img/btree-del-before}
+  \includegraphics[scale=0.5]{img/btree-del-before}
   \caption{删除前}
   \label{fig:btree-del-before}
 \end{figure}
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=0.33]{img/btree-del-CJ}
+  \includegraphics[scale=0.5]{img/btree-del-CJ}
   \caption{删除`C'，然后删除`J'}
   \label{fig:btree-del-CJ}
 \end{figure}
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=0.33]{img/btree-del-KN}
+  \includegraphics[scale=0.5]{img/btree-del-KN}
   \caption{删除`K'，然后删除`N'}
   \label{fig:btree-del-KN}
 \end{figure}
@@ -731,51 +815,51 @@ balance d (ks1, ts1) t (ks2, ts2)
 
 \textbf{情况2}：如果$x$存在于$t$的元素中，但$t$不是叶子节点。则存在三种子情况：
 
-\textbf{情况2a}：如图\ref{fig:btree-del}所示，令$k_i = x$的前驱元素为$k'$，其中$k' = max(t_i)$。如果$t_i$含有足够的元素（$\geq d$），我们用$k'$替换$k_i$，然后递归地从$t_i$中删除$k'$。
+\textbf{情况2a}：如\cref{fig:btree-del}所示，令$k_i = x$的前驱元素为$k'$，其中$k' = max(t_i)$。如果$t_i$含有足够的元素（$\geq d$），我们用$k'$替换$k_i$，然后递归地从$t_i$中删除$k'$。
 
-\textbf{情况2b}：如果$t_i$中的元素不足，但是子分枝$t_{i+1}$含有足够的元素（$\geq d$），对称地，我们用后继元素$k'' = min(t_{i+1})$替换$k_i$，然后递归地从$t_{i+1}$中删除$k''$。如图\ref{fig:btree-del-case2b}所示。
+\textbf{情况2b}：如果$t_i$中的元素不足，但是子分枝$t_{i+1}$含有足够的元素（$\geq d$），对称地，我们用后继元素$k'' = min(t_{i+1})$替换$k_i$，然后递归地从$t_{i+1}$中删除$k''$。如\cref{fig:btree-del-case2b}所示。
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=0.5]{img/btree-del-case2b}
+  \includegraphics[scale=0.5, page=7]{img/btrees}
   \caption{用$k'' = min(t_{i+1})$替换$k_i$，然后递归地从$t_{i+1}$中删除$k''$}
   \label{fig:btree-del-case2b}
 \end{figure}
 
-\textbf{情况2c}：如果$t_i$和$t_{i+1}$的元素都不足（$|t_i| = |t_{i+1}| = d - 1$），我们将$t_i$、$x$、$t_{i+1}$合并成一个新节点。它含有$2d - 1$个元素，可以安全地从中删除。如图\ref{fig:btree-del-merge}所示。
+\textbf{情况2c}：如果$t_i$和$t_{i+1}$的元素都不足（$|t_i| = |t_{i+1}| = d - 1$），我们将$t_i$、$x$、$t_{i+1}$合并成一个新节点。它含有$2d - 1$个元素，可以安全地从中删除。如\cref{fig:btree-del-merge}所示。
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=0.65]{img/btree-del-merge}
+  \includegraphics[scale=0.6]{img/btree-del-merge}
   \caption{先合并再删除}
   \label{fig:btree-del-merge}
 \end{figure}
 
-合并过程会将元素$k_i$推入子树。如果$t$因此变空（不再含有元素），说明$k_i$是$t$中的唯一元素，并且$t_i$、$t_{i+1}$是仅有的两棵子树。我们可以将树的高度缩减，如图\ref{fig:btree-del-shrink}所示。
+合并过程会将元素$k_i$推入子树。如果$t$因此变空（不再含有元素），说明$k_i$是$t$中的唯一元素，并且$t_i$、$t_{i+1}$是仅有的两棵子树。我们可以将树的高度缩减，如\cref{fig:btree-del-shrink}所示。
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=0.65]{img/btree-del-shrink}
+  \includegraphics[scale=0.6]{img/btree-del-shrink}
   \caption{缩减高度}
   \label{fig:btree-del-shrink}
 \end{figure}
 
 \textbf{情况3}：如果$t$的元素中不包含$x$，我们需要递归地在某个子分枝$t_i$中删除$x$。如果$t_i$中的元素不足，我们需要处理两种子情况：
 
-\textbf{情况3a}：如果$t_i$的两个相邻节点$t_{i-1}$、$t_{i+1}$中的任何一个含有足够的元素（$\geq d$），我们将$t$中的一个元素移到$t_i$，然后将相邻节点中的一个元素向上移入$t$，将相应的子分枝移入$t_i$。如图\ref{fig:btree-del-borrow}所示，$t_i$获得一个元素。接下来递归地从$t_i$中删除$x$。
+\textbf{情况3a}：如果$t_i$的两个相邻节点$t_{i-1}$、$t_{i+1}$中的任何一个含有足够的元素（$\geq d$），我们将$t$中的一个元素移到$t_i$，然后将相邻节点中的一个元素向上移入$t$，将相应的子分枝移入$t_i$。如\cref{fig:btree-del-borrow}所示，$t_i$获得一个元素。接下来递归地从$t_i$中删除$x$。
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=0.65]{img/btree-del-borrow}
+  \includegraphics[scale=0.5]{img/btree-del-borrow}
   \caption{从右侧移入一个元素}
   \label{fig:btree-del-borrow}
 \end{figure}
 
-\textbf{情况3b}：如果两个相邻节点中的元素都不足（$|t_{i-1}| = |t_{i+1}| = d - 1$），我们将$t_i$，$t$中的一个元素，和任一相邻节点合并成一个新节点，如图\ref{fig:btree-del-merge-subtree}所示。然后从中递归地删除$x$。
+\textbf{情况3b}：如果两个相邻节点中的元素都不足（$|t_{i-1}| = |t_{i+1}| = d - 1$），我们将$t_i$，$t$中的一个元素，和任一相邻节点合并成一个新节点，如\cref{fig:btree-del-merge-subtree}所示。然后从中递归地删除$x$。
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=0.65]{img/btree-del-merge-subtree}
+  \includegraphics[scale=0.5]{img/btree-del-merge-subtree}
   \caption{合并$t_i$、$k$、$t_{i+1}$}
   \label{fig:btree-del-merge-subtree}
 \end{figure}
@@ -857,14 +941,86 @@ balance d (ks1, ts1) t (ks2, ts2)
 \EndProcedure
 \end{algorithmic}
 
-\begin{Exercise}
-  \Question{我们在本节中使用了前驱子分枝中的最大元素$k' = max(t')$替换要删除的元素$k$，然后递归地在$t'$中删除$k'$。还有一种对称的处理方法：用后继分枝中的最小元素来替换$k$。请实现这一方法}
-  \Question{实现列表对B树的删除算法。}
+\begin{Exercise}[label={ex:btree-del}]
+\Question{我们在本节中使用了前驱子分枝中的最大元素$k' = max(t')$替换要删除的元素$k$，然后递归地在$t'$中删除$k'$。还有一种对称的处理方法：用后继分枝中的最小元素来替换$k$。请实现这一方法}
+\Question{实现列表对B树的删除算法。}
 \end{Exercise}
+
+\begin{Answer}[ref = {ex:btree-del}]
+\Question{我们在本节中使用了前驱子分枝中的最大元素$k' = max(t')$替换要删除的元素$k$，然后递归地在$t'$中删除$k'$。还有一种对称的处理方法：用后继分枝中的最小元素来替换$k$。请实现这一方法
+
+我们首先要定义$min$函数，获取B树中的最小元素：
+\begin{Haskell}
+min' (BTree ks []) = head ks
+min' (BTree _  ts) = min' $ head ts
+\end{Haskell}
+
+在用$x$划分树时，需要用$\leq$替换$<$使得$x$可能出现在左侧的尾部。为此我们将划分条件抽出作为参数传入：
+\begin{Haskell}
+partitionWith p (BTree ks ts) = (l, t, r) where
+  l = (ks1, ts1)
+  r = (ks2, ts2)
+  (ks1, ks2) = L.span p ks
+  (ts1, (t:ts2)) = L.splitAt (length ks1) ts
+\end{Haskell}
+
+接下来就可以对称地实现删除了：
+\begin{Haskell}
+delete' x (d, t) = fixRoot (d, del x t) where
+    del x (BTree ks []) = BTree (L.delete x ks) []
+    del x t = if (Just x) == (listToMaybe $ reverse ks') then
+                let k' = min' t' in
+                  balance d ((init ks') ++ [k'], ts') (del k' t') r
+              else balance d l (del x t') r
+      where
+        (l@(ks', ts'), t', r) = partitionWith (<= x) t
+\end{Haskell}
+}
+
+\Question{实现列表对B树的删除算法。
+
+\begin{Haskell}
+delete x (d, t) = fixRoot (d, del x t) where
+  del _ Empty = Empty
+  del x t = if (Just x) == fmap fst (listToMaybe r) then
+              case t' of
+                Empty -> balance d l Empty (tail r)
+                _     -> let k' = max' t' in
+                  balance d l (del k' t') ((k', snd $ head r):(tail r))
+            else balance d l (del x t') r
+    where
+      (l, t', r) = partition (< x) t
+
+max' t@(BTree _ _ []) = max' (stepL t)
+max' (BTree _ _ [(k, Empty)]) = k
+max' (BTree _ _ [(k, t)]) = max' t
+max' t = max' (stepR t)
+\end{Haskell}
+
+此外，我们需要对$balance$函数增加额外的处理，修复删除后不平衡的情形：
+\begin{Haskell}
+balance :: Int -> [(a, BTree a)] -> BTree a -> [(a, BTree a)] -> BTree a
+balance d l t r | full d t = fixFull
+                | low  d t = fixLow l t r
+                | otherwise = BTree l t r
+  where
+    fixFull = let (t1, k, t2) = split d t in BTree l t1 ((k, t2):r)
+    fixLow ((k', t'):l) t r = balance d l (unsplit t' k' t) r
+    fixLow l t ((k', t'):r) = balance d l (unsplit t k' t') r
+    fixLow l t r = t        -- l == r == []
+\end{Haskell}
+
+其中$unsplit$是$split$的逆运算，它的定义为：
+\begin{Haskell}
+unsplit t1 k t2@(BTree (_:_) _ _) = unsplit t1 k (stepL t2)
+unsplit t1@(BTree _ _ (_:_)) k t2 = unsplit (stepR t1) k t2
+\end{Haskell}
+}
+\end{Answer}
 
 \section{小结}
 
-B树将二叉搜索树扩展到多个分枝，并将分枝的数目限制在一个范围内。B树被用来控制磁盘访问（\cite{CLRS}，第18章）。B树节点的分枝不会过多、过少，平衡性得以保障。大多数的操作都和树的高度成比例，对于含有$n$个节点的B树，其性能为$O(\lg n)$。
+B树将二叉搜索树扩展到多个分枝，并将分枝的数目限制在一个范围内。B树被用来控制磁盘访问（\cite{CLRS}，第18章）。B树节点的分枝不会过多、过少，平衡性得以保障。大多数的操作都和树的高度成比例，对于含有$n$个元素的B树，其性能为$O(\lg n)$。
 
 \section{附录：例子程序}
 
@@ -958,9 +1114,9 @@ Optional<(BTree<K, deg>, Int)> lookup(BTree<K, deg> tr, K key) {
         while i < n and key > tr.keys[i] {
             i = i + 1
         }
-        if i < n and key == tr.keys[i] then return Optional((tr, i))
+        if i < n and key == tr.keys[i] then return Optional.of((tr, i))
         if isLeaf(tr) {
-            return Optional.None
+            return Optional.Nothing
         } else {
             tr = tr.subTrees[i]
         }
@@ -1049,6 +1205,9 @@ K min(BTree<K, deg> t) {
 \end{lstlisting}
 
 \ifx\wholebook\relax \else
+\section{参考答案}
+\shipoutAnswer
+
 \begin{thebibliography}{99}
 
 \bibitem{CLRS}

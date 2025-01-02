@@ -19,34 +19,26 @@
 
 \author{Xinyu LIU
 \thanks{{\bfseries Xinyu LIU} \newline
-  Email: liuxinyu95@gmail.com \newline}
+  Email: liuxinyu99@hotmail.com \newline}
   }
 
 \maketitle
 \fi
 
-\markboth{Binary search tree}{Elementary Algorithms}
+%\markboth{Binary search tree}{Elementary Algorithms}
 
 \ifx\wholebook\relax
 \chapter{Binary Search Tree}
 \numberwithin{Exercise}{chapter}
 \fi
 
-% ================================================================
-%                 Introduction
-% ================================================================
-\section{Introduction}
-\label{introduction} \index{binary search tree}
-
-Array and list are typically considered the basic data structures. However, we'll see they are not necessarily easy to implement in chapter 12. Upon imperative settings, array is the most elementary data structures. It is possible to implement linked-list using arrays (\autoref{sec:list-index-array}). While in functional settings, linked-list acts as the building blocks to create array and other data structures.
-
-We start from Binary Search Trees as the first data structure. Let us see an interesting programming problem given by Bentley in {\em Programming Pearls}\cite{Bentley}. It is about to count the number of words in text. Here is an example solution:\index{word counter}
+Array and list are typically considered the basic data structures. However, we'll see they are not necessarily easy to implement in chapter 12. Upon imperative settings, array is the most elementary data structures. It is possible to implement linked-list using arrays (\cref{sec:list-index-array}). While in functional settings, linked-list acts as the building blocks to create array and other data structures. The binary search trees is another basic data structure. Jon Bentley gives a problem in {\em Programming Pearls}\cite{Bentley}: how to count the number of word occurrences in a text. Here is a solution:\index{word counter}
 
 \lstset{frame=single}
 \begin{lstlisting}[language=Bourbaki]
-void wordcount(Input in) {
-    bst<string, int> map;
-    while string w = read(in) {
+void wordCount(Input in) {
+    Map<String, Int> map
+    while String w = read(in) {
         map[w] = if map[w] == null then 1 else map[w] + 1
     }
     for var (w, c) in map {
@@ -55,104 +47,54 @@ void wordcount(Input in) {
 }
 \end{lstlisting}
 
-We can run it to count the words in a text file:
+\section{Definition}
+\label{introduction} \index{binary tree}
 
-\begin{verbatim}
-$ cat bbe.txt | wordcount > wc.txt
-\end{verbatim}
-
-The map is a binary search tree. Here we use the word as the key, and its occurrence number as the value. This program runs fast, which reflects the power of binary search tree. Before dive into it, let us first see the more generic tree, the binary tree. A binary tree can be defined recursively. It is
-
-\index{binary tree}
-
-\begin{itemize}
-\item either empty;
-\item or contains 3 parts: the element, and two sub-trees called left and right children.
-\end{itemize}
-
-Figure \ref{fig:binary-tree-example} shows an example of binary tree.
+The \texttt{map} is a binary search tree. Here we use the word as the key, and its occurrence number as the value. This program is a typical application of binary search tree. Let us firstly define the {\em binary tree}. A binary tree is either empty ($\nil$)\footnote{The great mathematician André Weil invented this symbol for null set. It comes from the Norwegian alphabet.}; or contains 3 parts: an element $k$, and two sub-trees called left($l$) and right($r$) children, denoted as $(l, k, r)$. A none empty binary tree consists of multiple nodes, each is either empty or stores the element of type $K$. We define the type of the binary tree as $Tree\ K$. We say a node is a leaf if both sub-trees are empty, otherwise it's a branch node.
 
 \begin{figure}[htbp]
   \centering
-  \subcaptionbox{Binary tree structure}{\includegraphics[scale=0.5]{img/lvr}} \\
-  \subcaptionbox{A binary tree}{\includegraphics[scale=0.5]{img/btexample}}
-  \caption{Binary tree concept and an example.}
+  \includegraphics[scale=0.5]{img/binary-tree}
+  \caption{Binary tree}
   \label{fig:binary-tree-example}
 \end{figure}
 
-A binary search tree is a special binary tree that its elements are comparable\footnote{It is abstract ordering, not limit to magnitude, but like precedence, subset of etc. the `less than' (<) is abstract in this chapter.}, and satisfies the following constraints:
-
-\begin{itemize}
-\item For any node, all the keys in its left sub-tree are less than the key in this node;
-\item the key in this node is less than any key in its right sub-tree.
-\end{itemize}
-
-Figure \ref{fig:bst-example} shows an example of binary search tree. Comparing with Figure \ref{fig:binary-tree-example}, we can see the differences in keys ordering. To highlight the elements in binary search tree is comparable, we call it as {\em key}, and name the augmented satellite data as {\em value}.
+\index{binary search tree}
+A binary search tree is a special binary tree that its elements are comparable\footnote{It is abstract ordering, not limit to magnitude, but like precedence, subset of etc. the `less than' (<) is abstract.}, and satisfies: for any non empty node $(l, k, r)$, all the keys in the left sub-tree $< k$; $k <$ any key in the right sub-tree. \Cref{fig:bst-example} shows an example of binary search tree. Comparing with \cref{fig:binary-tree-example}, we can see the different ordering. For this reason, we call the comparable element as {\em key}, and the augmented data as {\em value}. The type is $Tree\ (K, V)$. A node contains a key, a value (optional), left, right sub-tree references, and a parent reference for easy backtracking. When the context is clear, we skip the value. The appendix of this chapter includes an example definition. We needn't reference for backtracking in functional settings, but use top-down recursive computation. Below is the example functional definition (known as algebraic data type, abbrev: ADT):
 
 \begin{figure}[htbp]
-       \begin{center}
-        \includegraphics[scale=0.4]{img/bst-1}
-        \caption{A Binary Search Tree} \label{fig:bst-example}
-       \end{center}
+  \begin{center}
+   \includegraphics[scale=0.5]{img/bst-example}
+   \caption{A binary search tree} \label{fig:bst-example}
+  \end{center}
 \end{figure}
-
-% ================================================================
-% Data layout
-% ================================================================
-\section{Data Layout}
-\index{binary search tree!data layout}
-
-Based on the recursive definition of binary search tree, we can design the data layout as shown in figure \ref{fig:node-layout-parent}. A node stores the key as a field, it can also store augmented data (known as satellite data). The next two fields are pointers to the left and right sub-trees. To make it easy for backtracking, it can also store a parent field pointed to its ancestor node.
-
-\begin{figure}[htbp]
-       \begin{center}
-        \includegraphics[scale=0.7]{img/node-layout-parent}
-        \caption{Node layout with parent field.} \label{fig:node-layout-parent}
-       \end{center}
-\end{figure}
-
-For illustration purpose, we'll skip the augmented data. The appendix of this chapter includes an example definition. In functional settings, it is seldom to use pointers for backtracking. Typically, there is no such need, because the algorithm is usually top-down recursive. Below is the example functional definition:
 
 \begin{Haskell}
-data Tree a = Empty
-            | Node (Tree a) a (Tree a)
+data Tree a = Empty | Node (Tree a) a (Tree a)
 \end{Haskell}
 
-% ================================================================
-% Insert
-% ================================================================
-\section{Insertion}
-\index{binary search tree!insertion}
+\section{Insert}
+\index{binary search tree!insert}
 
-When insert a key $k$ (or along with a value) to binary search tree $T$, we need ensure the key ordering property is always hold:
-
-\begin{itemize}
-\item If the tree is empty, construct a leaf node with key = $k$;
-\item If $k$ is less than the key of root, insert it to the left sub-tree;
-\item Otherwise, insert it in the right sub-tree.
-\end{itemize}
-
-There is an exceptional case that $k$ is equal to the key of root. It means $k$ already exists in the tree. We can overwrite it, or append data, or do nothing. We'll skip such case handling. This algorithm is simple and straightforward. We can define it as a recursive function:
+When insert a key $k$ (or with the value) to the binary search tree $T$, we need maintain the ordering. If the tree is empty, create a leaf of $k$. Otherwise, let the tree be $(l, x, r)$. If $k < x$, insert it to the left sub-tree $l$; otherwise, insert to the right $r$. If $k = x$, it already exists in the tree. We overwrite the value (update). Alternatively, we can append the data or do nothing. We skip this case.
 
 \be
 \begin{array}{rcl}
-insert(\nil, k) & = & Node(\nil, k, \nil) \\
-insert(Node(T_l, k', T_r), k) & = & \begin{cases}
-  k < k': & Node(insert(T_l, k), k', T_r) \\
-  otherwise: & Node(T_l, k', insert(T_r, k)) \\
+insert\ k\ \nil & = & (\nil, k, \nil) \\
+insert\ k\ (l, x, r) & = & \begin{cases}
+  k < x: & (insert\ k\ l, x, r) \\
+  \text{otherwise}: & (l, x, insert\ k\ r) \\
   \end{cases}
 \end{array}
 \ee
 
-For the none empty node, $T_l$ denotes the left sub-tree, $T_r$ denotes the right sub-tree, and $k'$ is the key. The function $Node(l, k, r)$ creates a node from two sub-trees and a key. $\nil$ means empty (also known as NIL. This symbol was invented by mathematician André Weil for null set. It came from the Norwegian alphabet). Below is the corresponding example program in Haskell for insertion.
-
 \begin{Haskell}
-insert Empty k = Node Empty k Empty
-insert (Node l x r) k | k < x = Node (insert l k) x r
-                      | otherwise = Node l x (insert r k)
+insert k Empty = Node Empty k Empty
+insert k (Node l x r) | k < x = Node (insert k l) x r
+                      | otherwise = Node l x (insert k r)
 \end{Haskell}
 
-This example program utilizes the {\em pattern matching} features. The appendix of this chapter provides another example without using this feature. Insertion can also be implemented without recursion. Here is a pure iterative algorithm:
+This implementation uses the {\em pattern matching} feature. There is an example without pattern matching in the appendix. We can eliminate the recursion with iterative loops:
 
 \begin{algorithmic}[1]
 \Function{Insert}{$T, k$}
@@ -168,7 +110,7 @@ This example program utilizes the {\em pattern matching} features. The appendix 
     \EndIf
   \EndWhile
   \State \Call{Parent}{$x$} $\gets parent$
-  \If{$parent = $ NIL} \Comment{tree $T$ is empty}
+  \If{$parent = $ NIL} \Comment{$T$ in empty}
     \State \Return $x$
   \ElsIf{$k <$ \Call{Key}{$parent$}}
     \State \Call{Left}{$parent$} $\gets x$
@@ -188,12 +130,40 @@ This example program utilizes the {\em pattern matching} features. The appendix 
 \EndFunction
 \end{algorithmic}
 
-While a bit more complex than the functional one, the iterative implementation runs faster, and it is capable to process very deep tree.
+Where \textproc{Key}($T$) accesses the key of the node:
+
+\be
+\begin{array}{rcl}
+key\ \nil & = & \textit{Nothing} \\
+key\ (l, k, r) & = & \textit{Just}\ k \\
+\end{array}
+\ee
+
+We can repeat insert every element from a list, convert the list to a binary search tree:
+
+\[
+\begin{array}{rcl}
+\textit{fromList}\ [\ ] & = & \nil \\
+\textit{fromList}\ (x \cons xs) & = & insert\ x\ (\textit{fromList}\ xs) \\
+\end{array}
+\]
+
+Or define it with fold (chapter 1) in Curried form: \textit{fromList} = $foldr\ insert\ \nil$. We arrange the arguments in symmetric order: $insert\ k\ t$ and \textproc{Insert}($T, k$), apply $foldr$ for the former, and $foldl$ (or for-loop) for the latter:
+
+\begin{algorithmic}[1]
+\Function{From-List}{$X$}
+  \State $T \gets $ NIL
+  \For{each $x$ in $X$}
+    \State $T \gets$ \Call{Insert}{$T, x$}
+  \EndFor
+  \State \Return $T$
+\EndFunction
+\end{algorithmic}
 
 \section{Traverse}
 \index{binary search tree!traverse}
 
-Traverse is to visit every element one by one. There are 3 different ways to walk through a binary tree: (1) pre-order tree walk, (2) in-order tree walk, (3) and post-order tree walk. They are named to highlight the order of visiting key before/after sub-trees.
+There are 3 ways to visit the elements in a binary tree: pre-order, in-order, and post-order. They are named to highlight the order of visiting key between/before/after sub-trees.
 
 \begin{itemize}
 \item pre-order: \textbf{key} - left - right;
@@ -203,7 +173,7 @@ Traverse is to visit every element one by one. There are 3 different ways to wal
 
 \index{pre-order traverse} \index{in-order traverse} \index{post-order traverse}
 
-Each `visit' operation is recursive, for example in pre-order traverse, when visit the left sub-tree, we recursively traverse it if it is not empty. For the tree shown in figure \ref{fig:bst-example}, the corresponding visiting orders are as below:
+The `visit' is recursive. For the tree in \cref{fig:bst-example}, the corresponding orders are:
 
 \begin{itemize}
 \item pre-order: 4, 3, 1, 2, 8, 7, 16, 10, 9, 14
@@ -211,141 +181,202 @@ Each `visit' operation is recursive, for example in pre-order traverse, when vis
 \item post-order: 2, 1, 3, 7, 9, 14, 10, 16, 8, 4
 \end{itemize}
 
-It is not by accident that the in-order traverse lists the elements one by one increasingly. The definition of the binary search tree ensures it is always true. We leave the proof as an exercise. Specifically, the in-order traverse algorithm is defined as:
-
-\begin{itemize}
-\item If the tree is empty, stop and return;
-\item Otherwise, in-order traverse the left sub-tree; then visit the key; finally in-order traverse the right sub-tree.
-\end{itemize}
-
-We can further define a generic $map$ to apply any given function $f$ to every element in the tree along the in-order traverse. The result is a new tree mapped by $f$.
+It is not by accident that the in-order traverse gives an ascending list, but is guaranteed (\cref{ex:BST-in-order-sort}). Define $map$ that in-order traverses and applies function $f$ to every element. It transforms a tree to another tree of the same structure (isomorphic).
 
 \be
 \begin{array}{rcl}
-map(f, \nil) & = & \nil \\
-map(f, Node(T_l, k, T_r)) & = & Node(map(f, T_l), f(k), map(f, T_r))
+map\ f\ \nil & = & \nil \\
+map\ f\ (l, k, r) & = & (map\ f\ l, f\ k, map\ f\ r)
 \end{array}
 \ee
 
-If we only need manipulate keys but not to transform the tree, we can implement this algorithm imperatively.
+If we only need process keys but not transform the tree, we can implement in-order traverse as below:
 
 \begin{algorithmic}[1]
-\Function{In-Order-Traverse}{$T, f$}
+\Function{Traverse}{$T, f$}
   \If{$T \neq$ NIL}
-    \State \textproc{In-Order-Traverse}(\Call{Left}{$T, f$})
+    \State \textproc{Traverse}(\Call{Left}{$T$}, $f$)
     \State $f$(\Call{Key}{$T$})
-    \State \textproc{In-Order-Traverse}(\Call{Right}{$T, f$})
+    \State \textproc{Traverse}(\Call{Right}{$T$, $f$})
   \EndIf
 \EndFunction
 \end{algorithmic}
 
-Leverage in-order traverse, we can change the $map$ function to convert a binary search tree to a sorted list. Instead building the tree in recursive case, we concatenate the result to a list:
+We can change the $map$ function, and convert a binary search tree to a sorted list (also called flatten).
 
 \be
 \begin{array}{rcl}
-toList(\nil) & = & [\ ] \\
-toList(Node(T_l, k, T_r)) & = & toList(T_l) \doubleplus [ k ] \doubleplus toList(T_r) \\
+toList\ \nil & = & [\ ] \\
+toList\ (l, k, r) & = & toList\ l \doubleplus [k] \doubleplus toList\ r \\
 \end{array}
 \ee
 
-We can develop a method to sort a list of elements: first build a binary search tree from the list, then turn it back to list through in-order traversing. This method is called as `tree sort'. For a given list $X = [x_1, x_2, x_3, ..., x_n]$.
+We can develop a sort algorithm: convert a list to a binary search tree, then convert the tree back to ordered list, namely `tree sort': $sort\ X = toList\ (\textit{fromList}\ X)$, or write as function composition\cite{func-composition}:
 
 \be
-  sort(X) = toList(fromList(X))
+  sort = toList \circ \textit{fromList}
 \ee
 
-And we can write it in point-free form\cite{func-composition}.
+Define the generic fold for binary trees (see chapter 1 for fold):
 
-\[
-  sort = toList \circ fromList
-\]
-
-Where function $fromList$ repeatedly inserts elements from a list to a tree. It can be defined to recursively process the list.
-
-\[
+\be
 \begin{array}{rcl}
-fromList([\ ]) & = & \nil \\
-fromList(X) & = & insert(fromList(X'), x_1) \\
+foldt\ f\ g\ z\ \nil & = & z \\
+foldt\ f\ g\ z\ (l, k, r) & = & g\ (foldt\ f\ g\ z\ l)\ (f\ k)\ (foldt\ f\ g\ z\ r) \\
 \end{array}
-\]
-
-When the list is empty, the result is an empty tree; otherwise, it inserts the first element $x_1$ to the tree, then recursively inserts the rests $X' = [x_2, x_3, ..., x_n]$. By using list folding\cite{wiki-fold} (see appendix A.6), we can also define $fromList$ as the following:
-
-\be
-  fromList(X)= \fold_l(insert, \nil, X)
 \ee
 
-We can also rewrite it in Curried form\cite{curry} (also known as partial application) such as to omit parameter $X$:
+Where $f: A \to B$, sends the key $k$ of type $A$ to $m = f(k)$ of type $B$. It recursively folds the left and right sub-trees (from $z$) to get $x$ and $y$ respectively, then combines the three things together as $g\ x\ m\ y$. We can define $map$ with $foldt$:
 
-\[
-  fromList = \fold_l\ insert\ \nil
-\]
+\be
+map\ f = foldt\ f\ (x\ m\ y\ \mapsto (x, m, y))\ \nil
+\ee
 
-\begin{Exercise}
-\Question{Given the in-order and pre-order traverse results, re-construct the tree, and output the post-order traverse result. For example:
+$foldt$ preserves the tree structure with the ternary function $g$. If don't care about the tree structure, we can use a binary function $f : A \times B \to B$ to simplify and fold a tree of type $Tree\ A$ to a value of type $B$:
 
-\begin{itemize}
-\item Pre-order: 1, 2, 4, 3, 5, 6;
-\item In-order: 4, 2, 1, 5, 3, 6;
-\item Post-order: ?
-\end{itemize}
+\be
+\begin{array}{rcl}
+fold\ f\ z\ \nil & = & z \\
+fold\ f\ z\ (l, k, r) & = & fold\ f\ (f\ k\ (fold\ f\ z\ r))\ l\\
+\end{array}
+\ee
+
+For example: $sum = fold\ (+)\ 0$ sums all elements of the tree; $length = fold\ (x\ n \mapsto n + 1)\ 0$ counts the number of elements. However, $fold$ can not define $map$, as the binary function $f$ losses the tree structure.
+
+\begin{Exercise}[label={ex:bst-traverse}]
 \index{tree reconstruction}
+\Question{Given the in-order and pre-order traverse results, rebuild the tree, and output the post-order traverse result. For example:
+  \begin{itemize}
+  \item Pre-order: 1, 2, 4, 3, 5, 6;
+  \item In-order: 4, 2, 1, 5, 3, 6;
+  \item Post-order: ?
+  \end{itemize}
 }
 
-\Question{Write a program to re-construct the binary tree from the pre-order and in-order traverse lists.}
+\Question{Write a program to rebuild the binary tree from the pre-order and in-order traverse lists.}
 
-\Question{For binary search tree, prove that the in-order traverse always visits elements in increase order}
+\Question{For binary search tree, prove that the in-order traverse always gives ordered list.
+\label{ex:BST-in-order-sort}
+}
 
-\Question{Consider the performance of tree sort algorithm, what is its complexity for $n$ elements?}
+\Question{What is the complexity of tree sort?}
+
+\Question{Define $toList$ with fold.}
+
+\Question{Define $depth\ t$ with fold, which calculates the height of a binary tree. \label{ex:bst-depth}}
 \end{Exercise}
 
-% ================================================================
-% Query
-% ================================================================
+\begin{Answer}[ref={ex:bst-traverse}]
+\Question{Given the in-order and pre-order traverse results, rebuild the tree, and output the post-order traverse result. For example:
+
+  \begin{itemize}
+  \item Pre-order: 1, 2, 4, 3, 5, 6;
+  \item In-order: 4, 2, 1, 5, 3, 6;
+  \item Post-order: ?
+  \end{itemize}
+
+[4, 2, 5, 6, 3, 1]
+}
+
+\Question{Write a program to rebuild the binary tree from the pre-order and in-order traverse lists.
+
+\vspace{3mm}
+Let $P$ be the pre-order traverse result, $I$ be the in-order result. If $P = I = [\ ]$, then the binary tree is empty $\nil$. Otherwise, the pre-order is recursive `key - left - right', hence the first element $m$ in $P$ is the key of the root. The in-order is recursive `left - key - right', we can find $m$ in $I$, which splits $I$ into three parts: $[a_1, a_2, ..., a_{i-1}, m, a_{i+1}, a_{a+2}, ..., a_n]$. Let $I_l = I[1, i), I_r = I[i+1, n]$, where $[l, r)$ includes $l$, but excludes $r$. Either can be empty $[\ ]$. In these three parts $I_l, m, I_r$, $I_l$ is the in-order traverse result of the left sub-tree, $I_r$ is the in-order result of the right sub-tree. Let $k = |I_l|$ be the size of the left sub-tree, we can split $P[2, n]$ at $k$ to two parts: $P_l, P_r$, where $P_l$ contains the first $k$ elements. We next recursively rebuild the left sub-tree from $(P_l, I_l)$, rebuild the right sub-tree from $(P_r, I_r)$:
+
+\[
+\begin{array}{rcl}
+\textit{rebuild}\ [\ ]\ [\ ] & = & \nil \\
+\textit{rebuild}\ (m \cons ps)\ I & = & (\textit{rebuild}\ P_l\ I_l, m, \textit{rebuild}\ P_r\ I_r) \\
+\end{array}
+\]
+
+Where:
+
+\[
+\begin{cases}
+(I_l, I_r) & = \textit{splitWith}\ m\ I \\
+(P_l, P_r) & = \textit{splitAt}\ |I_l|\ ps \\
+\end{cases}
+\]
+
+Below is the example program:
+\begin{Haskell}
+rebuild [] _ = Empty
+rebuild [c] _ = Node Empty c Empty
+rebuild (x:xs) ins = Node (rebuild prl inl) x (rebuild prr inr) where
+  (inl, _:inr) = (takeWhile (/= x) ins, dropWhile (/=x) ins)
+  (prl, prr) = splitAt (length inl) xs
+\end{Haskell}
+
+We can also update the left and right boundary imperatively:
+\begin{lstlisting}[language = Bourbaki]
+Node<T> rebuild([T] pre, [T] ins, Int l = 0, Int r = length(ins)) {
+    if l >= r then return null
+    T c = popFront(pre)
+    Int m = find(c, ins)
+    var left = rebuild(pre, ins, l, m)
+    var right = rebuild(pre, ins, m + 1, r)
+    return Node(left, c, right)
+}
+\end{lstlisting}
+}
+
+\Question{For binary search tree, prove that the in-order traverse always gives ordered list.
+\begin{proof}
+Use proof with absurdity. Suppose there exits (finite sized) binary search tree, the in-order result is not ordered. Among all such trees, select the smallest $T$. First $T$ can't be $\nil$, as the in-order result is $[\ ]$, which is ordered. Second, $T$ can't be singleton $(\nil, k, \nil)$, as the in-order result is $[k]$, which is ordered. Hence $T$ must be a branch node of $(l, k, r)$. The in-order result is $toList\ l \doubleplus [x] \doubleplus toList\ r$. Because $T$ is the smallest tree that the in-order result is not ordered, while $l$ and $r$ are smaller than $T$, hence both $toList\ l$ and $toList\ r$ are ordered. According to the binary search tree definition, for every $x \in l, x < k$, and every $y \in r, y > k$. Hence the in-order result $toList\ l \doubleplus [x] \doubleplus toList\ r$ is ordered, which conflicts with the assumption, that the in-order result of $T$ is not ordered.
+
+Therefore, for any binary search tree, the in-order result is ordered.
+\end{proof}
+}
+
+\Question{What is the complexity of tree sort?
+
+$(n \lg n)$, where $n$ is the number of elements.
+
+}
+
+\Question{Define $toList$ with fold.
+\[
+\begin{array}{rcl}
+toList & = & foldt\ id\ (as\ b\ bs \mapsto as \doubleplus b : bs)\ [\ ] \\
+       & = & fold\ (:)\ [\ ] \\
+\end{array}
+\]
+}
+
+\Question{Define $depth\ t$ with fold, to calculate the height of a binary tree.
+\[
+depth = foldt\ (x \mapsto 1)\ (x\ d\ y\ \mapsto d + \max\ x\ y)\ 0
+\]
+}
+\end{Answer}
+
 \section{Query}
-\index{binary search tree!search}
 \index{binary search tree!looking up}
 
-Because the elements stored in binary search tree is well ordered and organized recursively. It supports varies of search effectively. This is one of the reasons people name it as binary search tree. There are mainly three types of querying: (1) look up a key; (2) find the minimum or maximum element; (3) given any node, find its predecessor or successor.
-
-\subsection{Look up}
-Because binary search tree is recursive and all elements satisfy the ordering property, we can look up a key $k$ top-down from the root as the following:
+Because the binary search tree organises ordered elements recursively, it supports varies of query efficiently. This is the reason we name it `search' tree. There are three types of query: (1) lookup a key; (2) find the minimum or maximum; (3) given a node, find its predecessor or successor. When lookup the value of some key $x$ in a tree of type $Tree\ (K, V)$:
 
 \begin{itemize}
-\item If the tree is empty, terminate. The key does not exist;
-\item Compare $k$ with the key of root, if equal, we are done. The key is stored in the root;
-\item If $k$ is less than the key of root, then recursively look up the left sub-tree;
-\item Otherwise, look up the right sub-tree.
+\item If the tree is empty, $x$ does not exist;
+\item For tree $(l, (k, v), r)$, if $k = x$, then $v$ is the result;
+\item If $x < k$, then recursively lookup $l$, otherwise, lookup $r$.
 \end{itemize}
-
-We can define the recursive $lookup$ function for this algorithm as below.
 
 \be
 \begin{array}{rcl}
-lookup(\nil, x) & = & \nil \\
-lookup(Node(T_l, k, T_r), x) & = & \begin{cases}
-  k = x: & T \\
-  x < k: & lookup(T_l, x) \\
-  otherwise: & lookup(T_r, x) \\
+lookup\ x\ \nil & = & \textit{Nothing} \\
+lookup\ x\ (l, (k, v), r), x) & = & \begin{cases}
+  k = x: & \textit{Just}\ v \\
+  x < k: & lookup\ x\ l \\
+  \text{otherwise}: & lookup\ x\ r \\
   \end{cases}
 \end{array}
 \ee
 
-This function returns the tree node being located or empty if not found. One may instead return the value that bound to the key. However, in search implementation, we need consider using $Maybe$ type (also known as \texttt{Optional<T>}) to handle the not found case, for example:
-
-\begin{Haskell}
-lookup Empty _ = Nothing
-lookup t@(Node l k r) x | k == x = Just k
-                        | x < k = lookup l x
-                        | otherwise = lookup r x
-\end{Haskell}
-
-If the binary search tree is well balanced, which means almost all branch nodes have both none empty sub-trees except for leaves. This is not the formal definition of balance. We'll define it in chapter 4. For a balanced tree of $n$ elements, the algorithm takes $O(\lg n)$ time to look up a key. If the tree is poor balanced, the worst case is bound to $O(n)$ time. If denote the height of the tree as $h$, we can represent the performance of look up as $O(h)$.
-
-We can also implement looking up purely iterative without recursion:
+We use the \textit{Maybe} type\footnote{Also known as \texttt{Optional<T>} type, see chapter 1.} to handle the `not found' case. Let the height of the tree be $h$, the performance of $lookup$ is $O(h)$. If the tree is balanced (see chapter 4), the performance is $O(\lg n)$, where $n$ is the number of elements. It decreases to $O(n)$ time in the worse case for extremely unbalanced tree. Below implementation eliminates the recursion with loops:
 
 \begin{algorithmic}[1]
-\Function{Search}{$T, x$}
+\Function{Lookup}{$T, x$}
   \While{$T \neq $ NIL and \Call{Key}{$T$} $ \neq x$}
     \If{$x <$ \Call{Key}{$T$}}
       \State $T \gets $ \Call{Left}{$T$}
@@ -353,54 +384,49 @@ We can also implement looking up purely iterative without recursion:
       \State $T \gets $ \Call{Right}{$T$}
     \EndIf
   \EndWhile
-  \State \Return $T$
+  \State \Return \Call{Value}{$T$}  \Comment{returns $\nil$ if $T = $NIL}
 \EndFunction
 \end{algorithmic}
 
-\subsection{Minimum and maximum}
 \index{binary search tree!min/max}
-
-From the definition, we know that less keys are always on the left. To locate the minimum element, we can keep traversing along the left sub-trees till reach to a node, where its left sub-tree is empty. In a symmetric way, keep traversing along the right sub-trees gives the maximum.
+In binary search tree, the less keys are on the left, while the greater keys are on the right. To locate the minimum, we keep going to the left till the left sub-tree is empty. Symmetrically, we keep going to the right to find the maximum. Both $\min/\max$ are bound to $O(h)$ time, where $h$ is the height of the tree.
 
 \be
-\begin{array}{rcl}
-min(Node(\nil, k, T_r)) & = & k \\
-min(Node(T_l, k, T_r)) & = & min(T_l) \\
+\begin{array}{cc}
+  \begin{array}{rcl}
+  \min\ (\nil, k, r) & = & k \\
+  \min\ (l, k, r) & = & \min\ l \\
+  \end{array}
+&
+  \begin{array}{rcl}
+  \max\ (l, k, \nil) & = & k \\
+  \max\ (l, k, r) & = & \max\ r \\
+  \end{array}
 \end{array}
 \ee
 
-\be
-\begin{array}{rcl}
-max(Node(T_l, k, \nil)) & = & k \\
-max(Node(T_l, k, T_r)) & = & max(T_r) \\
-\end{array}
-\ee
-
-Both functions are bound to $O(h)$ time, where $h$ is the height of the tree.
-
-\subsection{Successor and predecessor}
 \index{binary search tree!succ/pred}
 
-When treat binary search tree as a generic container (a collection of elements), it is common to traverse it with a bi-directional iterator. Start from the minimum element, one can keep moving forward with the iterator towards the maximum, or go back and forth. Below example program prints elements in sorted order.
+We sometimes traverse a binary search tree as a container. Start from the minimum, keep moving forward step by step towards the maximum, or go back and forth. Below example program prints elements in sorted order.
 
 \lstset{language=Bourbaki}
 \begin{lstlisting}
 void printTree (Node<T> t) {
-    for (var it = Iterator(t), it.hasNext(); it = it.next()) {
-        print(it.get(), ", ");
+    for var it = Iterator(t), it.hasNext(), it = it.next() {
+        print(it.get(), ", ")
     }
 }
 \end{lstlisting}
 
-Such use cases demand us to design algorithm to find the successor or predecessor of any node. The successor of element $x$ is defined as the smallest element $y$ that satisfies $x < y$. If the node of $x$ has none empty right sub-tree, then minimum element of the right sub-tree is the successor. As shown in figure \ref{fig:bst-succ}, to find the successor of 8, we search the minimum element in its right sub-tree, which is 9. If the right sub-tree of node $x$ is empty, we need back-track along the parent field till the closest ancestor whose left sub-tree is also an ancestor of $x$. In figure \ref{fig:bst-succ}, since node 2 does not have right sub-tree, we go up to its parent of node 1. However, node 1 does not have left sub-tree, we need go up again, hence reach to node 3. As the left sub-tree of node 3 is also an ancestor of node 2, node 3 is the successor of node 2.
+Such use case need to find the successor or predecessor of a node. Define the successor of $x$ as the smallest $y$ that $x < y$. If $x$ has none empty right sub-tree $r$, the minimum of $r$ is the successor. As shown in \cref{fig:bst-succ}, to find the successor of 8, we search the minimum in its right, which is 9. If the right sub-tree of $x$ is empty, we need back-track along the parent till the closest ancestor whose left sub-tree is also an ancestor of $x$. In \cref{fig:bst-succ}, since node 2 does not have right sub-tree, we go up to its parent of node 1. However, node 1 does not have left sub-tree, we need go up again, hence reach to node 3. As the left sub-tree of node 3 is also an ancestor of node 2, node 3 is the successor of node 2.
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=0.45]{img/bst-1}
-  \caption{The successor of 8, is the minimum one in its right sub-tree, 9; In order to find the successor of 2, we go up to its parent 1, then 3. } \label{fig:bst-succ}
+  \includegraphics[scale=0.5]{img/bst-example}
+  \caption{The successor of 8 is 9, the minimum of its right; for the successor of 2, we go up to its parent 1, then 3.} \label{fig:bst-succ}
 \end{figure}
 
-If we finally reach to the root when back-track along the parent, but still can not find an ancestor on the right, then the node does not have a successor. Below algorithm finds the successor of a given node $x$:
+If we finally reach to the root along the parent path, but still can not find an ancestor on the right, then the node does not have the successor (the last element). Below algorithm finds the successor of $x$:
 
 \begin{algorithmic}[1]
 \Function{Succ}{$x$}
@@ -417,7 +443,7 @@ If we finally reach to the root when back-track along the parent, but still can 
 \EndFunction
 \end{algorithmic}
 
-This algorithm returns NIL when $x$ does not has successor. The predecessor finding algorithm is symmetric:
+This algorithm returns NIL when $x$ hasn't the successor. The predecessor algorithm is symmetric:
 
 \begin{algorithmic}[1]
 \Function{Pred}{$x$}
@@ -434,101 +460,116 @@ This algorithm returns NIL when $x$ does not has successor. The predecessor find
 \EndFunction
 \end{algorithmic}
 
-It seems hard to find the purely functional solution, because there is no pointer like field linking to the parent node\footnote{There is \texttt{ref} in ML and OCaml, we limit to the purely functional settings.}. One solution is to left `breadcrumbs' when we visit the tree, and use these information to back-track or even re-construct the whole tree. Such data structure, that contains both the tree and `breadcrumbs' is called zipper\cite{zipper-hbook}.
+The purely functional settings don't use parent reference\footnote{There is \texttt{ref} in ML and OCaml, we limit to the purely functional settings.}. Some implementation records the visited paths for back-track or tree rebuilding, called zipper(last chapter of \cite{learn-haskell}). The original purpose for \textproc{Succ} and \textproc{Pred} is `to traverse the tree' as a container. However, we typically in-order traverse the tree through $map$ in functional settings. It's only meaningful to find the successor and predecessor in imperative settings.
 
-Our original purpose to develop $succ$ and $pred$ functions is `to traverse all the elements' as a generic container. However, in functional settings, we typically traverse the tree in-order through $map$. We'll meet similar situations in the rest of this book. A problems valid in imperative settings may not be necessarily meaningful in functional settings. For example, to delete an element from red-black tree\cite{okasaki-blog}.
+\begin{Exercise}[label={ex:bst-lookup}]
+\Question{How to test whether an element $k$ exists in the tree $t$?}
 
-\begin{Exercise}
+\Question{Use \textproc{Pred} and \textproc{Succ} to write an iterator to traverse the binary search tree as a generic container. What's the time complexity to traverse a tree of $n$ elements?\label{ex:bst-iterate}}
 
-\Question{Use \textproc{Pred} and \textproc{Succ} to write an iterator to traverse the binary search tree as a generic container. What's the time complexity to traverse a tree of $n$ elements?}
-
-\Question{One can traverse elements inside a range $[a, b]$ for example:
+\Question{One can traverse the elements inside range $[a, b]$, for example:
 
 \texttt{for\_each (m.lower\_bound(12), m.upper\_bound(26), f);}
 
 Write an equivalent functional program for binary search tree\index{range traverse}.}
 \end{Exercise}
 
-% ================================================================
-%                 Deletion
-% ================================================================
-\section{Deletion}
+\begin{Answer}[ref={ex:bst-lookup}]
+\Question{How to test whether an element $k$ exists in the tree $t$?
+\begin{Haskell}
+member x (Node l k r) | x == k = True
+             | x < k = member x l
+             | otherwise = member x r
+\end{Haskell}
+}
+
+\Question{Use \textproc{Pred} and \textproc{Succ} to write an iterator to traverse the binary search tree as a generic container. What's the time complexity to traverse a tree of $n$ elements?
+
+\begin{Bourbaki}
+data TreeIterator<T> {
+    Node<T> node = null
+
+    TreeIterator(Node<T> root) { node = min(root) }
+
+    T get() = node.key
+
+    Bool hasNext() = node != null
+
+    Self next() { if hasNext() then node = succ(node) }
+}
+\end{Bourbaki}
+
+Although we need find the min/max of the sub-tree or back-track along the parent reference, we take linear time to iterate the tree container. During the traverse process, we visit every node a time (arrive and leave), for example:
+\begin{Bourbaki}
+for var it = TreeIterator(root), it.hasNext(), it = it.next() {
+    print(it.get())
+}
+\end{Bourbaki}
+The traverse performance is $O(n)$.
+}
+
+\Question{One can traverse the elements inside range $[a, b]$, for example:
+
+\texttt{for\_each (m.lower\_bound(12), m.upper\_bound(26), f);}
+
+Write an equivalent functional program for binary search tree.
+
+\begin{Haskell}
+mapR f a b t = map' t where
+    map' Empty = Empty
+    map' (Node l k r) | k < a = map' r
+                      | a <= k && k <= b = Node (map' l) (f k) (map' r)
+                      | k > b = map' l
+\end{Haskell}
+}
+\end{Answer}
+
+\section{Delete}
 \index{binary search tree!delete}
-We need special consideration when delete an element from the binary search tree. This is because we must keep the ordering property, that for any node, all keys in left sub-tree are less than the key of this node, and they are all less than any keys in right sub tree. Blindly deleting a node may break this constraint.
-
-To delete a node $x$ from a binary search tree\cite{sgi-stl}.
-\begin{itemize}
-\item If $x$ has no sub-trees (a leaf) or only one sub-tree, splice $x$ out;
-\item Otherwise ($x$ has two sub-trees), use the minimum element $y$ of its right sub-tree to replace $x$, and splice the original $y$ out.
-\end{itemize}
-
-The simplicity comes from the fact that, for the node to be deleted, if the right sub-tree is not empty, then the minimum element is some node in it. It can't have two none empty children, and end up in the trivial case. Therefore, the node can be directly splice out from the tree.
-
-Figure \ref{fig:del-leaf}, \ref{fig:del-1child}, and \ref{fig:del-branch} illustrate different cases for deletion.
+We need maintain the ordering while delete: for any node $(l, k, r)$, all left are still less than $k$, all right are still greater than $k$ after delete. To delete $x$\cite{sgi-stl}: (1) if $x$ is a leaf or only has a none empty sub-tree, cut $x$ off; (2) if $x$ has two none empty sub-trees, use the minimum $y$ of its right sub-tree to replace $x$, then cut the original $y$ off. Because the minimum of the right sub-tree can not have two none empty sub-trees, we eventually convert case 2 to 1, directly cut the minimum node off, as shown in \cref{fig:del-leaf,fig:del-1child,fig:del-branch}.
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=0.5]{img/del-leaf}
-  \caption{$x$ can be spliced out.} \label{fig:del-leaf}
+  \includegraphics[scale=0.6]{img/del-leaf}
+  \caption{Cut the leaf $x$ off.} \label{fig:del-leaf}
 \end{figure}
 
 \begin{figure}[htbp]
   \centering
-  \subcaptionbox{Before delete $x$.}{\includegraphics[scale=0.5]{img/del-lc-before}}
-  \subcaptionbox{After delete $x$, $x$ is spliced out, and replaced by its left child.}{\includegraphics[scale=0.5]{img/del-lc-after}} \\
-  \subcaptionbox{Before delete $x$.}{\includegraphics[scale=0.5]{img/del-rc-before}}
-  \subcaptionbox{After delete $x$, $x$ is spliced out, and replaced by its right sub-tree.}{\includegraphics[scale=0.5]{img/del-rc-after}}
-  \caption{Delete a node with only one none empty sub-tree.}
+  \includegraphics[scale=0.6]{img/del-singleton}
+  \caption{Delete a node with only a none empty sub-tree.}
   \label{fig:del-1child}
 \end{figure}
 
 \begin{figure}[htbp]
   \centering
-  \subcaptionbox{Before delete $x$.}{\includegraphics[scale=0.5]{img/del-branch-before}}
-  \subcaptionbox{After delete $x$, $x$ is replaced by splicing the minimum element from its right sub-tree.}{ \includegraphics[scale=0.5]{img/del-branch-after}}
-  \caption{Delete a node with two none empty sub-trees.}
+  \includegraphics[scale=0.6]{img/del-branch}
+  \caption{Delete a branch with two none empty sub-trees.}
   \label{fig:del-branch}
 \end{figure}
 
-Based on this idea, we can define the $delete$ algorithm as below:
-
 \be
 \begin{array}{rcl}
-delete(\nil, x) & = & \nil\\
-delete(Node(T_l, k, T_r), x) & = & \begin{cases}
-  x < k: & Node(delete(T_l, x), k, T_r) \\
-  x > k: & Node(T_l, k, delete(T_r, x)) \\
-  x = k: & del(T_l, T_r) \\
+delete\ x\ \nil & = & \nil\\
+delete\ x\ (l, k, r) & = & \begin{cases}
+  x < k: & (delete\ x\ l, k, r) \\
+  x > k: & (l, k, delete\ x\ r) \\
+  x = k: & del\ l\ r \\
 \end{cases}
 \end{array}
 \ee
 
-Function $del$ performs slicing, and mutually call $delete$ recursively to cut off the minimum from the right sub-tree.
+Where:
 
 \be
 \begin{array}{rcl}
-del(\nil, T_r) & = & T_r \\
-del(T_l, \nil) & = & T_l \\
-del(T_l, T_r) & = & Node(T_l, y, delete(T_r, y)) \\
+del\ \nil\ r & = & r \\
+del\ l\ \nil & = & l \\
+del\ l\ r & = & (l, y, delete\ y\ r), \text{where}\ y = \min\ r \\
 \end{array}
 \ee
 
-Where $y = min(T_r)$ is the minimum element in the right sub-tree. Here is the corresponding example program:
-
-\begin{Haskell}
-delete Empty _ = Empty
-delete (Node l k r) x | x < k = Node (delete l x) k r
-                      | x > k = Node l k (delete r x)
-                      | otherwise = del l r
-  where
-    del Empty r = r
-    del l Empty = l
-    del l r = let k' = min r in Node l k' (delete r k')
-\end{Haskell}
-
-This algorithm firstly looks up the node to be deleted, then executes the deletion. It takes $O(h)$ time where $h$ is the height of the tree.
-
-The imperative deletion algorithm needs set the parent properly in addition. The following one returns the root of the result tree.
+The performance of delete is $O(h)$, where $h$ is the height. The imperative implementation needs set the parent reference in addition.
 
 \begin{algorithmic}[1]
 \Function{Delete}{$T, x$}
@@ -540,10 +581,10 @@ The imperative deletion algorithm needs set the parent properly in addition. The
   \ElsIf{\Call{Right}{$x$} $= $ NIL}
     \State $x \gets $ \Call{Left}{$x$}
   \Else
-    \Comment{neither children is empty}
+    \Comment{neither sub-tree is empty}
     \State  $y \gets $ \textproc{Min}(\Call{Right}{$x$})
     \State \Call{Key}{$x$} $\gets$ \Call{Key}{$y$}
-    \State Copy other satellite data from $y$ to $x$
+    \State \Call{Value}{$x$} $\gets$ \Call{Value}{$y$}
     \If{\Call{Parent}{$y$} $\neq x$}
       \Comment{$y$ does not have left sub-tree}
       \State \textproc{Left}(\Call{Parent}{$y$}) $\gets$ \Call{Right}{$y$}
@@ -575,35 +616,95 @@ The imperative deletion algorithm needs set the parent properly in addition. The
 \EndFunction
 \end{algorithmic}
 
-We assume the node to be deleted is not empty. This algorithm first records the root, creates copy reference to $x$, and its parent. If either sub-tree is empty, then we splice $x$ out. Otherwise, the node has two none empty sub-trees. We first located the minimum node $y$ in its right sub-tree, then replace the key of $x$ with the one in $y$, copy the satellite data, and finally, splice $y$ out. We also need handle the special case, that $y$ is the root of the right sub-tree.
+Assume $x$ is not empty, first record the root, copy reference to $x$ and its parent. When delete, we also need handle the special case, that $y$ is the root of the right sub-tree. Finally, we need reset the stored parent if $x$ has only one none empty sub-tree. If the copied parent is empty, we are deleting the root. We return the new root in this case. After setting the parent, we can safely remove $x$.
 
-At last, we need reset the stored parent if $x$ has only one none empty sub-tree. If the parent pointer we copied is empty, it means that we are deleting the root. In this case, we need return the new root. After the parent is set properly, we can safely remove $x$. The deletion algorithm is bound to $O(h)$ time, where $h$ is the height of the tree.
+\index{binary search tree!random build} \label{sec:bst-random-build}
+The performance of the binary search tree algorithms depend on the height $h$. When unbalanced, $O(h)$ is close to $O(n)$, while for well balanced tree, $O(h)$ is close to $O(\lg n)$. Chapter 4 and 5 introduce self-balanced solution, there is another simple balance method: shuffle the elements, then build the tree\cite{CLRS}. It decreases the possibility of poorly balanced.
 
-\begin{Exercise}
+We can use binary search tree to realize the map data structure (also known as associative data structure or dictionary). A finite map is a collection of key-value pairs. Each key is unique, and mapped to some value. For keys of type $K$, values of type $V$, the type of the map is $Map\ K\ V$ or \texttt{Map<K, V>}. For none empty map, it contains $n$ mappings of $\{k_1 \mapsto v_1, k_2 \mapsto v_2, ..., k_n \mapsto v_n\}$. When use the binary search tree to implement map, we constrain $K$ to be an ordered set. Every node stores a pair of key and value. The type of the tree is $Tree\ (K, V)$. We use the tree insert/update operation to associate a key with a value. Given a key $k$, we use $lookup$ to find the mapped value $v$, or returns nothing or $\nil$ when $k$ does not exist. The red-black tree and AVL tree in chapter 4 and 5 can also implement map.
 
-\Question{There is a symmetric deletion algorithm. When neither sub-tree is empty, we can replace the key by splicing the maximum node off the left sub-tree. Write a program to implement this solution.}
-
-\end{Exercise}
-
-\section{Random build}
-\index{binary search tree!random build}
-All binary search tree algorithms we give so far are bound bound to $O(h)$ time. The height $h$ of the tree impacts the performance. For a poor unbalanced tree, $O(h)$ tends to be $O(n)$. It leads to the worst case. While for well balanced tree, $O(h)$ close to $O(\lg n)$. We can gain good performance.
-
-We'll see two well designed solutions to keep the tree balanced in chapter 4 and 5. There exists a simple method, to build the binary search tree randomly\cite{CLRS}. It decreases the possibility of giving a unbalanced binary tree. The idea is to randomly shuffle the elements before building the tree.
-
-\begin{Exercise}
+\begin{Exercise}[label={ex:bst-delete}]
+\Question{There is a symmetric deletion algorithm. When neither sub-tree is empty, we replace with the maximum of the left sub-tree, then cut it off. Write a program to implement this solution.}
 \Question{Write a randomly building algorithm for binary search tree.}
+\Question{How to find the two nodes with the greatest distance in a binary tree?}
 \end{Exercise}
 
-\section{Map}
-We can use binary search tree to realize the map data structure (also known as associative data structure or dictionary). A finite map is a collection of key-value pairs. The keys are unique, that every key is mapped to a value. For keys of type $K$, values of type $V$, the map is $Map\ K\ V$ or \texttt{Map<K, V>}. For none empty map, it contains $n$ mappings of $k_1 \mapsto v_1, k_2 \mapsto v_2, ..., k_n \mapsto v_n$. When use the binary search tree to implement map, we constrain $K$ to be ordered set. Every node stores both key and value. We use the tree insert/update operation to bind a key to a value. Given a key $k$, we use the tree lookup to find the mapped value, or returns nothing when $k$ does not exist. The red-black tree and AVL tree introduced in later chapters can also be used to implement map.
+\begin{Answer}[ref={ex:bst-delete}]
+\Question{There is a symmetric deletion algorithm. When neither sub-tree is empty, we replace with the maximum of the left sub-tree, then cut it off. Write a program to implement this solution.
+
+\begin{Haskell}
+delete _ Empty = Empty
+delete x (Node l k r) | x < k = Node (delete x l) k r
+                      | x > k = Node l k (delete x r)
+                      | otherwise = del l r
+  where
+    del Empty r = r
+    del l Empty = l
+    del l r = let m = max l in Node (delete m l) m r
+\end{Haskell}
+}
+\Question{Write a randomly building algorithm for binary search tree.
+
+\begin{Haskell}
+fromList = (foldr insert Empty) . shuffle
+\end{Haskell}
+}
+
+\Question{How to find the two nodes with the greatest distance in a binary tree?
+
+We first find the maximum distance $m$, then give the longest path $[s, a, b, ..., e]$. The two ends $s$ and $e$ are the two nodes in question. To define the distance between two nodes, let the connected path (without direction) be $s \to n_1 \to n_2 \to ... \to n_m \to e$, every edge has the length of 1, then the total length from $s$ to $e$ is the distance between them, which is $m + 1$. Define the maximum distance of the empty tree as 0. For singleton leaf $(\nil, k, \nil)$, as the longest path is $[k]$, the maximum distance is also 0 (from $k$ to $k$). Consider the branch node $(l, k, r)$, the maximum distance must be one of the three: (1) from the deepest node on the left to the root, then to the deepest node on the right: $depth\ l + depth\ r$; (2) the maximum distance of the left sub-tree $l$; (3) the maximum distance of the right sub-tree $r$.
+
+\begin{Haskell}
+maxDistance Empty = 0
+maxDistance (Node Empty _ Empty) = 0
+maxDistance (Node l _ r) = maximum [depth l + depth r,
+                            maxDistance l, maxDistance r]
+\end{Haskell}
+
+Where the definition of $depth$ is in \cref{ex:bst-depth}. We can adjust it to find the longest path. For the empty tree, the longest path is $[\ ]$, for singleton leaf, the longest path is $[k]$, for branch node $(l, k, r)$, the longest path is the maximum of the three: (1) The reverse of the path from the root to the deepest node on the left, and $k$, and the path from the root the deepest node on the right; (2) the longest path of the left; (3) the longest path of the right.
+
+\begin{Haskell}
+maxPath Empty = []
+maxPath (Node Empty k Empty) = [k]
+maxPath (Node l k r) = longest [(reverse depthPath l) ++ k : depthPath r,
+                         maxPath l, maxPath r] where
+  longest = maximumBy (compare `on` length)
+  depthPath = foldt id (\ xs k ys -> k : longest [xs, ys]) []
+\end{Haskell}
+
+This implementation traverses the tree when calculate the depth, then traverses another two rounds for the left and right sub-trees. To avoid duplication, we can bottom-up fill the depth $d$ and the maximum distance $m$ in each node. This can be done through tree map: $Tree\ A \mapsto Tree\ (Int, Int)$ in one traverse:
+
+\begin{Haskell}
+maxDist = extract . mapTr where
+  extract Empty = 0
+  extract (Node _ (_, m) _) = m
+  mapTr Empty = Empty
+  mapTr (Node l _ r) = f (mapTr l) (mapTr r)
+  f l r = Node l (1 + max d1 d2, maximum [d1 + d2, m1, m2]) r where
+    (d1, m1) = pairof l
+    (d2, m2) = pairof r
+    pairof Empty = (0, 0)
+    pairof (Node _ k _) = k
+\end{Haskell}
+
+We can further simplify it with fold:
+
+\begin{Haskell}
+maxDist = snd . pair . foldt id g Empty where
+  g l _ r = Node l (1 + max d1 d2, maximum [d1 + d2, m1, m2]) r where
+    (d1, m1) = pair l
+    (d2, m2) = pair r
+  pair = (maybe (0, 0) id) . key
+\end{Haskell}
+}
+\end{Answer}
 
 \section{Appendix: Example programs}
 
-Definition of binary search tree node with parent field.
+Definition of binary search tree node with parent reference.
 
-\lstset{language=Bourbaki, frame=single}
-\begin{lstlisting}
+\lstset{frame=single}
+\begin{Bourbaki}
 data Node<T> {
     T key
     Node<T> left
@@ -618,11 +719,11 @@ data Node<T> {
         if (right != null) then right.parent = this
     }
 }
-\end{lstlisting}
+\end{Bourbaki}
 
-Example program of recursive insertion. It does not use pattern matching.
+Recursive insert without using pattern matching.
 
-\begin{lstlisting}
+\begin{Bourbaki}
 Node<T> insert (Node<T> t, T x) {
     if (t == null) {
         return Node(null, x, null)
@@ -632,11 +733,27 @@ Node<T> insert (Node<T> t, T x) {
         return Node(t.left, t.key, insert(t.right, x))
     }
 }
-\end{lstlisting}
+\end{Bourbaki}
 
-Example program to look up a key. Purely iterative without recursion.
+Map and fold:
 
-\begin{lstlisting}
+\begin{Haskell}
+mapt _ Empty = Empty
+mapt f (Node l x r)= Node (mapt f l) (f x) (mapt f r)
+
+foldt _ _ z Empty = z
+foldt f g z (Node l k r) = g (foldt f g z l) (f k) (foldt f g z r)
+
+maptr :: (a -> b) -> Tree a -> Tree b
+maptr f = foldt f Node Empty
+
+fold _ z Empty = z
+fold f z (Node l k r) = fold f (k `f` (fold f z r)) l
+\end{Haskell}
+
+Iterative lookup without recursion:
+
+\begin{Bourbaki}
 Optional<Node<T>> lookup (Node<T> t, T x) {
     while (t != null and t.key != x) {
         if (x < t.key) {
@@ -645,26 +762,27 @@ Optional<Node<T>> lookup (Node<T> t, T x) {
             t = t.right
         }
     }
-    return Optional(t);
+    return Optional.of(t);
 }
-\end{lstlisting}
+\end{Bourbaki}
 
 Example iterative program to find the minimum of a tree.
 
-\begin{lstlisting}
+\begin{Bourbaki}
 Optional<Node<T>> min (Node<T> t) {
     while (t != null and t.left != null) {
         t = t.left
     }
-    return Optional(t);
+    return Optional.of(t);
 }
-\end{lstlisting}
+\end{Bourbaki}
 
-Example program to find the successor of a node.
-\begin{lstlisting}
+Iterative find the successor.
+
+\begin{Bourbaki}
 Optional<Node<T>> succ (Node<T> x) {
     if (x == null) {
-        return Optional.None
+        return Optional.Nothing
     } else if (x.right != null) {
         return min(x.right)
     } else {
@@ -673,51 +791,28 @@ Optional<Node<T>> succ (Node<T> x) {
             x = p
             p = p.parent
         }
-        return Optional(p);
+        return Optional.of(p);
     }
 }
-\end{lstlisting}
+\end{Bourbaki}
 
-%% Example program to delete a node imperatively from the tree.
+delete:
 
-%% \begin{lstlisting}
-%% Node<T> delete(Node<T> t, Node<T> x) {
-%%     if (x == null) {
-%%         return t
-%%     }
-%%     root, x0, parent = t, x, x.parent
-%%     if (x.left == null) {
-%%         x = x.right
-%%     } else if (x.right == null) {
-%%         x = x.left
-%%     } else {
-%%         y = min(x.right)
-%%         x.key = y.key
-%%         if (y.parent != x) {
-%%             y.parent.left = y.right
-%%         } else {
-%%             x.right = y.right
-%%         }
-%%         if (y.right != null) {
-%%             y.right.parent = y.parent
-%%         }
-%%         return root
-%%     if (x != null) {
-%%         x.parent = parent
-%%     }
-%%     if (parent == null) {
-%%         root = x
-%%     } else {
-%%         if (parent.left == x0) {
-%%             parent.left = x
-%%         } else {
-%%             parent.right = x
-%%         }
-%%     return root
-%% }
-%% \end{lstlisting}
+\begin{Haskell}
+delete _ Empty = Empty
+delete x (Node l k r) | x < k = Node (delete x l) k r
+                      | x > k = Node l k (delete x r)
+                      | otherwise = del l r
+  where
+    del Empty r = r
+    del l Empty = l
+    del l r = let k' = min r in Node l k' (delete k' r)
+\end{Haskell}
 
 \ifx\wholebook\relax \else
+\section{Answers}
+\shipoutAnswer
+
 \begin{thebibliography}{99}
 
 \bibitem{CLRS}

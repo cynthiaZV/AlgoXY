@@ -20,20 +20,23 @@
 
 module LeftistHeap where
 
+import Test.QuickCheck
+import Data.List (sort)
+
 -- Definition
 
-data LHeap a = E -- Empty 
+data LHeap a = E -- Empty
              | Node Int a (LHeap a) (LHeap a) -- rank, element, left, right
                deriving (Eq, Show)
 
-merge::(Ord a)=>LHeap a -> LHeap a -> LHeap a
+merge :: (Ord a) => LHeap a -> LHeap a -> LHeap a
 merge E h = h
 merge h E = h
-merge h1@(Node _ x l r) h2@(Node _ y l' r') = 
+merge h1@(Node _ x l r) h2@(Node _ y l' r') =
     if x < y then makeNode x l (merge r h2)
     else makeNode y l' (merge h1 r')
 
-makeNode::a -> LHeap a -> LHeap a -> LHeap a
+makeNode :: a -> LHeap a -> LHeap a -> LHeap a
 makeNode x a b = if rank a < rank b then Node (rank a + 1) x b a
                  else Node (rank b + 1) x a b
 
@@ -60,6 +63,7 @@ heapSort = hsort . fromList where
 
 -- test
 
-testFromList = fromList [16, 14, 10, 8, 7, 9, 3, 2, 4, 1]
+prop_sort :: [Int] -> Bool
+prop_sort xs = heapSort xs == sort xs
 
-testHeapSort = heapSort [16, 14, 10, 8, 7, 9, 3, 2, 4, 1]
+-- example = fromList [16, 14, 10, 8, 7, 9, 3, 2, 4, 1]

@@ -1,1545 +1,804 @@
 \ifx\wholebook\relax \else
-% ------------------------
+\documentclass[b5paper]{article}
+\usepackage[nomarginpar
+  %, margin=.5in
+]{geometry}
 
-\documentclass{article}
+\addtolength{\oddsidemargin}{-0.05in}
+\addtolength{\evensidemargin}{-0.05in}
+\addtolength{\textwidth}{0.1in}
 \usepackage[en]{../../../prelude}
 
 \setcounter{page}{1}
 
 \begin{document}
 
-%--------------------------
+\title{Queue}
 
-% ================================================================
-%                 COVER PAGE
-% ================================================================
-
-\title{Queue, not so simple as it was thought}
-
-\author{Larry~LIU~Xinyu
-\thanks{{\bfseries Larry LIU Xinyu } \newline
-  Email: liuxinyu95@gmail.com \newline}
+\author{Xinyu~LIU
+\thanks{{\bfseries Xinyu LIU} \newline
+  Email: liuxinyu99@hotmail.com \newline}
   }
 
 \maketitle
 \fi
 
-\markboth{Queue}{Elementary Algorithms}
+%\markboth{Queue}{Elementary Algorithms}
 
 \ifx\wholebook\relax
-\chapter{Queue, not so simple as it was thought}
+\chapter{Queue}
 \numberwithin{Exercise}{chapter}
 \fi
 
-% ================================================================
-%                 Introduction
-% ================================================================
-\section{Introduction}
-\label{introduction}
-It seems that queues are relative simple. A queue provides FIFO (first-in,
-first-out) data manipulation support. There are many options to
-realize queue includes singly linked-list, doubly linked-list,
-circular buffer etc. However, we'll show that it's not so easy to
-realize queue in purely functional settings if it must satisfy
-abstract queue properties.
+Queue supports first-in, first-out (FIFO). There are many ways to implement queue, e.g., through linked-list, doubly liked list, circular buffer, etc. Okasaki gives 16 different implementations in \cite{okasaki-book}. A queue satisfies the following two requirements:
 
-In this chapter, we'll present several different approaches to
-implement queue. A queue is a FIFO data structure satisfies the
-following performance constraints.
+\begin{enumerate}
+\item Add a new element to the tail in constant time;
+\item Access or remove an element from head in constant time.
+\end{enumerate}
 
-\begin{itemize}
-\item Element can be added to the tail of the queue in $O(1)$ constant time;
-\item Element can be removed from the head of the queue in $O(1)$ constant time.
-\end{itemize}
+It's easy to realize queue with doubly linked-list. We skip this implementation, and focus on using other basic data structures, like (singly) linked-list or array.
 
-These two properties must be satisfied. And it's common to add some extra
-goals, such as dynamic memory allocation etc.
+\section{Linked-list queue}
+\index{Queue!linked-list}
 
-Of course such abstract queue interface can be implemented with
-doubly-linked list trivially. But this is a overkill solution.
-We can even implement imperative queue with singly linked-list or
-plain array. However, our main question here is about how to realize
-a purely functional queue as well?
+We can insert or remove element from the head of a linked-list. However, to support FIFO, we have to do one operation in head and the other in tail. We need $O(n)$ time to traverse and reach the tail, where $n$ is the length. To achieve the constant time performance goal, we need an additional variable to record the tail position, and use a sentinel node $S$ to simplify the empty queue handling, as shown in \cref{fig:empty-list}.
 
-We'll first review the typical queue solution which is realized by
-singly linked-list and circular buffer in first section; Then we
-give a simple and straightforward functional solution in the second
-section. While the performance is ensured in terms of amortized
-constant time, we need find real-time solution (or worst-case solution)
-for some special case. Such solution will be described in the third
-and the fourth section. Finally, we'll show a very simple real-time
-queue which depends on lazy evaluation.
+\lstset{frame = single}
+\begin{lstlisting}[language = Bourbaki]
+data Node<K> {
+  K key
+  Node<K> next
+}
 
-Most of the functional contents are based on Chris, Okasaki's great
-work in \cite{okasaki-book}. There are more than 16 different types
-of purely functional queue given in that material.
-
-% ================================================================
-%                 Imperative queue
-% ================================================================
-\section{Queue by linked-list and circular buffer}
-
-\subsection{Singly linked-list solution}
-\index{Queue!Singly linked-list}
-
-Queue can be implemented with singly linked-list. It's easy to add
-and remove element at the front end of a linked-list in $O(1)$ time.
-However, in
-order to keep the FIFO order, if we execute one operation on head,
-we must perform the inverse operation on tail.
-
-In order to operate on tail, for plain singly linked-list, we must traverse the whole list before
-adding or removing. Traversing is bound to $O(n)$ time,
-where $n$ is the length of the list. This doesn't match the abstract
-queue properties.
-
-The solution is to use an extra record to store the tail of the linked-list.
-A sentinel is often used to simplify the boundary handling. The
-following ANSI C \footnote{It's possible to parameterize the type of the key
-with C++ template. ANSI C is used here for illustration purpose.}
-code defines a queue realized by singly linked-list.
-
-\lstset{language=C}
-\begin{lstlisting}
-typedef int Key;
-
-struct Node{
-  Key key;
-  struct Node* next;
-};
-
-struct Queue{
-  struct Node *head, *tail;
-};
+data Queue<K> {
+  Node<K> head, tail
+}
 \end{lstlisting}
-
-Figure \ref{fig:empty-list} illustrates an empty list. Both head
-and tail point to the sentinel NIL node.
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=1.0]{img/empty-list}
-  \caption{The empty queue, both head and tail point to sentinel node.} \label{fig:empty-list}
+  \includegraphics[scale=0.8]{img/empty-list}
+  \caption{Both head and tail point to $S$ for empty queue.}
+  \label{fig:empty-list}
 \end{figure}
 
-We summarize the abstract queue interface as the following.
+Define `enqueue' (also called push, snoc, append, or push back) and `dequeue' (also called pop, or pop front) to add and remove element respectively. When implement queue with list, we push on head, and pop from tail.
 
-\begin{algorithmic}
-\Function{Empty}{}
-  \Comment{Create an empty queue}
-\EndFunction
-\Function{Empty?}{$Q$}
-  \Comment{Test if $Q$ is empty}
-\EndFunction
+\begin{algorithmic}[1]
 \Function{Enqueue}{$Q, x$}
-  \Comment{Add a new element $x$ to queue $Q$}
-\EndFunction
-\Function{Dequeue}{$Q$}
-  \Comment{Remove element from queue $Q$}
-\EndFunction
-\Function{Head}{$Q$}
-  \Comment{get the next element in queue $Q$ in FIFO order}
-\EndFunction
-\end{algorithmic}
-
-Note the difference between \textproc{Dequeue} and \textproc{Head}.
-\textproc{Head} only retrieve next element in FIFO order without removing
-it, while \textproc{Dequeue} performs removing.
-
-In some programming languages, such as Haskell, and most object-oriented
-languages, the above abstract queue interface can be ensured by some definition.
-For example, the following Haskell code specifies the abstract queue.
-
-\lstset{language=Haskell}
-\begin{lstlisting}
-class Queue q where
-    empty :: q a
-    isEmpty :: q a -> Bool
-    push :: q a -> a -> q a     -- Or named as 'snoc', append, push\_back
-    pop :: q a -> q a           -- Or named as 'tail', pop\_front
-    front :: q a -> a           -- Or named as 'head'
-\end{lstlisting}
-
-To ensure the constant time \textproc{Enqueue} and \textproc{Dequeue},
-we add new element to head and remove element from tail.\footnote{It's possible
-to add new element to the tail, while remove element from head, but the
-operations are more complex than this approach.}
-
-\begin{algorithmic}
-\Function{Enqueue}{$Q, x$}
-  \State $p \gets $ \Call{Create-New-Node}{}
-  \State \Call{Key}{$p$} $\gets x$
-  \State \Call{Next}{$p$} $\gets NIL$
+  \State $p \gets $ \Call{Node}{$x$}
+  \State \Call{Next}{$p$} $\gets$ NIL
   \State \textproc{Next}(\Call{Tail}{$Q$}) $\gets p$
   \State \Call{Tail}{$Q$} $\gets p$
 \EndFunction
 \end{algorithmic}
 
-Note that, as we use the sentinel node, there are at least one node, the
-sentinel in the queue. That's why we needn't check the validation of
-of the tail before we append the new created node $p$ to it.
+As there is at least a $S$ node even for empty queue, we need not check if the tail is NIL.
 
-\begin{algorithmic}
+\begin{algorithmic}[1]
 \Function{Dequeue}{$Q$}
   \State $x \gets $ \Call{Head}{$Q$}
   \State \textproc{Next}(\Call{Head}{$Q$}) $\gets$ \Call{Next}{$x$}
-  \If{$x = $ \Call{Tail}{$Q$}} \Comment{$Q$ gets empty}
+  \If{$x = $ \Call{Tail}{$Q$}} \Comment{$Q$ is empty}
     \State \Call{Tail}{$Q$} $\gets$ \Call{Head}{$Q$}
   \EndIf
   \State \Return \Call{Key}{$x$}
 \EndFunction
 \end{algorithmic}
 
-As we always put the sentinel node in front of all the other nodes,
-function \textproc{Head} actually returns the next node to the sentinel.
-
-Figure \ref{fig:list-queue} illustrates \textproc{Enqueue} and \textproc{Dequeue} process with sentinel node.
+As the $S$ node is ahead of all other nodes, \textproc{Head} actually returns the next node to $S$, as shown in \cref{fig:list-queue}. It's easy to expand this implementation to concurrent environment with two locks on the head and tail respectively. $S$ node helps to prevent dead-lock when the queue is empty\cite{PODC96}\cite{SutterDDJ}.
 
 \begin{figure}[htbp]
- \centering
- \subcaptionbox{Before \textproc{Enqueue} $x$ to queue}{\includegraphics[scale=0.7]{img/enq-list-before}} \\
- \subcaptionbox{After \textproc{Enqueue} $x$ to queue}{\includegraphics[scale=0.7]{img/enq-list-after}} \\
- \subcaptionbox{Before \textproc{Dequeue}}{\includegraphics[scale=0.7]{img/deq-list-before}} \\
- \subcaptionbox{After \textproc{Dequeue}}{\includegraphics[scale=0.7]{img/deq-list-after}} \\
- \caption{\textproc{Enqueue} and \textproc{Dequeue} to linked-list queue.} \label{fig:list-queue}
+  \centering
+  \includegraphics[scale=0.8]{img/slistq}
+  \caption{List with $S$ node.}
+  \label{fig:list-queue}
 \end{figure}
 
-Translating the pseudo code to ANSI C program yields the below code.
-
-\begin{lstlisting}
-struct Queue* enqueue(struct Queue* q, Key x) {
-  struct Node* p = (struct Node*)malloc(sizeof(struct Node));
-  p->key = x;
-  p->next = NULL;
-  q->tail->next = p;
-  q->tail = p;
-  return q;
-}
-
-Key dequeue(struct Queue* q) {
-  struct Node* p = head(q); /*gets the node next to sentinel*/
-  Key x = key(p);
-  q->head->next = p->next;
-  if(q->tail == p)
-    q->tail = q->head;
-  free(p);
-  return x;
-}
-\end{lstlisting}
-
-This solution is simple and robust. It's easy to extend this solution
-even to the concurrent environment (e.g. multicores). We can assign
-a lock to the head and use another lock to the tail. The sentinel
-helps us from being dead-locked due to the empty case \cite{PODC96} \cite{SutterDDJ}.
-
-\begin{Exercise}
-\begin{itemize}
-\item Realize the \textproc{Empty?} and \textproc{Head} algorithms
-for linked-list queue.
-
-\item Implement the singly linked-list queue in your favorite imperative
-programming language. Note that you need provide functions to initialize
-and destroy the queue.
-\end{itemize}
-\end{Exercise}
-
-\subsection{Circular buffer solution}
+\section{Circular buffer}
 \index{Queue!Circular buffer}
 
-Another typical solution to realize queue is to use plain array as
-a circular buffer (also known as ring buffer).
-Oppose to linked-list, array support appending to the
-tail in constant $O(1)$ time if there are still spaces. Of course
-we need re-allocate spaces if the array is fully occupied. However,
-Array performs poor in $O(n)$ time when removing element from head
-and packing the space. This is because we need shift all rest elements
-one cell ahead. The idea of circular buffer is to reuse the free
-cells before the first valid element after we remove elements from
-head.
-
-The idea of circular buffer can be described in figure \ref{fig:circular-buffer-queue}
-and \ref{fig:circular-buffer}.
+Symmetrically, we can append element to the tail of array in constant time, but it takes $O(n)$ time to remove from head. This is because we need shift all elements one cell ahead. The idea of circular buffer is to reuse the free cells before the first valid element after remove from head, as shown \cref{fig:circular-buffer-queue,fig:circular-buffer}. We can use the head index, the length count, and the size of the array to define a queue. It's empty when the count is 0, it's full when count = size, we can also simplify the enqueue/dequeue implementation with modular operation.
 
 \begin{figure}[htbp]
  \centering
- \subcaptionbox{Continuously add some elements.}{\includegraphics[scale=0.7]{img/ring-buf-1}} \\
- \subcaptionbox{After remove some elements from head, there are free cells.}{\includegraphics[scale=0.7]{img/ring-buf-2}} \\
- \subcaptionbox{Go on adding elements till the boundary of the array.}{\includegraphics[scale=0.7]{img/ring-buf-3}} \\
- \subcaptionbox{The next element is added to the first free cell on head.}{\includegraphics[scale=0.7]{img/ring-buf-4}} \\
- \subcaptionbox{All cells are occupied. The queue is full.}{\includegraphics[scale=0.7]{img/ring-buf-5}}
- \caption{A queue is realized with ring buffer.} \label{fig:circular-buffer-queue}
+ \includegraphics[scale=0.3]{img/ring-buffer}
+ \caption{Circular buffer.}
+ \label{fig:circular-buffer}
 \end{figure}
 
 \begin{figure}[htbp]
  \centering
- \includegraphics[scale=0.5]{img/ring-buffer}
- \caption{The circular buffer.} \label{fig:circular-buffer}
+ \subcaptionbox{Enqueue some elements.}{
+ \begin{tikzpicture}[scale=0.7]
+    \draw (0, 0) rectangle (1, 1) node (a0) [pos=.5] {a[0]}
+          (1, 0) rectangle (2, 1) node [pos=.5] {a[1]}
+          (2, 0) rectangle (3, 1) node [pos=.5] {...}
+          (3, 0) rectangle (4, 1) node [pos=.5] (ai) {a[i]}
+          (4, 0) rectangle (5, 1) node [pos=.5] {...}
+          (5, 0) rectangle (6, 1) node (an) [pos=.5] {};
+    \draw (0, 2) node (hd) {head}
+          (3.5, 2) node (tl) {tail}
+          (6, 2) node (bd) {boundary};
+    \draw[thick, ->] (hd) edge (a0)
+                 (tl) edge (ai)
+                 (bd) edge (an);
+  \end{tikzpicture}}
+ \subcaptionbox{Free cells after dequeue.}{
+  \begin{tikzpicture}[scale=0.7]
+    \draw (0, 0) rectangle (1, 1)
+          (1, 0) rectangle (2, 1) node [pos=.5] {...}
+          (2, 0) rectangle (3, 1) node (aj) [pos=.5] {a[j]}
+          (3, 0) rectangle (4, 1) node [pos=.5] {...}
+          (4, 0) rectangle (5, 1) node (ai) [pos=.5] {a[i]}
+          (5, 0) rectangle (6, 1) node [pos=.5] {...}
+          (6, 0) rectangle (7, 1) node (an) [pos=.5] {};
+    \draw (2, 2) node (hd) {head}
+          (4.5, 2) node (tl) {tail}
+          (7, 2) node (bd) {boundary};
+    \draw[thick, ->] (hd) edge (aj)
+                 (tl) edge (ai)
+                 (bd) edge (an);
+  \end{tikzpicture}} \\
+ \subcaptionbox{Enqueue more elements to the boundary}{
+   \begin{tikzpicture}[scale=0.8]
+    \draw (0, 0) rectangle (1, 1)
+          (1, 0) rectangle (2, 1) node [pos=.5] {...}
+          (2, 0) rectangle (3, 1) node (aj) [pos=.5] {a[j]}
+          (3, 0) rectangle (4, 1) node [pos=.5] {...}
+          (4, 0) rectangle (5, 1) node (ai) [pos=.5] {a[i]};
+    \draw (2, 2) node (hd) {head}
+          (4.5, 2) node (tl) {tail}
+          (6, 2) node (bd) {boundary};
+    \draw[thick, ->] (hd) edge (aj)
+                 (tl) edge (ai)
+                 (bd) edge [bend left] (ai);
+  \end{tikzpicture}}
+ \subcaptionbox{Enqueue the next element to the first cell.}{
+    \begin{tikzpicture}[scale=0.7]
+    \draw (0, 0) rectangle (1, 1) node (a0) [pos=.5] {a[0]}
+          (1, 0) rectangle (2, 1) node [pos=.5] {...}
+          (2, 0) rectangle (3, 1) node (aj) [pos=.5] {a[j]}
+          (3, 0) rectangle (4, 1) node [pos=.5] {...}
+          (4, 0) rectangle (5, 1) node (an) [pos=.5] {};
+    \draw (2.5, 2) node (hd) {head}
+          (0, 2) node (tl) {tail}
+          (6, 2) node (bd) {boundary};
+    \draw[thick, ->] (hd) edge (aj)
+                 (tl) edge (a0)
+                 (bd) edge (an);
+  \end{tikzpicture}} \\
+ \subcaptionbox{All cells are occupied, full.}{
+   \begin{tikzpicture}[scale=0.7]
+    \draw (0, 0) rectangle (1, 1) node [pos=.5] {a[0]}
+          (1, 0) rectangle (2, 1) node [pos=.5] {a[1]}
+          (2, 0) rectangle (3, 1) node [pos=.5] {...}
+          (3, 0) rectangle (4, 1) node (a1j) [pos=.5] {a[j-1]}
+          (4, 0) rectangle (5, 1) node (aj) [pos=.5] {a[j]}
+          (5, 0) rectangle (6, 1) node [pos=.5] {...}
+          (6, 0) rectangle (7, 1) node (an) [pos=.5] {};
+    \draw (4.5, 2) node (hd) {head}
+          (3, 2) node (tl) {tail}
+          (7, 2) node (bd) {boundary};
+    \draw[thick, ->] (hd) edge (aj)
+                 (tl) edge (a1j)
+                 (bd) edge (an);
+  \end{tikzpicture}}
+ \caption{Circular buffer queue}
+ \label{fig:circular-buffer-queue}
 \end{figure}
 
-If we set a maximum size of the buffer instead of dynamically allocate
-memories, the queue can be defined with the below ANSI C code.
-
-\lstset{language=C}
-\begin{lstlisting}
-struct QueueBuf{
-    Key* buf;
-    int head, cnt, size;
-};
-\end{lstlisting}
-
-When initialize the queue, we are explicitly asked to provide the maximum
-size as the parameter.
-
-\begin{lstlisting}
-struct QueueBuf* createQ(int max){
-    struct QueueBuf* q = (struct QueueBuf*)malloc(sizeof(struct QueueBuf));
-    q->buf = (Key*)malloc(sizeof(Key)*max);
-    q->size = max;
-    q->head = q->cnt = 0;
-    return q;
-}
-\end{lstlisting}
-
-With the counter variable, we can compare it with zero and the capacity to
-test if the queue is empty or full.
-
-\begin{algorithmic}
-\Function{Empty?}{$Q$}
-  \State \Return \Call{Count}{$Q$} = 0
-\EndFunction
-\end{algorithmic}
-
-To realize \textproc{Enqueue} and \textproc{Dequeue}, an easy way
-is to calculate the modular of index as the following.
-
-\begin{algorithmic}
+\begin{algorithmic}[1]
 \Function{Enqueue}{$Q, x$}
-  \If{$\lnot$ \Call{Full?}{$Q$}}
+  \If{not \Call{Full}{$Q$}}
     \State \Call{Count}{$Q$} $\gets$ \Call{Count}{$Q$} + 1
-    \State tail $\gets $ (\Call{Head}{$Q$} + \Call{Count}{$Q$}) $\mod$ \Call{Size}{$Q$}
-    \State \Call{Buffer}{$Q$}[tail] $\gets x$
+    \State tail $\gets $ (\Call{Head}{$Q$} + \Call{Count}{$Q$}) $\bmod$ \Call{Size}{$Q$}
+    \State \Call{Buf}{$Q$}[tail] $\gets x$
   \EndIf
 \EndFunction
 \end{algorithmic}
 
-\begin{algorithmic}
-\Function{Head}{$Q$}
-  \If{$\lnot$ \Call{Empty?}{$Q$}}
-    \State \Return \Call{Buffer}{$Q$}[\Call{Head}{$Q$}]
-  \EndIf
-\EndFunction
-\end{algorithmic}
-
-\begin{algorithmic}
+\begin{algorithmic}[1]
 \Function{Dequeue}{$Q$}
-  \If{$\lnot$ \Call{Empty?}{$Q$}}
-    \State \Call{Head}{$Q$} $\gets $ (\Call{Head}{$Q$} + 1) $\mod$ \Call{Size}{$Q$}
+  \State $x \gets$ NIL
+  \If{not \Call{Empty}{$Q$}}
+    \State $h \gets$ \Call{Head}{$Q$}
+    \State $x \gets$ \Call{Buf}{$Q$}[$h$]
+    \State \Call{Head}{$Q$} $\gets $ (h + 1) $\bmod$ \Call{Size}{$Q$}
     \State \Call{Count}{$Q$} $\gets$ \Call{Count}{$Q$} - 1
   \EndIf
-\EndFunction
-\end{algorithmic}
-
-However, modular is expensive and slow depends on some settings, so one
-may replace it by some adjustment. For example as in the below ANSI C
-program.
-
-\begin{lstlisting}
-void enQ(struct QueueBuf* q, Key x){
-    if(!fullQ(q)){
-        q->buf[offset(q->head + q->cnt, q->size)] = x;
-        q->cnt++;
-    }
-}
-
-Key headQ(struct Queue* q) {
-    return q->buf[q->head];  //假设队列不为空。
-}
-
-Key deQ(struct QueueBuf* q){
-    Key x = headQ(q);
-    q->head = offset(++q->head, q->size);
-    q->cnt--;
-    return x;
-}
-\end{lstlisting}
-
-\begin{Exercise}
-The circular buffer is allocated with a maximum size parameter. Can we
-test the queue is empty or full with only head and tail pointers?
-Note that the head can be either before or after the tail.
-\end{Exercise}
-
-% ================================================================
-%                 the 1st version
-% ================================================================
-\section{Purely functional solution}
-
-\subsection{Paired-list queue}
-\index{Queue!Paired-list queue}
-
-We can't just use a list to implement queue, or we can't satisfy abstract
-queue properties. This is because singly linked-list, which
-is the back-end data structure in most functional settings, performs
-well on head in constant $O(1)$ time, while it performs in linear $O(n)$
-time on tail, where $n$ is the length of the list. Either dequeue or enqueue
-will perform proportion to the number of elements stored in the list
-as shown in figure \ref{fig:linked-list-queue}.
-
-\begin{figure}[htbp]
-  \centering
-  \subcaptionbox{\textproc{DeQueue} performs poorly.}{\includegraphics[scale=0.5]{img/list-queue-head}} \\
-  \subcaptionbox{\textproc{EnQueue} performs poorly.}{\includegraphics[scale=0.5]{img/list-queue-tail}}
-  \caption{\textproc{DeQueue} and \textproc{EnQueue} can't perform both in constant $O(1)$ time with a list.} \label{fig:linked-list-queue}
-\end{figure}
-
-We neither can add a pointer to record the tail position of the list
-as what we have done in the imperative settings like in the ANSI C program,
-because of the nature of purely functional.
-
-Chris Okasaki mentioned a simple and straightforward functional solution
-in \cite{okasaki-book}. The idea is to maintain two linked-lists as a queue,
-and concatenate these two lists in a tail-to-tail manner. The shape of the queue
-looks like a horseshoe magnet as shown in figure \ref{fig:horseshoe-magnet}.
-
-\begin{figure}[htbp]
-  \centering
-  \subcaptionbox{a horseshoe magnet.}{\includegraphics[scale=0.5]{img/horseshoe-magnet}} \\
-  \subcaptionbox{concatenate two lists tail-to-tail.}{\includegraphics[scale=0.5]{img/front-rear-queue}}
-  \caption{A queue with front and rear list shapes like a horseshoe magnet.} \label{fig:horseshoe-magnet}
-\end{figure}
-
-With this setup, we push new element to the head of the rear list, which is
-ensure to be $O(1)$ constant time; on the other hand, we pop element from
-the head of the front list, which is also $O(1)$ constant time.
-So that the abstract queue properties can be satisfied.
-
-The definition of such paired-list queue can be expressed in the following
-Haskell code.
-
-\lstset{language=Haskell}
-\begin{lstlisting}
-type Queue a = ([a], [a])
-
-empty = ([], [])
-\end{lstlisting}
-
-Suppose function $front(Q)$ and $rear(Q)$ return the front and rear
-list in such setup, and $Queue(F, R)$ create a paired-list queue from
-two lists $F$ and $R$.
-The \textproc{EnQueue} (push) and \textproc{DeQueue} (pop) operations can
-be easily realized based on this setup.
-
-\be
-push(Q, x) = Queue(front(Q), \{ x \} \cup rear(Q))
-\ee
-
-\be
-pop(Q) = Queue(tail(front(Q)), rear(Q))
-\ee
-
-where if a list $X =  \{ x_1, x_2, ..., x_n \}$,
-function $tail(X) = \{ x_2, x_3, ..., x_n \}$ returns the rest of the list
-without the first element.
-
-However, we must next solve the problem that after several pop operations,
-the front
-list becomes empty, while there are still elements in rear list. One method
-is to rebuild the queue by reversing the rear list, and use it to replace front
-list.
-
-Hence a balance operation will be execute after popping. Let's denote the
-front and rear list of a queue $Q$ as $F = front(Q)$, and $R = fear(Q)$.
-
-\be
-balance(F, R) = \left \{
-  \begin{array}
-  {r@{\quad:\quad}l}
-  Queue(reverse(R), \phi) & F = \phi \\
-  Q & otherwise
-  \end{array}
-\right .
-\ee
-
-Thus if front list isn't empty, we do nothing, while when the front
-list becomes empty, we use the reversed rear list as the new front list,
-and the new rear list is empty.
-
-The new enqueue and dequeue algorithms are updated as below.
-
-\be
-push(Q, x) = balance(F, \{ x \} \cup R)
-\ee
-
-\be
-pop(Q) = balance(tail(F), R)
-\ee
-
-Sum up the above algorithms and translate them to Haskell yields the following
-program.
-
-\begin{lstlisting}
-balance :: Queue a -> Queue a
-balance ([], r) = (reverse r, [])
-balance q = q
-
-push :: Queue a -> a -> Queue a
-push (f, r) x = balance (f, x:r)
-
-pop :: Queue a -> Queue a
-pop ([], _) = error "Empty"
-pop (_:f, r) =  balance (f, r)
-\end{lstlisting}
-
-Although we only touch the heads of front list and rear list, the
-overall performance can't be kept always as $O(1)$. Actually, the performance
-of this algorithm is amortized $O(1)$. This is because the reverse operation
-takes time proportion to the length of the rear list. it's bound $O(n)$
-time, where $N = |R|$. We left the prove of amortized performance as
-an exercise to the reader.
-
-\subsection{Paired-array queue - a symmetric implementation}
-\index{Queue!Paired-array queue}
-
-There is an interesting implementation which is symmetric to the paired-list
-queue. In some old programming languages, such as legacy version of BASIC,
-There is array supported, but there is no pointers, nor records to represent
-linked-list. Although we can use another array to store indexes so that we
-can represent linked-list with implicit array, there is another option to
-realized amortized $O(1)$ queue.
-
-Compare the performance of array and linked-list. Below table reveals some
-facts (Suppose both contain $n$ elements).
-
-\begin{tabular}{l | c | r}
-  \hline
-  operation & Array & Linked-list \\
-  \hline
-  insert on head & $O(n)$ & $O(1)$ \\
-  insert on tail & $O(1)$ & $O(n)$ \\
-  remove on head & $O(n)$ & $O(1)$ \\
-  remove on tail & $O(1)$ & $O(n)$ \\
-  \hline
-\end{tabular}
-
-Note that linked-list performs in constant time on head, but in linear time on tail;
-while array performs in constant time on tail (suppose there is enough memory spaces, and
-omit the memory reallocation for simplification), but in linear time on head.
-This is because we need do shifting when prepare or eliminate an empty cell in array.
-(see chapter 'the evolution of insertion sort' for detail.)
-
-The above table shows an interesting characteristic, that we can exploit it and provide
-a solution mimic to the paired-list queue: We concatenate two arrays, head-to-head, to
-make a horseshoe shape queue like in figure \ref{fig:horseshoe-array}.
-
-\begin{figure}[htbp]
-  \centering
-  \subcaptionbox{a horseshoe magnet.}{\includegraphics[scale=0.5]{img/horseshoe-magnet}}
-  \subcaptionbox{concatenate two arrays head-to-head.}{\includegraphics[scale=0.5]{img/front-rear-array-queue}}
-  \caption{A queue with front and rear arrays shapes like a horseshoe magnet.} \label{fig:horseshoe-array}
-\end{figure}
-
-We can define such paired-array queue like the following Python code \footnote{Legacy Basic
-code is not presented here. And we actually use list but not array in Python to illustrate the idea.
-ANSI C and ISO C++ programs are provides along with this chapter, they show more
-in a purely array manner.}
-
-\lstset{language=Python}
-\begin{lstlisting}
-class Queue:
-    def __init__(self):
-        self.front = []
-        self.rear = []
-
-def is_empty(q):
-    return q.front == [] and q.rear == []
-\end{lstlisting}
-
-The relative \textproc{Push}() and \textproc{Pop}() algorithm only manipulate
-on the tail of the arrays.
-
-\begin{algorithmic}
-\Function{Push}{$Q, x$}
-  \State \textproc{Append}(\Call{Rear}{$Q$}, $x$)
-\EndFunction
-\end{algorithmic}
-
-Here we assume that the \textproc{Append}() algorithm append element $x$ to
-the end of the array, and handle the necessary memory allocation etc. Actually,
-there are multiple memory handling approaches. For example, besides the
-dynamic re-allocation, we can initialize the array with enough space, and just
-report error if it's full.
-
-\begin{algorithmic}
-\Function{Pop}{$Q$}
-  \If{\Call{Front}{$Q$} $= \phi$}
-    \State \Call{Front}{$Q$} $\gets$ \textproc{Reverse}(\Call{Rear}{$Q$})
-    \State \Call{Rear}{$Q$} $\gets \phi$
-  \EndIf
-  \State $n \gets$ \textproc{Length}(\Call{Front}{$Q$})
-  \State $x \gets$ \Call{Front}{$Q$}[n]
-  \State \textproc{Length}(\Call{Front}{$Q$}) $\gets n - 1$
   \State \Return $x$
 \EndFunction
 \end{algorithmic}
 
-For simplification and pure illustration purpose, the array isn't shrunk
-explicitly after elements removed. So test if front array is empty ($\phi$)
-can be realized as check if the length of the array is zero. We omit all
-these details here.
-
-The enqueue and dequeue algorithms can be translated to Python programs
-straightforwardly.
-
-\begin{lstlisting}
-def push(q, x):
-    q.rear.append(x)
-
-def pop(q):
-    if q.front == []:
-        q.rear.reverse()
-        (q.front, q.rear) = (q.rear, [])
-    return q.front.pop()
-\end{lstlisting}
-
-Similar to the paired-list queue, the performance is amortized $O(1)$
-because the reverse procedure takes linear time.
-
-\begin{Exercise}
-\begin{itemize}
-\item Prove that the amortized performance of paired-list queue is $O(1)$.
-\item Prove that the amortized performance of paired-array queue is $O(1)$.
-\end{itemize}
+\begin{Exercise}[label={ex:buffered-queue}]
+\Question{The circular buffer is allocated with a predefined size. We can use two references, head and tail instead. How to determine if a circular buffer queue is full or empty? (the head can be either ahead of tail or behind it.)}
 \end{Exercise}
 
-% ================================================================
-%                 Balanced Queue
-% ================================================================
-\section{A small improvement, Balanced Queue}
-\index{Queue!Balance Queue}
+\begin{Answer}[ref = {ex:buffered-queue}]
+\Question{The circular buffer is allocated with a predefined size. We can use two references, head and tail instead. How to determine if a circular buffer queue is full or empty? (the head can be either ahead of tail or behind it.)
 
-Although paired-list queue is amortized $O(1)$ for popping and pushing,
-the solution we proposed in previous section performs poor in the worst case.
-For example, there is one element in the front list, and we push $n$ elements
-continuously to the queue, here $n$ is a big number. After that executing
-a pop operation will cause the worst case.
+\vspace{3mm}
+Although we can deal with different cases that the head is before/behind the tail, as shown in \cref{fig:circular-buffer-queue}, let us seek for some simple and unified solution. Consider an array with both sides open and are extending infinitely. Let the head index be $h$, the tail be $t$, the size of the buffer be $s$. The range $[h, t)$ (left close, right open) is occupied with elements. The empty/full testing is as below:
 
-According to the strategy we used so far, all the $n$ elements are added
-to the rear list. The front list turns to be empty after a pop operation.
-So the algorithm starts to reverse the rear list. This reversing procedure
-is bound to $O(n)$ time, which is proportion to the length of the rear
-list. Sometimes, it can't be
-acceptable for a very big $n$.
+\[
+\begin{cases}
+empty(h, t): & h = t  \\
+full(h, t): & t - h = s \\
+\end{cases}
+\]
 
-The reason why this worst case happens is because the front and rear lists
-are extremely unbalanced. We can improve our paired-list queue design
-by making them more balanced. One option is to add a balancing constraint.
+The circular buffer is essentially modular arithmetic on top of this. Write $[n]_s = n \bmod s$. Apply to above full test: $[t]_s - [h]_s = [s]_s = 0$, which gives $[t]_s = [h]_s$. It is exactly the empty test condition. It means we can't differentiate empty with full only with the modular result. We need either add a flag (indicate the order between $h$ and $t$), or use the original index (of the infinite long segment) without applying $\bmod$ for the empty/full test. Consider the integer number has limited byte size, we can $\bmod$ the index with a big number $p$ ($p > s$) which is co-prime with $s$:
+
+\[
+\begin{cases}
+empty(h, t): & [h]_p = [t]_p  \\
+full(h, t): & [t - h]_p = s \\
+\end{cases}
+\]
+
+Below is the example program:
+
+\begin{Bourbaki}
+Int P_LIMIT = 104743 // the 10000th prime
+Bool empty(Queue<K> q) = (q.h == q.t)
+Bool full(Queue<K> q) = (q.s == (q.t - q.h) mod P_LIMIT)
+
+void enqueue(Queue<K> q, K x) {
+    if not full(q) {
+        q.t = (q.t + 1) mod P_LIMIT
+        q.buf[q.t mod q.s] = x
+    }
+}
+
+Optional<K> dequeue(Queue<K> q) {
+    Optional<K> x = Optional.Nothing
+    if not empty(q) {
+        x = Optional.of(q.buf[q.h mod q.s])
+        q.h = (q.h + 1) mod P_LIMIT
+    }
+    return x
+}
+\end{Bourbaki}
+}
+\end{Answer}
+
+\section{Paired-list queue}
+\index{Queue!Paired-list queue}
+
+We can access the list head in constant time, but need linear time to access the tail. We connect two lists `tail to tail' to implement queue, as shown in \cref{fig:horseshoe-magnet}. Define the queue as $(f, r)$, where $f$ is the front list, and $r$ is the rear list. The empty list is $([\ ], [\ ])$. We push new element to the head of $r$, and pop from the tail of $f$. Both are constant time.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[scale=0.6]{img/paired-listq}
+  \caption{paired-list queue.}
+  \label{fig:horseshoe-magnet}
+\end{figure}
 
 \be
-  | R | \leq | F |
+\begin{cases}
+push\ x\ (f, r) & = (f, x \cons r) \\
+pop\ (x \cons f, r)   & = (f, r) \\
+\end{cases}
+\ee
+
+$f$ may become empty after a series of pops, while $r$ still contains elements. To continue pop, we reverse $r$ to replace $f$, i.e., $([\ ], r) \mapsto (\textit{reverse} r, [\ ])$. We need check and balance in every push/pop:
+
+\be
+\begin{array}{rcl}
+\textit{balance}\ [\ ]\ r & = & (\textit{reverse}\ r, [\ ]) \\
+\textit{balance}\ f\ r & = & (f, r) \\
+\end{array}
+\ee
+
+Although the time is bound to linear time when reverse $r$, the amortised performance is constant time. Update push/pop as below:
+
+\be
+\begin{cases}
+push\ x\ (f, r) & = \textit{balance}\ f\ (x \cons r) \\
+pop\ (x \cons f, r)   & = \textit{balance}\ f\ r \\
+\end{cases}
+\ee
+
+\index{Queue!Paired-array queue} \label{sec:paired-array-queue}
+
+There is a symmetric implementation with a pair of arrays (\cref{tab:array-list-comp}). Connect two arrays head to head, as shown in \cref{fig:horseshoe-array}. When $R$ becomes empty, reverse array $F$ to replace $R$.
+
+\begin{table}[htbp]
+\centering
+\begin{tabular}{l | c | r}
+  \hline
+  operation & array & list \\
+  \hline
+  insert to head & $O(n)$ & $O(1)$ \\
+  append to tail & $O(1)$ & $O(n)$ \\
+  remove from head & $O(n)$ & $O(1)$ \\
+  remove from tail & $O(1)$ & $O(n)$ \\
+  \hline
+\end{tabular}
+\caption{array and list}
+\label{tab:array-list-comp}
+\end{table}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[scale=0.6]{img/paired-arrayq}
+  \caption{paired-array queue.}
+  \label{fig:horseshoe-array}
+\end{figure}
+
+\begin{Exercise}[label={ex:paired-list-queue}]
+\Question{Why need balance check and adjustment after push?}
+\Question{Do the amortized analysis for the paired-list queue.}
+\Question{Implement the paired-array queue.}
+\end{Exercise}
+
+\begin{Answer}[ref = {ex:paired-list-queue}]
+\Question{Why need balance check and adjustment after push?
+
+Consider the case, first $push\ a\ ([\ ], [\ ])$, then $pop$.
+}
+\Question{Do the amortized analysis for the paired-list queue.
+
+We use the banker's accounting method. Each element in the rear list $r$ has 1 credit. When push to rear, we take a step to add, and increase 1 credit. The amortized cost is $O(2)$. When pop, if it doesn't cause list reverse, we take a step to remove an element without decreasing the credit. The amortized cost is $O(1)$. If causes list reverse, we take $m$ steps to reverse, and take a step to remove an element, where $m$ is the length of $r$. We also use $m$ credits in $r$. The amortized cost is $O(m + 1 - m) = O(1)$.
+}
+
+\Question{Implement the paired-array queue.
+
+\begin{algorithmic}[1]
+\Function{Push}{$Q, x$}
+  \State \textproc{Append}(\Call{Front}{$Q$}, $x$)
+\EndFunction
+\Statex
+\Function{Pop}{$Q$}
+  \If{\Call{Rear}{$Q$} $= [\ ]$}
+    \State \Call{Rear}{$Q$} $\gets$ \textproc{Reverse}(\Call{Front}{$Q$})
+    \State \Call{Front}{$Q$} $\gets [\ ]$
+  \EndIf
+  \State $n \gets$ \textproc{Length}(\Call{Rear}{$Q$})
+  \State $x \gets$ \Call{Rear}{$Q$}[n]
+  \State \textproc{Length}(\Call{Rear}{$Q$}) $\gets n - 1$
+  \State \Return $x$
+\EndFunction
+\end{algorithmic}
+}
+\end{Answer}
+
+\section{Balance Queue}
+\index{Queue!Balance Queue}
+
+Although paired-list queue performs in amortized constant time, it is linear time in worse case. For e.g., there is an element in $f$, then repeat pushing $n$ elements. Now it takes $O(n)$ time to pop. $f$ and $r$ are unbalance in this case. To solve it, we add another rule: the length of $r$ is not greater than $f$, otherwise reverse.
+
+\be
+  |r| \leq |f|
 \label{eq:balance-invariant}
 \ee
 
-Where $R = Rear(Q)$, $F = Front(Q)$, and $|L|$ is the length of list $L$.
-This constraint ensure the length
-of the rear list is less than the length of the front list. So that the reverse
-procedure will be executed once the rear list grows longer than
-the front list.
-
-Here we need frequently access the length information of a list. However,
-calculate the length takes linear time for singly linked-list. We can
-record the length to a variable and update it as adding and removing elements.
-This approach enables us to get the length information in constant time.
-
-Below example shows the modified paired-list queue definition which is augmented
-with length fields.
-
-\lstset{language=Haskell}
-\begin{lstlisting}
-data BalanceQueue a = BQ [a] Int [a] Int
-\end{lstlisting}
-
-As we keep the invariant as specified in (\ref{eq:balance-invariant}), we
-can easily tell if a queue is empty by testing the length of the front list.
+We check the lengths in every push/pop, however, it takes linear time to compute length. We can record the length in a variable, and update it during push/pop. Denote the paired-list queue as $(f, n, r, m)$, where $n = |f|$, $m = |r|$. From the balance rule \cref{eq:balance-invariant}, we only need check the length of $f$ to test if a queue is empty:
 
 \be
-  F = \phi \Leftrightarrow |F| = 0
+  Q = \phi \iff n = 0
 \ee
 
-In the rest part of this section, we suppose the length of a list $L$, can
-be retrieved as $|L|$ in constant time.
-
-Push and pop are almost as same as before except that we check the balance
-invariant by passing length information and performs reversing accordingly.
+Change the definition of push/pop to:
 
 \be
-  push(Q, x) = balance(F, |F|, \{ x \} \cup R, |R| + 1)
+\begin{cases}
+  push\ x\ (f, n, r, m) & = \textit{balance}\ (f, n,  x \cons r, m + 1) \\
+  pop\ (x \cons f, n, r, m) & = \textit{balance}\ (f, n - 1, r, m) \\
+\end{cases}
 \ee
+
+Where:
 
 \be
-  pop(Q) = balance(tail(F), |F|-1, R, |R|)
+\textit{balance}\ (f, n, r, m) = \begin{cases}
+  m \leq n: & (f, n, r, m) \\
+  \text{otherwise}: & (f \doubleplus \textit{reverse}\ r, m + n, [\ ], 0)\\
+\end{cases}
 \ee
 
-Where function $balance()$ is defined as the following.
+\section{Real-time queue}
+\index{Queue!Real-time queue} \label{sec:realtime-queue}
+
+It still takes linear time to reverse and concatenate lists in balanced queue. The real-time queue need guarantee constant time in every push/pop operation. The performance bottleneck happens in $f \doubleplus \textit{reverse}\ r$. At this time, $m > n$, breaks the balance rule. Since $m, n$ are integers, we know $m = n + 1$. $\doubleplus$ takes $O(n)$ time, and reverse takes $O(m)$ time. The total time is bound to $O(n + m)$, which is proportion to the number of elements. Our solution is to distribute the computation to multiple push and pop operations. Revisit the tail recursive\cite{wiki-tail-call}\cite{recursion} reverse (in Curried form):
 
 \be
-  balance(F, |F|, R, |R|) = \left \{
-  \begin{array}
-  {r@{\quad:\quad}l}
-  Queue(F, |F|, R, |R|) & |R| \leq |F| \\
-  Queue(F \cup reverse(R), |F| + |R|, \phi, 0) & otherwise
-  \end{array}
-\right .
+\textit{reverse}\ = \textit{reverse}'\ [\ ]
 \ee
 
-Note that the function $Queue()$ takes four parameters, the front list along
-with its length (recorded), and the rear list along with its length, and
-forms a paired-list queue augmented with length fields.
-
-We can easily translate the equations to Haskell program. And we can
-enforce the abstract queue interface by making the implementation
-an instance of the Queue type class.
-
-\lstset{language=Haskell}
-\begin{lstlisting}
-instance Queue BalanceQueue where
-    empty = BQ [] 0 [] 0
-
-    isEmpty (BQ _ lenf _ _) = lenf == 0
-
-    -- Amortized O(1) time push
-    push (BQ f lenf r lenr) x = balance f lenf (x:r) (lenr + 1)
-
-    -- Amortized O(1) time pop
-    pop (BQ (_:f) lenf r lenr) = balance f (lenf - 1) r lenr
-
-    front (BQ (x:_) _ _ _) = x
-
-balance f lenf r lenr
-    | lenr <= lenf = BQ f lenf r lenr
-    | otherwise = BQ (f ++ (reverse r)) (lenf + lenr) [] 0
-\end{lstlisting}
-
-\begin{Exercise}
-Write the symmetric balance improvement solution for paired-array queue
-in your favorite imperative programming language.
-\end{Exercise}
-
-% ================================================================
-%                 Realtime Queue
-% ================================================================
-\section{One more step improvement, Real-time Queue}
-\index{Queue!Real-time Queue}
-
-Although the extremely worst case can be avoided by improving the balancing
-as what has been presented in previous section, the performance
-of reversing rear list is still bound to $O(n)$, where $N = |R|$.
-So if the rear list is very long, the instant performance is still
-unacceptable poor even if the amortized time is $O(1)$. It is particularly
-important in some real-time system to ensure the worst case performance.
-
-As we have analyzed, the bottleneck is the computation of $ F \cup reverse(R)$.
-This happens when $|R| > |F|$. Considering that $|F|$ and $|R|$ are
-all integers, so this computation happens when
+where:
 
 \be
-  |R| = |F| + 1
+\begin{array}{rcl}
+\textit{reverse}'\ a\ [\ ] & = & a \\
+\textit{reverse}'\ a\ (x \cons xs) & = & \textit{reverse}'\ (x \cons a)\ xs \\
+\end{array}
 \ee
 
-Both $F$ and the result of $reverse(R)$ are singly linked-list,
-It takes $O(|F|)$ time to concatenate them together, and it takes extra
-$O(|R|)$ time to reverse the rear list, so the total computation
-is bound to $O(|N|)$, where $N = |F| + |R|$. Which is proportion to the
-total number of elements in the queue.
-
-In order to realize a real-time queue, we can't computing $ F \cup reverse(R)$
-monolithic. Our strategy is to distribute this expensive computation to every
-pop and push operations. Thus although each pop and push get a bit slow,
-we may avoid the extremely slow worst pop or push case.
-
-\subsubsection{Incremental reverse}
-\index{Queue!Incremental reverse}
-
-Let's examine how functional reverse algorithm is implemented typically.
+We turn the tail recursive implementation to stepped computation. Model it as a series of state transformations. Define a state machine with two states: reverse state $S_r$, and complete state $S_f$. We {\em slow-down} the reverse computation as below:
 
 \be
-  reverse(X) = \left \{
-  \begin{array}
-  {r@{\quad:\quad}l}
-  \phi & X = \phi \\
-  reverse(X') \cup \{ x_1 \} & otherwise
-  \end{array}
-\right .
+\begin{array}{rcl}
+step\ S_r\ a\ [\ ] & = & (S_f, a) \\
+step\ S_r\ a\ (x \cons xs) & = & (S_r, (x \cons a), xs) \\
+\end{array}
 \ee
 
-Where $X' = tail(X) = \{ x_2, x_3, ...\}$.
-
-This is a typical recursive algorithm, that if the list to be reversed is
-empty, the result is just an empty list. This is the edge case; otherwise, we
-take the first element $x_1$ from the list, reverse the rest $\{x_2, x_3, ..., x_n \}$,
-to $\{x_n, x_{n-1}, .., x_3, x_2 \}$ and append $x_1$ after it.
-
-However, this algorithm performs poor, as appending an element to the end of a list
-is proportion to the length of the list. So it's $O(N^2)$, but not a linear
-time reverse algorithm.
-
-There exists another implementation which utilizes an accumulator $A$, like below.
-
-\be
-  reverse(X) = reverse'(X, \phi)
-\ee
-
-Where
-
-\be
- reverse'(X, A) = \left \{
-  \begin{array}
-  {r@{\quad:\quad}l}
-  A & X = \phi \\
-  reverse'(X', \{ x_1 \} \cup A) & otherwise
-  \end{array}
-\right .
-\ee
-
-We call $A$ as {\em accumulator} because it accumulates intermediate reverse result
-at any time. Every time we call $reverse'(X, A)$, list $X$ contains the rest of
-elements wait to be reversed, and $A$ holds all the reversed elements so far. For instance
-when we call $reverse'()$ at $i$-th time, $X$ and $A$ contains the following
-elements:
+Each step, we check and transform the state. $S_r$ means the reverse is on going. If there is no remaining element to reverse, we change the state to $S_f$ (done); otherwise, link the head $x$ ahead of $a$. Every step terminates, but not continues running recursively. The new state with the intermediate reverse result is input to the next $step$. For example:
 
 \[
-  \begin{array}{r@{\quad}l}
-  X = \{x_i, x_{i+1}, ..., x_n \} & A = \{ x_{i-1}, x_{i-2}, ... x_1 \}
-  \end{array}
-\]
-
-In every non-trivial case, we takes the first element from $X$ in $O(1)$ time;
-then put it in front of the accumulator $A$, which is again $O(1)$ constant time.
-We repeat it $n$ times, so this is a linear time ($O(n)$) algorithm.
-
-The latter version of reverse is obviously a {\em tail-recursion} algorithm,
-see \cite{tail-call} and \cite {recursion} for detail. Such characteristic
-is easy to change from monolithic algorithm to incremental manner.
-
-The solution is state transferring. We can use a state machine contains
-two types of stat: reversing state $S_r$ to indicate that the reverse
-is still on-going (not finished), and finish state $S_f$ to indicate
-the reverse has been done (finished). In Haskell programming
-language, it can be defined as a type.
-
-\lstset{language=Haskell}
-\begin{lstlisting}
-data State a = | Reverse [a] [a]
-               | Done [a]
-\end{lstlisting}
-
-And we can schedule (slow-down) the above $reverse'(X, A)$ function with
-these two types of state.
-
-\be
-  step(S, X, A) = \left \{
-  \begin{array}
-  {r@{\quad:\quad}l}
-  (S_f, A) & S = S_r \land X = \phi \\
-  (S_r, X', \{ x_1 \} \cup A) & S = S_r \land X \neq \phi \\
-  \end{array}
-\right .
-\ee
-
-Each step, we examine the state type first, if the current state is
-$S_r$ (on-going), and the rest elements to be reversed in $X$ is
-empty, we can turn the algorithm to finish state $S_f$; otherwise,
-we take the first element from $X$, put it in front of $A$ just
-as same as above, but we do NOT perform recursion, instead, we
-just finish this
-step. We can store the current state as well as the resulted $X$
-and $A$, the reverse can be continued at any time when we call 'next'
-$step$ function in the future with the stored state, $X$ and $A$
-passed in.
-
-Here is an example of this step-by-step reverse algorithm.
-
-\[
-\begin{array}{lcl}
-step(S_r, \text{``hello''}, \phi) & = & (S_r, \text{``ello''}, \text{``h''}) \\
-step(S_r, \text{``ello''}, \text{``h''}) & = & (S_r, \text{``llo''}, \text{``eh''}) \\
+\begin{array}{rcl}
+step\ S_r\ \text{``hello''}\ [\ ] & = & (S_r, \text{``ello''}, \text{``h''}) \\
+step\ S_r\ \text{``ello''}\ \text{``h''} & = & (S_r, \text{``llo''}, \text{``eh''}) \\
 ... & & \\
-step(S_r, \text{``o''}, \text{``lleh''}) & = & (S_r, \phi, \text{``olleh''}) \\
-step(S_r, \phi, \text{``olleh''}) & = & (S_f, \text{``olleh''})
+step\ S_r\ \text{``o''}\ \text{``lleh''} & = & (S_r, [\ ], \text{``olleh''}) \\
+step\ S_r\ [\ ]\ \text{``olleh''} & = & (S_f, \text{``olleh''})
 \end{array}
 \]
 
-And in Haskell code manner, the example is like the following.
-
-\lstset{language=Haskell}
-\begin{lstlisting}
-step $ Reverse "hello" [] = Reverse "ello" "h"
-step $ Reverse "ello" "h" = Reverse "llo" "eh"
-...
-step $ Reverse "o" "lleh" = Reverse [] "olleh"
-step $ Reverse [] "olleh" = Done "olleh"
-\end{lstlisting}
-
-Now we can distribute the reverse into steps in every pop and push
-operations. However, the problem is just half solved. We want to
-break down $ F \cup reverse(R)$, and we have broken $reverse(R)$
-into steps, we next need to schedule(slow-down) the list concatenation
-part $F \cup ...$, which is bound to $O(|F|)$, into incremental
-manner so that we can distribute it to pop and push operations.
-
-\subsubsection{Incremental concatenate}
-\index{Queue!Incremental concatenate}
-
-It's a bit more challenge to implement incremental list concatenation
-than list reversing. However, it's possible to re-use the result
-we gained from increment reverse by a small trick: In order to
-realize $X \cup Y$, we can first reverse $X$ to $\overleftarrow{X}$,
-then take elements one by one from $\overleftarrow{X}$ and put
-them in front of $Y$ just as what we have done in $reverse'$.
+However, it only solves half problem. We also need slow-down $\doubleplus$ computation, which is more complex. Use state machine again. To concatenate $xs \doubleplus ys$, we first reverse $xs$ to $\overleftarrow{xs}$, then pick elements from $\overleftarrow{xs}$ one by one, and link each ahead of $ys$. The idea is similar to $\textit{reverse}'$:
 
 \be
   \begin{array}{rcl}
-    X \cup Y & \equiv & reverse(reverse(X)) \cup Y \\
-             & \equiv & reverse'(reverse(X), \phi) \cup Y \\
-             & \equiv & reverse'(reverse(X), Y) \\
-             & \equiv & reverse'(\overleftarrow{X}, Y)
+    xs \doubleplus ys & = & (\textit{reverse}\ \textit{reverse}\ xs) \doubleplus ys \\
+             & = & (\textit{reverse}'\ [\ ]\ \overleftarrow{xs}) \doubleplus ys \\
+             & = & \textit{reverse}'\ ys\ \overleftarrow{xs} \\
   \end{array}
 \ee
 
-This fact indicates us that we can use an extra state to instruct
-the $step()$ function to continuously concatenating $\overleftarrow{F}$
-after $R$ is reversed.
+We need add another state: after reverse $r$, step by step concatenate from $\overleftarrow{f}$. The three states are: $S_r$ of reverse, $S_c$ of concatenate, $S_f$ of completion. The two phases are:
 
-The strategy is to do the total work in two phases:
 \begin{enumerate}
-\item Reverse both $F$ and $R$ in parallel to get $\overleftarrow{F} = reverse(F)$, and
-$\overleftarrow{R} = reverse(R)$ incrementally;
-\item Incrementally take elements from $\overleftarrow{F}$ and put them in front of
-$\overleftarrow{R}$.
+\item Stepped reverse $f$ to $\overleftarrow{f}$, and $r$ to $\overleftarrow{r}$ in parallel;
+\item Stepped take elements from $\overleftarrow{f}$, and link each ahead of $\overleftarrow{r}$.
 \end{enumerate}
 
-So we define three types of state: $S_r$ represents reversing; $S_c$ represents
-concatenating; and $S_f$ represents finish.
-
-In Haskell, these types of state are defined as the following.
-
-\lstset{language=Haskell}
-\begin{lstlisting}
-data State a = Reverse [a] [a] [a] [a]
-             | Concat [a] [a]
-             | Done [a]
-\end{lstlisting}
-
-Because we reverse $F$ and $R$ simultaneously, so reversing state takes two
-pairs of lists and accumulators.
-
-The state transferring is defined according to the two phases strategy described
-previously.
-Denotes that $F = \{ f_1, f_2, ... \}$, $F' = tail(F) = \{f_2, f_3, ... \}$,
-$R = \{ r_1, r_2, ... \}$, $R' = tail(R) = \{ r_2, r_3, ... \}$. A state $\mathcal{S}$,
-contains it's type $S$, which has the value among $S_r$, $S_c$, and $S_f$.
-Note that $\mathcal{S}$ also contains necessary
-parameters such as $F$, $\overleftarrow{F}$, $X$, $A$ etc as intermediate results.
-These parameters vary according to the different states.
-
 \be
-  next(\mathcal{S}) = \left \{
-  \begin{array}
-  {r@{\quad:\quad}l}
-  (S_r, F', \{ f_1 \} \cup \overleftarrow{F}, R', \{ r_1 \} \cup \overleftarrow{R}) & S = S_r \land F \neq \phi \land R \neq \phi \\
-  (S_c, \overleftarrow{F}, \{ r_1 \} \cup \overleftarrow{R}) & S = S_r \land F = \phi \land R = \{ r_1 \} \\
-  (S_f, A) & S = S_c \land X = \phi \\
-  (S_c, X', \{ x_1 \} \cup A) & S = S_c \land X \neq \phi
-  \end{array}
-\right .
+\begin{array}{rcll}
+next\ (S_r, f', x \cons f, r', y \cons r) & = & (S_r, x \cons f', f, y \cons r', r) & \text{reverse}\ f, r\\
+next\ (S_r, f', [\ ], r', [y]) & = & next\ (S_c, f', y \cons r') & \text{reverse done, start concatenation}\\
+next\ (S_c, a, [\ ]) & = & (S_f, a) & \text{done}\\
+next\ (S_c, a, x \cons f') & = & (S_c, x \cons a, f') & \text{concatenation}\\
+\end{array}
 \ee
 
-The relative Haskell program is list as below.
+We need arrange these steps to each push/pop. From the balance rule, when $m = n + 1$, triggers $f \doubleplus \textit{reverse}\ r$. it takes $n + 1$ steps to reverse $r$. Within these steps, we reverse $f$ in parallel. After that, it takes another $n + 1$ steps to concatenate, in total $2n + 2$ steps. The critical question is: Before complete the $2n + 2$ steps, will the queue become unbalanced again due to a series of push/pop operations?
 
-\lstset{language=Haskell}
-\begin{lstlisting}
-next (Reverse (x:f) f' (y:r) r') = Reverse f (x:f') r (y:r')
-next (Reverse [] f' [y] r') = Concat f' (y:r')
-next (Concat 0 _ acc) = Done acc
-next (Concat (x:f') acc) = Concat f' (x:acc)
-\end{lstlisting}
-
-All left to us is to distribute these incremental steps into every pop and push
-operations to implement a real-time $O(1)$ purely functional queue.
-
-\subsubsection{Sum up}
-
-Before we dive into the final real-time queue implementation, let's analyze how
-many incremental steps are taken to achieve the result of $F \cup reverse(R)$.
-According to the balance variant we used previously, $|R| = |F| + 1$, Let's
-denotes $m = |F|$.
-
-Once the queue gets unbalanced due to some push or pop operation, we start this
-incremental  $F \cup reverse(R)$.
-It needs $m + 1$ steps to reverse $R$, and at the same time, we finish reversing
-the list $F$ within these steps. After that, we need extra $m+1$ steps to execute
-the concatenation. So there are $2m + 2$ steps.
-
-It seems that distribute one step inside one pop or push operation is the natural
-solution. However, there is a critical
-question must be answered: Is it possible that before we finish these $2m + 2$ steps,
-the queue gets unbalanced again due to a series push and pop?
-
-There are two facts about this question, one is good news and the other is bad news.
-
-Let's first show the good news, that luckily, continuously pushing can't make the
-queue unbalanced again before we finish these $2m + 2$ steps to achieve $F \cup reverse(R)$.
-This is because once we start re-balancing, we can get a new front list
-$F' = F \cup reverse(R)$ after $2m + 2$ steps. While the next time unbalance
-is triggered when
+Luckily, repeat pushing won't break the balance rule again before we complete $f \doubleplus \textit{reverse}\ r$. We will obtain a new front list $f' = f \doubleplus \textit{reverse}\ r$ after $2n + 2$ steps, while the time to break the balance rule again is:
 
 \be
   \begin{array}{rcl}
-  |R'| & = & |F'| + 1 \\
-       & = & |F| + |R| + 1 \\
-       & = & 2m + 2
+  |r'| & = & |f'| + 1 \\
+       & = & |f| + |r| + 1 \\
+       & = & 2n + 2
   \end{array}
 \ee
 
-That is to say, even we continuously pushing as mush elements as possible after
-the last unbalanced time, when the queue gets unbalanced again, the $2m+2$ steps
-exactly get finished at that time point. Which means the new front list $F'$ is
-calculated OK. We can safely go on to compute $F' \cup reverse(R')$. Thanks to the
-balance invariant which is designed in previous section.
+Thanks to the balance rule. Even repeat pushing as many as possible, the $2n + 2$ steps are guaranteed to be completed before the next time when the queue is unbalanced, hence the new $f$ will be ready. We can safely start to compute $f' \doubleplus \textit{reverse}\ r'$.
 
-But, the bad news is that, pop operation can happen at anytime before these
-$2m+2$ steps finish. The situation is that once we want to extract element
-from front list, the new front list $F' = F \cup reverse(R)$ hasn't been
-ready yet. We don't have a valid front list at hand.
+However, pop may happen before the completion of $2n + 2$ steps. We are facing the situation that needs to extract element from $f$, while the new front list $f' = f \doubleplus \textit{reverse}\ r$ hasn't been ready yet. To solve this issue, we duplicate a copy of $f$ when doing $\textit{reverse}\ f$. We are safe even repeat pop for $n$ times. \Cref{tab:pop-before-n} shows the queue during phase 1 (reverse $f$ and $r$ in parallel)\footnote{Although it takes linear time to duplicate a list, however, the one-shot copying won't happen at all. We actually duplicate the reference to the front list, and delay the element level copying to each step}.
 
-One solution to this problem is to keep a copy of original front list $F$,
-during the time we are calculating $reverse(F)$ which is described in phase 1 of
-our incremental computing strategy. So that we are still safe even if user
-continuously performs first $m$ pop operations. So the queue looks like
-in table \ref{tab:pop-before-m} at some time after we start the incremental computation and before
-phase 1 (reverse $F$ and $R$ simultaneously) ending\footnote{One may wonder that copying
-a list takes linear time to the length of the list. If so the whole solution
-would make no sense. Actually, this linear time copying won't happen at all.
-This is because the purely functional nature, the front list won't be mutated
-either by popping or by reversing. However, if trying to realize a symmetric
-solution with paired-array and mutate the array in-place, this issue should be stated, and
-we can perform a `lazy' copying, that the real copying
-work won't execute immediately, instead, it copies one element every step we
-do incremental reversing. The detailed implementation is left as an exercise.}.
-
-\begin{table}
+\begin{table}[htbp]
 \centering
-\begin{tabular}{l l l}
-  front copy & on-going computation & new rear \\
+\begin{tabular}{c | c | c}
+  $f$ copy & on-going part & new $r$ \\
   \hline
-  $\{ f_i, f_{i+1}, ..., f_M \}$ & $(S_r, \tilde{F}, ..., \tilde{R}, ...)$ & $ \{ ... \}$ \\
-  first $i-1$ elements popped & intermediate result $\overleftarrow{F}$ and $\overleftarrow{R}$ & new elements pushed
+  $\{ f_i, f_{i+1}, ..., f_n \}$ & $(S_r, \tilde{f}, ..., \tilde{r}, ...)$ & $ \{ ... \}$ \\
+  first $i-1$ elements out & intermediate $\overleftarrow{f}$, $\overleftarrow{r}$ & newly pushed
 \end{tabular}
-\caption{Intermediate state of a queue before first $m$ steps finish.}
-\label{tab:pop-before-m}
+\caption{Before completion of the first $n$ steps.}
+\label{tab:pop-before-n}
 \end{table}
 
-After these $M$ pop operations, the copy of $F$ is exhausted. And we just
-start incremental concatenation phase at that time. What if user goes
-on popping?
-
-The fact is that since $F$ is exhausted (becomes $\phi$), we needn't do concatenation
-at all. Since $F \cup \overleftarrow{R} = \phi \cup \overleftarrow{R} = \overleftarrow{R}$.
-
-It indicates us, when doing concatenation, we only need to concatenate those elements
-haven't been popped, which are still left in $F$. As user pops elements one by one
-continuously from the head of front list $F$, one method is to use a counter,
-record how many elements there are still in $F$. The counter is initialized as 0
-when we start computing $F \cup reverse(R)$, it's increased by one when we reverse
-one element in $F$, which means we need concatenate this element in the future;
-and it's decreased by one every time when pop is
-performed, which means we can concatenate one element less; of course we need decrease
-this counter as well in every steps of concatenation. If and only if this counter
-becomes zero, we needn't do concatenations any more.
-
-We can give the realization of purely functional real-time queue according to the above
-analysis.
-
-We first add an idle state $S_0$ to simplify some state transferring. Below Haskell program
-is an example of this modified state definition.
-
-\lstset{language=Haskell}
-\begin{lstlisting}
-data State a = Empty
-             | Reverse Int [a] [a] [a] [a] -- n, f', acc\_f' r, acc\_r
-             | Append Int [a] [a]          -- n, rev\_f', acc
-             | Done [a] -- result: f ++ reverse r
-\end{lstlisting}
-
-And the data structure is defined with three parts, the front list (augmented with length);
-the on-going state of computing $F \cup reverse(R)$; and the rear list (augmented with length).
-
-Here is the Haskell definition of real-time queue.
-
-\lstset{language=Haskell}
-\begin{lstlisting}
-data RealtimeQueue a = RTQ [a] Int (State a) [a] Int
-\end{lstlisting}
-
-The empty queue is composed with empty front and rear list together with idle state $S_0$ as
-$Queue(\phi, 0, S_0, \phi, 0)$. And we can test if a queue is empty by checking if $|F| = 0$
-according
-to the balance invariant defined before. Push and pop are changed accordingly.
+The copy of $f$ is exhausted after repeating $n$ pops. We are about to start stepped concatenation. What if pop happens at this time? Since $f$ is exhausted, it becomes $[\ ]$. We needn't concatenate anymore. This is because $f \doubleplus \overleftarrow{r} = [\ ] \doubleplus \overleftarrow{r} = \overleftarrow{r}$. In fact, we only need to concatenate the elements in $f$ that haven't been popped. Because we pop from the head of $f$, let us use a counter to record the remaining elements in $f$. It's initialized as 0. We apply +1 every time when reverse an element. It means we need concatenate this element in the future; Whenever pop happens, we apply -1, means we needn't concatenate this one any more. We also decrease it during concatenation, and cancel the process when it is 0. Below is the updated state transformation:
 
 \be
-  push(Q, x) = balance(F, |F|, \mathcal{S}, \{ x \} \cup R, |R|+1)
+\begin{array}{rcll}
+next\ (S_r, n, f', x \cons f, r', y \cons r) & = & (S_r, n + 1, x \cons f', f, y \cons r', r) & \text{reverse}\ f, r\\
+next\ (S_r, n, f', [\ ], r', [y]) & = & next\ (S_c, n, f', y \cons r') & \text{reverse done, start concatenation}\\
+next\ (S_c, 0, a, f) & = & (S_f, a) & \text{done}\\
+next\ (S_c, n, a, x \cons f') & = & (S_c, n - 1, x \cons a, f') & \text{concatenation}\\
+next\ S_0 & = & S_0 & \text{idle} \\
+\end{array}
 \ee
+
+We define an addition idle state $S_0$ to simplify the logic. The queue contains 3 parts: the front list $f$ with its length $n$, the state $S$ of on-going $f \doubleplus \textit{reverse}\ r$, and the rear list $r$ with its length $m$. Denoted as $(f, n, S, r, m)$. The empty queue is $([\ ], 0, S_0, [\ ], 0)$. The queue is empty when $n = 0$ according to the balance rule. Update the push/pop as:
 
 \be
-  pop(Q) = balance(F', |F|-1, abort(\mathcal{S}), R, |R|)
+\begin{cases}
+  push\ x\ (f, n, S, r, m) & = balance\ f\ n\ S\ (x \cons r)\ (m + 1) \\
+  pop\ (x \cons f, n, S, r, m) & = balance\ f\ (n - 1)\ (abort\ S)\ r\ m \\
+\end{cases}
 \ee
 
-The major difference is $abort()$ function. Based on our above analysis, when there
-is popping, we need decrease the counter, so that we can concatenate one element less.
-We define this as aborting. The details will be given after $balance()$ function.
-
-The relative Haskell code for push and pop are listed like this.
-
-\lstset{language=Haskell}
-\begin{lstlisting}
-push (RTQ f lenf s r lenr) x = balance f lenf s (x:r) (lenr + 1)
-pop (RTQ (_:f) lenf s r lenr) = balance f (lenf - 1) (abort s) r lenr
-\end{lstlisting}
-
-The $balance()$ function first check the balance invariant, if it's violated, we need
-start re-balance it by starting compute $F \cup reverse(R)$ incrementally; otherwise
-we just execute one step of the unfinished incremental computation.
+Where $abort$ decreases the counter to cancel an element for concatenation. We'll define it later. $balance$ triggers stepped $f \doubleplus \textit{reverse}\ r$ if the queue is unbalanced, otherwise runs a step:
 
 \be
-  balance(F, |F|, \mathcal{S}, R, |R|) = \left \{
-  \begin{array}
-  {r@{\quad:\quad}l}
-  step(F, |F|, \mathcal{S}, R, |R|) & |R| \leq |F| \\
-  step(F, |F| + |R|, (S_r, 0, F, \phi, R, \phi) \phi, 0) & otherwise
-  \end{array}
-\right .
+balance\ f\ n\ S\ r\ m = \begin{cases}
+  m \leq n: & step\ f\ n\ S\ r\ m \\
+  \text{otherwise}: & step\ f\ (n + m)\ (next\ (S_r, 0, [\ ], f, [\ ], r))\ [\ ]\ 0 \\
+\end{cases}
 \ee
 
-The relative Haskell code is given like below.
-
-\lstset{language=Haskell}
-\begin{lstlisting}
-balance f lenf s r lenr
-    | lenr <= lenf =  step f lenf s r lenr
-    | otherwise = step f (lenf + lenr) (Reverse 0 f [] r []) [] 0
-\end{lstlisting}
-
-The $step()$ function typically transfer the state machine one state ahead, and
-it will turn the state to idle ($S_0$) when the incremental computation finishes.
+Where $step$ transforms the state machine, ends with the idle state $S_0$ when completes.
 
 \be
-  step(F, |F|, \mathcal{S}, R, |R|) = \left \{
-  \begin{array}
-  {r@{\quad:\quad}l}
-  Queue(F', |F|, S_0, R, |R|) &  S' = S_f \\
-  Queue(F, |F|, \mathcal{S}', R, |R|) & otherwise
-  \end{array}
-  \right .
+step\ f\ n\ S\ r\ m = queue\ (next\ S)
 \ee
 
-Where $\mathcal{S}' = next(\mathcal{S})$ is the next state transferred;
-$F' = F \cup reverse(R)$, is the final new front list result from the incremental
-computing. The real
-state transferring is implemented in $next()$ function as the following. It's different
-from previous version by adding the counter field $n$ to record how many elements left
-we need to concatenate.
+Where:
 
 \be
-  next(\mathcal{S}) = \left \{
-  \begin{array}
-  {r@{\quad:\quad}l}
-  (S_r, n+1, F', \{ f_1 \} \cup \overleftarrow{F}, R', \{ r_1 \} \cup \overleftarrow{R}) &
-      S = S_r \land F \neq \phi \\
-  (S_c, n, \overleftarrow{F}, \{ r_1 \} \cup \overleftarrow{R}) &
-      S = S_r \land F = \phi \\
-  (S_f, A) & S = S_c \land n = 0 \\
-  (S_c, n-1, X', \{ x_1 \} \cup A) & S = S_c \land n \neq 0 \\
-  \mathcal{S} & otherwise
-  \end{array}
-\right .
+\begin{array}{rcll}
+queue\ (S_f, f') & = & (f', n, S_0, r, m) & \text{replace $f$ with $f'$} \\
+queue\ S' & = & (f, n, S', r, m) & \\
+\end{array}
 \ee
 
-And the corresponding Haskell code is like this.
-
-\lstset{language=Haskell}
-\begin{lstlisting}
-next (Reverse n (x:f) f' (y:r) r') = Reverse (n+1) f (x:f') r (y:r')
-next (Reverse n [] f' [y] r') = Concat n f' (y:r')
-next (Concat 0 _ acc) = Done acc
-next (Concat n (x:f') acc) = Concat (n-1) f' (x:acc)
-next s = s
-\end{lstlisting}
-
-Function $abort()$ is used to tell the state machine, we can concatenate one element
-less since it is popped.
+Finally, define $abort$ to cancel an element:
 
 \be
-  abort(\mathcal{S}) = \left \{
-  \begin{array}
-  {r@{\quad:\quad}l}
-  (S_f, A') & S = S_c \land n = 0 \\
-  (S_c, n-1, X' A) & S = S_c \land n \neq 0 \\
-  (S_r, n-1, F, \overleftarrow{F}, R, \overleftarrow{R}) & S = S_r \\
-  \mathcal{S} & otherwise
-  \end{array}
-\right .
+\begin{array}{rcl}
+abort\ (S_c, 0, (x \cons a), f') & = & (S_f, a) \\
+abort\ (S_c, n, a, f') & = & (S_c, n - 1, a, f') \\
+abort\ (S_r, n, f' f, r' r) & = & (S_r, n - 1, f', f, r', r) \\
+abort\ S & = & S
+\end{array}
 \ee
 
-Note that when $n = 0$ we actually rollback one concatenated element by
-return $A'$ as the result but not $A$. (Why? this is left as an exercise.)
-
-The Haskell code for abort function is like the following.
-
-\lstset{language=Haskell}
-\begin{lstlisting}
-abort (Concat 0 _ (_:acc)) = Done acc     -- Note! we rollback 1 elem
-abort (Concat n f' acc) = Concat (n-1) f' acc
-abort (Reverse n f f' r r') = Reverse (n-1) f f' r r'
-abort s = s
-\end{lstlisting}
-
-It seems that we've done, however, there is still one tricky issue hidden
-behind us.
-If we push an element $x$ to an empty queue, the result queue will be:
-\[
-  Queue(\phi, 1, (S_c, 0, \phi, \{ x \}), \phi, 0)
-\]
-
-If we perform pop immediately, we'll get an error! We found that
-the front list is empty although the previous computation of $F \cup reverse(R)$
-has been finished. This is because it takes one more extra step to
-transfer from the state $(S_c, 0, \phi, A)$ to $(S_f, A)$. It's necessary
-to refine the $\mathcal{S}'$ in $step()$ function a bit.
-
-\be
-  \mathcal{S}' = \left \{
-  \begin{array}
-  {r@{\quad:\quad}l}
-  next(next(\mathcal{S})) & F = \phi \\
-  next(\mathcal{S}) & otherwise
-  \end{array}
-\right .
-\ee
-
-The modification reflects to the below Haskell code:
-
-\lstset{language=Haskell}
-\begin{lstlisting}
-step f lenf s r lenr =
-    case s' of
-      Done f' -> RTQ f' lenf Empty r lenr
-      s' -> RTQ f lenf s' r lenr
-    where s' = if null f then next $ next s else next s
-\end{lstlisting} %$
-
-Note that this algorithm differs from the one given by Chris Okasaki in \cite{okasaki-book}.
-Okasaki's algorithm executes two steps per pop and push, while the one presents in
-this chapter executes only one per pop and push, which leads to more distributed
-performance.
-
-\begin{Exercise}
-\begin{itemize}
-\item Why need we rollback one element when $n=0$ in $abort()$ function?
-
-\item Realize the real-time queue with symmetric paired-array queue solution in your favorite
-imperative programming language.
-
-\item In the footnote, we mentioned that when we start incremental reversing
-with in-place paired-array solution, copying the array can't be done monolithic
-or it will lead to linear time operation. Implement the lazy copying
-so that we copy one element per step along with the reversing.
-
-\end{itemize}
+\begin{Exercise}[label={ex:realtime-queue}]
+\Question{Why need rollback an element (we cancelled the previous `cons', removed $x$ and return $a$ as the result) when $n=0$ in $abort$? }
+\Question{Implement the real-time queue with paired arrays. We can't copy the array when start rotation, or the performance will downgrade to linear time. Please implement `lazy' copy, i.e., copy an element per step.}
 \end{Exercise}
 
+\begin{Answer}[ref = {ex:realtime-queue}]
+\Question{Why need rollback an element (we cancelled the previous `cons', removed $x$ and return $a$ as the result) when $n=0$ in $abort$?
 
-% ================================================================
-%                 Lazy Real-time queue
-% ================================================================
+The $abort$ function is only called during pop. When $n = 0$, the rotate just finished, it is about to transform the state from $(S_c, 0, (x \cons a), f')$ to $(S_f, a)$. While $x$ being linked previously is the one to be popped, hence, we need remove $x$ and return $a$ as the result.
+}
+
+\Question{Implement the real-time queue with paired arrays. We can't copy the array when start rotation, or the performance will downgrade to linear time. Please implement `lazy' copy, i.e., copy an element per step.
+
+Assume we can get the length of an array in constant time. We push element to the tail of array $f$, and pop from the tail of array $r$. When the two arrays are not balanced, start a state machine to compute $acc = reverse(f) \doubleplus r$ step by step. If $f \neq [\ ]$, we extract the tail element and append to the tail of $acc$. After reversed $f$, we copy the elements from the left of $r$, and append to the tail of $acc$ one by one, i.e., $append(acc, r[i])$, where $i = 0, 1, .., |r| - 1$. While rotating in steps, one can still pop from the tail of $r$, the rotation completes when $i$ exceeds $|r|$.
+
+\begin{Bourbaki}
+data State<K> {
+    [K] acc, front, rear
+    Int idx
+
+    State([K] f, [K] r) {
+        acc = [], front = f, rear = r
+        idx = 0
+    }
+
+    // compute reverse(f) ++ r step by step
+    Self step() {
+        if front != [] then acc.append(front.popLast())  // reversing
+        if s.front == [] and idx < length(rear) {    // concatenating
+            acc.append(rear[idx])
+            idx = idx + 1
+        }
+    }
+
+    Bool done() = (front == [] and length(rear) < idx)
+}
+
+data RealtimeQueue<K> {
+    [K] front = []
+    [K] rear = []
+    State<K> state = null
+
+    Bool isEmpty() = (front == [] and rear == [])
+
+    Self push(K x) {
+        front.append(x)
+        balance()
+    }
+
+    K pop() {
+        x = rear.popLast()
+        balance()
+        return x
+    }
+
+    Void balance() {
+        if state == null and length(rear) < length(front) {
+            state = State(front, rear).step()
+            front = []
+        }
+        if state != null and state.step().done() {
+            rear = state.acc
+            state = null
+        }
+    }
+}
+\end{Bourbaki}
+}
+\end{Answer}
+
 \section{Lazy real-time queue}
 \index{Queue!Lazy real-time queue}
 
-The key to realize a real-time queue is to break down the expensive
-$F \cup reverse(R)$ to avoid monolithic computation. Lazy evaluation
-is particularly helpful in such case. In this section, we'll explore
-if there is some more elegant solution by exploit laziness.
-
-Suppose that there exits a function $rotate()$,
-which can compute $F \cup reverse(R)$ incrementally. that's to say,
-with some accumulator $A$, the following two functions are equivalent.
-
+The key to realize real-time queue is to break down the expensive
+$f \doubleplus \textit{reverse}\ r$. We can simplify it with lazy evaluation. Assume function \textit{rotate} computes $f \doubleplus \textit{reverse}\ r$ in steps, i.e., below two functions are equivalent with an accumulator $a$.
 \be
-  rotate(X, Y, A) \equiv X \cup reverse(Y) \cup A
+  \textit{rotate}\ xs\ ys\ a = xs \doubleplus (\textit{reverse}\ ys) \doubleplus a
   \label{eq:rot-def}
 \ee
 
-Where we initialized $X$ as the front list $F$, $Y$ as the rear list $R$,
-and the accumulator $A$ is initialized as empty $\phi$.
-
-The trigger of rotation is still as same as before when $|F| + 1 = |R|$.
-Let's keep this constraint as an invariant during the whole rotation process,
-that $|X| + 1 = |Y|$ always holds.
-
-It's obvious to deduce to the trivial case:
+Initialize $xs$ as the front list $f$, $ys$ as the rear list $r$,
+the accumulator $a$ empty $[\ ]$. We implement \textit{rotate} from the edge case:
 
 \be
-  rotate(\phi, \{ y_1 \}, A) = \{ y_1 \} \cup A
+  \textit{rotate}\ [\ ]\ [y]\ a = y \cons a
 \ee
 
-Denote $X = \{ x_1, x_2, ... \}$, $Y = \{ y_1, y_2, ...\}$, and
-$X' = \{ x_2, x_3, ...  \}$, $Y' = \{ y_2, y_3, ...\}$ are the rest
-of the lists without the first element for $X$ and $Y$ respectively.
-The recursion case is ruled out as the following.
+The recursive case is:
 
 \be
-  \begin{array}{rcll}
-  rotate( X, Y, A ) & \equiv & X \cup reverse(Y) \cup A & \mbox{Definition of (}\ref{eq:rot-def} \mbox{)} \\
-  & \equiv & \{ x_1 \} \cup (X' \cup reverse(Y) \cup A) & \mbox{Associative of } \cup \\
-  & \equiv & \{ x_1 \} \cup (X' \cup reverse(Y') \cup (\{ y_1 \} \cup A)) & \mbox{Nature of reverse and associative of }  \cup \\
-  & \equiv & \{ x_1 \} \cup rotate(X', Y', \{ y_1 \} \cup A) & \mbox{Definition of (} \ref{eq:rot-def} \mbox{)}
+  \begin{array}{cll}
+  & \textit{rotate}\ (x \cons xs)\ (y \cons ys)\ a & \\
+  = & (x \cons xs) \doubleplus (\textit{reverse}\ (y \cons ys)) \doubleplus a & \text{from \cref{eq:rot-def}} \\
+  = & x : (xs \doubleplus \textit{reverse}\ (y \cons ys)) \doubleplus a) & \text{concatenation is associative} \\
+  = &  x : (xs \doubleplus \textit{reverse}\ ys \doubleplus (y \cons a)) & \text{reverse property, and associative} \\
+  = & x : \textit{rotate}\ xs\ ys\ (y \cons a) & \text{reverse of \cref{eq:rot-def}}
   \end{array}
 \ee
 
-Summarize the above two cases, yields the final incremental rotate algorithm.
+Summarize together:
 
 \be
-rotate(X, Y, A) = \left \{
-  \begin{array}
-  {r@{\quad:\quad}l}
-  \{ y_1 \} \cup A & X = \phi \\
-  \{ x_1 \} \cup rotate(X', Y', \{ y_1 \} \cup A) & otherwise
-  \end{array}
-\right .
+\begin{array}{rcl}
+\textit{rotate}\ [\ ]\ [y]\ a & = & y \cons a \\
+\textit{rotate}\ (x \cons xs)\ (y \cons ys)\ a & = & x : \textit{rotate}\ xs\ ys\ (y \cons a) \\
+\end{array}
 \ee
 
-If we execute $\cup$ lazily instead of strictly, that is, execute $\cup$
-once pop or push operation is performed, the computation of $rotate$ can
-be distribute to push and pop naturally.
-
-Based on this idea, we modify the paired-list queue definition to change
-the front list to a lazy list, and augment it with a computation stream.
-\cite{SICP}. When the queue triggers re-balance constraint by some
-pop/push, that
-$|F| + 1 = |R|$, The algorithm creates a lazy rotation computation,
-then use this lazy rotation as the new front list $F'$; the new rear
-list becomes $\phi$, and a copy of $F'$ is maintained as a stream.
-
-After that, when we performs every push and pop; we consume the
-stream by forcing a $\cup$ operation. This results us advancing one
-step along the stream, $ \{ x \} \cup F''$, where $F'' = tail(F')$.
-We can discard $x$, and replace the stream $F'$ with $F''$.
-
-Once all of the stream is exhausted, we can start another rotation.
-
-In order to illustrate this idea clearly, we turns to Scheme/Lisp
-programming language to show example codes, because it gives us
-explicit control of laziness.
-
-In Scheme/Lisp, we have the following three tools to deal with lazy
-stream.
-
-\lstset{language=Lisp}
-\begin{lstlisting}
-(define (cons-stream a b) (cons a (delay b)))
-
-(define stream-car car)
-
-(define (stream-cdr s) (cdr (force s)))
-\end{lstlisting}
-
-Function \texttt{cons-stream} constructs a 'lazy' list from an element $x$
-and an existing list $L$ without really evaluating
-the value of $L$; The evaluation is actually delayed to
-\texttt{stream-cdr}, where the computation is forced. delaying can
-be realized by lambda calculus as described in\cite{SICP}.
-
-The lazy paired-list queue is defined as the following.
-
-\lstset{language=Lisp}
-\begin{lstlisting}
-(define (make-queue f r s)
-  (list f r s))
-
-;; Auxiliary functions
-(define (front-lst q) (car q))
-
-(define (rear-lst q) (cadr q))
-
-(define (rots q) (caddr q))
-\end{lstlisting}
-
-A queue is consist of three parts, a front list, a rear list,
-and a stream which represents the computation of $F \cup reverse(R)$.
-Create an empty queue is trivial as making all these three parts
-null.
-
-\begin{lstlisting}
-(define empty (make-queue '() '() '()))
-\end{lstlisting}
-
-Note that the front-list is also lazy stream actually, so we need use
-stream related functions to manipulate it. For example, the following
-function test if the queue is empty by checking the front lazy list stream.
-
-\begin{lstlisting}
-(define (empty? q) (stream-null? (front-lst q)))
-\end{lstlisting}
-
-The push function is almost as same as the one given in previous section.
-That we put the new element in front of the rear list; and then examine
-the balance invariant and do necessary balancing works.
+In lazy evaluation settings, (:) is delayed to push/pop, hence the \textit{rotate} is broken down. We change the paired-list queue definition to $(f, r, rot)$, where $rot$ is the on-going $f \doubleplus \textit{reverse}\ r$ computation. It is initialized empty $[\ ]$.
 
 \be
-push(Q, x) = balance(\mathcal{F}, \{ x \} \cup R, \mathcal{R}_s)
+\begin{cases}
+push\ x\ (f, r, rot) & = balance\ f\ (x \cons r)\ rot \\
+pop\ (x \cons f, r, rot) & = balance\ f\ r\ rot \\
+\end{cases}
 \ee
 
-Where $\mathcal{F}$ represents the lazy stream of front list; $\mathcal{R}_s$ is
-the stream of rotation computation. The relative Scheme/Lisp
-code is give below.
-
-\begin{lstlisting}
-(define (push q x)
-  (balance (front-lst q) (cons x (rear q)) (rots q)))
-\end{lstlisting}
-
-While pop is a bit different, because the front list is actually lazy stream,
-we need force an evaluation. All the others are as same as before.
+Every time, $balance$ advances the rotation one step, and starts another round when completes.
 
 \be
-pop(Q) = balance(\mathcal{F}', R, \mathcal{R}_s)
+\begin{array}{rcll}
+balance\ f\ r\ [\ ] & = & (f', [\ ], f') & \text{where}: f' = rotate\ f\ r\ [\ ] \\
+balance\ f\ r\ (x \cons rot) & = & (f, r, rot) & \text{advance the rotation}\\
+\end{array}
 \ee
 
-Here $\mathcal{F}'$, force one evaluation to $\mathcal{F}$, the Scheme/Lisp
-code regarding to this equation is as the following.
+\begin{Exercise}
+Implement bidirectional queue, support add/remove elements on both head and tail in constant time.
+\end{Exercise}
 
-\begin{lstlisting}
-(define (pop q)
-  (balance (stream-cdr (front-lst q)) (rear q) (rots q)))
+\section{Appendix - example programs}
+
+List implemented queue:
+
+\begin{lstlisting}[language = Bourbaki]
+Queue<K> enQ(Queue<K> q, K x) {
+    var p = Node(x)
+    p.next = null
+    q.tail.next = p
+    q.tail = p
+    return q
+}
+
+K deQ(Queue<K> q) {
+    var p = q.head.next   //the next of S
+    q.head.next = p.next
+    if q.tail == p then q.tail = q.head //empty
+    return p.key
+}
 \end{lstlisting}
 
-For illustration purpose, we skip the error handling (such as pop from
-an empty queue etc) here.
+Circular buffer queue:
 
-And one can access the top element in the queue by extract from
-the front list stream.
+\begin{lstlisting}[language = Bourbaki]
+data Queue<K> {
+    [K] buf
+    int head, cnt, size
 
-\begin{lstlisting}
-(define (front q) (stream-car (front-lst q)))
+    Queue(int max) {
+        buf = Array<K>(max)
+        size = max
+        head = cnt = 0
+    }
+}
 \end{lstlisting}
 
-The balance function first checks if the computation stream is completely
-exhausted, and starts new rotation accordingly; otherwise, it just consumes
-one evaluation by enforcing the lazy stream.
-
-\be
-balance(Q) = \left \{
-  \begin{array}
-  {r@{\quad:\quad}l}
-  Queue(\mathcal{F}', \phi, \mathcal{F}') & \mathcal{R}_s = \phi \\
-  Queue(\mathcal{F}, R, \mathcal{R}_s') & otherwise
-  \end{array}
-\right .
-\ee
-
-Here $\mathcal{F}'$ is defined to start a new rotation.
-
-\be
-  \mathcal{F}' = rotate(F, R, \phi)
-\ee
-
-The relative Scheme/Lisp program is listed accordingly.
+Enqueue, dequeue implementation for circular buffer queue:
 
 \begin{lstlisting}
-(define (balance f r s)
-  (if (stream-null? s)
-      (let ((newf (rotate f r '())))
-    (make-queue newf '() newf))
-      (make-queue f r (stream-cdr s))))
+N offset(N i, N size) = if i < size then i else i - size
+
+void enQ(Queue<K> q, K x) {
+    if q.cnt < q.size {
+        q.buf[offset(q.head + q.cnt, q.size)] = x;
+        q.cnt = q.cnt + 1
+    }
+}
+
+K head(Queue<K> q) = if q.cnt == 0 then null else q.buf[q.head]
+
+K deQ(Queue<K> q) {
+    K x = null
+    if q.cnt > 0 {
+        x = head(q)
+        q.head = offset(q->head + 1, q->size);
+        q.cnt = q.cnt -1
+    }
+    return x
+}
 \end{lstlisting}
 
-The implementation of incremental rotate function is just as same as
-what we analyzed above.
+Real-time queue:
 
-\begin{lstlisting}
-(define (rotate xs ys acc)
-  (if (stream-null? xs)
-      (cons-stream (car ys) acc)
-      (cons-stream (stream-car xs)
-           (rotate (stream-cdr xs) (cdr ys)
-               (cons-stream (car ys) acc)))))
-\end{lstlisting}
+\begin{Haskell}
+data State a = Empty
+             | Reverse Int [a] [a] [a] [a] -- n, acc f, f, acc r, r
+             | Concat Int [a] [a]          -- n, acc, reversed f
+             | Done [a]  -- f' = f ++ reverse r
 
-We used explicit lazy evaluation in Scheme/Lisp. Actually, this program
-can be very short by using lazy programming languages, for example,
-Haskell.
+-- f, n = length f, state, r, m = length r
+data RealtimeQueue a = RTQ [a] Int (State a) [a] Int
 
-\lstset{language=Haskell}
-\begin{lstlisting}
+push x (RTQ f n s r m) = balance f n s (x:r) (m + 1)
+
+pop (RTQ (_:f) n s r m) = balance f (n - 1) (abort s) r m
+
+top (RTQ (x:_) _ _ _ _) = x
+
+balance f n s r m
+    | m <= n =  step f n s r m
+    | otherwise = step f (m + n) (next (Reverse 0 [] f [] r)) [] 0
+
+step f n s r m = queue (next s) where
+  queue (Done f') = RTQ f' n Empty r m
+  queue s' = RTQ f n s' r m
+
+next (Reverse n f' (x:f) r' (y:r)) = Reverse (n + 1) (x:f') f (y:r') r
+next (Reverse n f' [] r' [y]) = next $ Concat n (y:r') f'
+next (Concat 0 acc _) = Done acc
+next (Concat n acc (x:f')) = Concat (n-1) (x:acc) f'
+next s = s
+
+abort (Concat 0 (_:acc) _) = Done acc -- rollback 1 elem
+abort (Concat n acc f') = Concat (n - 1) acc f'
+abort (Reverse n f' f r' r) = Reverse (n - 1) f' f r' r
+abort s = s
+\end{Haskell}
+
+Lazy real-time queue:
+
+\begin{Haskell}
 data LazyRTQueue a = LQ [a] [a] [a] -- front, rear, f ++ reverse r
 
-instance Queue LazyRTQueue where
-    empty = LQ [] [] []
+empty = LQ [] [] []
 
-    isEmpty (LQ f _ _) = null f
+push (LQ f r rot) x = balance f (x:r) rot
 
-    -- O(1) time push
-    push (LQ f r rot) x = balance f (x:r) rot
+pop (LQ (_:f) r rot) = balance f r rot
 
-    -- O(1) time pop
-    pop (LQ (_:f) r rot) = balance f r rot
-
-    front (LQ (x:_) _ _) = x
+top (LQ (x:_) _ _) = x
 
 balance f r [] = let f' = rotate f r [] in LQ f' [] f'
 balance f r (_:rot) = LQ f r rot
 
 rotate [] [y] acc = y:acc
 rotate (x:xs) (y:ys) acc = x : rotate xs ys (y:acc)
-\end{lstlisting}
+\end{Haskell}
 
-% ================================================================
-%                 Short summary
-% ================================================================
-\section{Notes and short summary}
-Just as mentioned in the beginning of this book in the first chapter,
-queue isn't so simple as it was thought. We've tries to explain
-algorithms and data structures both in imperative and in function
-approaches; Sometimes, it gives impression that functional way is
-simpler and more expressive in most time. However, there are still
-plenty of areas, that more studies and works are needed to give equivalent
-functional solution. Queue is such an important topic, that it
-links to many fundamental purely functional data structures.
-
-That's why Chris Okasaki made intensively study and took a great
-amount of discussions in \cite{okasaki-book}. With purely functional
-queue solved, we can easily implement dequeue with the similar
-approach revealed in this chapter. As we can handle elements effectively
-in both head and tail, we can advance one step ahead to realize
-sequence data structures, which support fast concatenate, and
-finally we can realize random access data structures to mimic
-array in imperative settings. The details will be explained
-in later chapters.
-
-Note that, although we haven't mentioned priority queue, it's quite
-possible to realized it with heaps. We have covered topic of heaps
-in several previous chapters.
-
-\begin{Exercise}
-\begin{itemize}
-\item Realize dequeue, which support adding and removing elements on both sides in
-constant $O(1)$ time in purely functional way.
-\item Realize dequeue in a symmetric solution only with array in your
-favorite imperative programming language.
-\end{itemize}
-\end{Exercise}
-
-% ================================================================
-%                 Appendix
-% ================================================================
+\ifx\wholebook\relax \else
+\section{Answers}
+\shipoutAnswer
 
 \begin{thebibliography}{99}
 
@@ -1566,6 +825,5 @@ Harold Abelson, Gerald Jay Sussman, Julie Sussman. ``Structure and Interpretatio
 
 \end{thebibliography}
 
-\ifx\wholebook\relax \else
-\end{document}
+\expandafter\enddocument
 \fi

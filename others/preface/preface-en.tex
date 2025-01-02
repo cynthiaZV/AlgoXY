@@ -13,28 +13,55 @@
 
 \author{Xinyu LIU
 \thanks{{\bfseries Xinyu LIU} \newline
-  Email: liuxinyu95@gmail.com \newline}
+  \url{https://github.com/liuxinyu95} \newline}
   }
 
 \maketitle
 \fi
 
-\markboth{Preface}{Elementary Algorithms}
+\markboth{Preface}{}
 
-Programmers learn elementary algorithms at school. Except for programming contest, code interview, they seldom use algorithms in commercial software development. When talking about algorithms in AI and machine learning, it actually means scientific modeling, but not about data structure or elementary algorithm. Even when programmers need them, they have already been provided in libraries. It seems quite enough to know about how to use the library as a tool but not `re-invent the wheel'.
+\chapter*{Preface to the second edition}
+\phantomsection  % so hyperref creates bookmarks
+\addcontentsline{toc}{chapter}{Preface to the second edition}
 
-I would say elementary algorithms are critical in solving `interesting problems', the usefulness of the problem set aside. Let's start with two problems.
+Some people did not see their works published, like Fermat and Galois; Some people refused to publish any \enquote{imperfect} works despite they had already been great and important (at least from our view point), like Gauss; Some people lost some of their works in fires or wars, like Riemann. We owe Samuel Fermat, who collected his father's notes and mails, published a special edition of {\em Arithmetica, augmented with Fermat's comments}; We owe Liouville, who re-discovered and published Galois' papers in {\em Journal de Mathématiques Pures et Appliquées}; We owe Dedekind, who collected the burnt notebook from Mrs Riemann after her husband's early death. We appreciate those publishers who save, protect, and spread human knowledge no matter it's profitable or not (in terms of money). The development of technology and internet greatly changes the way that people write, log, edit, and publish things. I was able to write and share about elementary functional algorithms and data structures online from 2009. It was accumulated to a draft book by 2015, and was published in 2017 in Chinese.
 
-\section{The smallest free number}
+I always think I am so lucky compare to the people in the past. It's impossible to make this happen before, while there are plenty of wonderful works in this domain yet to be published. Thanks to the editors, the publisher, and every reader. I collected the feedback, questions, and comments, started to re-write the book from the end of 2020, and completed a new edition by May 2023. The main changes are:
+
+\begin{enumerate}
+\item Rewrite all chapters, use simple notations instead of long text descriptions.
+
+\item Reorganize the book structure. (a) Move the list to the first chapter, make it friendly to the new readers to the functional programming; (b) Add a section of paired-list B-tree in chapter 7. Add the remove algorithms to the red-black tree and AVL tree to the appendix; (c) Remove the chapter of the suffix tree. For imperative string matching, focus on KMP algorithm, and remove the Boyer-Moore algorithm; (d) Add the answers to all the 120 exercises.
+
+\item Unify the programming language of the example programs. This is one of the most feedback to the first edition. Use Haskell for functional examples, and consolidate imperative ones in a language named `Bourbaki' (Nicolas Bourbaki is the pseudonym of a group of (mainly) French mathematicians, including André Weil, Henri Cartan, and etc. The virtual figure indicates the programming language does not exist, while it reflects some popular languages behind, like Python, Java, C and etc.). Collect the examples as an appendix after each chapter.
+
+\item Correct all known errors in the first edition.
+\end{enumerate}
+
+Chris Okasaki and Richard Bird established the main content of purely functional data structures and algorithms. I essentially tailored and re-organized the materials under their framework. Although the new functional applications and technologies evolve fast, the elementary algorithms are relative stable. This slow changing part allows me to spend over 10 years, iteratively write and improve this book\footnote{The pdf can be downloaded from github.}.
+
+\vspace{15mm}
+
+\rightline{Oct 2023, Beijing, China}
+
+
+\chapter*{Preface to the first edition}
+\phantomsection  % so hyperref creates bookmarks
+\addcontentsline{toc}{chapter}{Preface to the first edition}
+
+Programmers learn elementary algorithms at school. Except for programming contest or code interview, they seldom develop algorithms at work. Most time, the needed algorithms or data structures are provided in libraries. We needn't bother to \enquote{re-invent the wheel}. When talking about algorithms in AI and machine learning, people actually mean scientific modeling. Elementary algorithms are fundamental things, Let's start with two puzzles.
+
+\section*{The smallest free number}
 \label{min-free} \index{minimum free number}
 
-Richard Bird gives an interesting programming problem to find the minimum number that not appears in a given list(Chapter 1, \cite{Bird-book}). It's common to use a number as the identifier (Id) to index entities. At any time, a number is either occupied or free. When client tries to acquire a new number as index, we want to always allocate the smallest available one. Suppose numbers are non-negative integers and those being occupied are recorded in a list, for example:
+Richard Bird gives a problem to find the minimum number that not appears in a list (Chapter 1, \cite{fp-pearls}). People use number to index entities. A number is either occupied or free. When acquire, we always want to allocate the smallest available one. Suppose numbers are non-negative integers and those being used are recorded in a list, for example:
 
-\begin{verbatim}
+\begin{Verbatim}[fontsize=\footnotesize]
 [18, 4, 8, 9, 16, 1, 14, 7, 19, 3, 0, 5, 2, 11, 6]
-\end{verbatim}
+\end{Verbatim}
 
-How can we find the smallest free number, which is 10, from the list? It seems quite easy to figure out the solution.
+How can we find the smallest free number, 10, from this list? It seems quite easy with exhaustive search:
 
 \begin{algorithmic}[1]
 \Function{Min-Free}{$A$}
@@ -49,7 +76,7 @@ How can we find the smallest free number, which is 10, from the list? It seems q
 \EndFunction
 \end{algorithmic}
 
-Where the $\notin$ is realized like below.
+Where $\notin$ is realized as below.
 
 \begin{algorithmic}[1]
 \Function{`$\notin$'}{$x, X$}
@@ -62,39 +89,27 @@ Where the $\notin$ is realized like below.
 \EndFunction
 \end{algorithmic}
 
-Some environments have built-in implementation to test if an element is in a list. Below is an example program.
+Where $|X| = n$ is the length of $X$. Some environments have built-in implementation to test existence of an element. However, this solution performs poor with millions of numbers. The time spent is quadratic to $n$. In a computer with 2 cores of 2.10 GHz CPU, and 2G RAM, the C implementation takes 5.4s to find the answer among 100K numbers, and exceeds 8 minutes to handle 1 million numbers.
 
-\lstset{language=Python, frame=single}
-\begin{lstlisting}
-def minfree(lst):
-    i = 0
-    while True:
-        if i not in lst:
-            return i
-        i = i + 1
-\end{lstlisting}
-
-However, when there are millions of numbers being used, this solution performs poor. The time spent is quadratic to the length of the list. In a computer with 2 cores of 2.10 GHz CPU, and 2G RAM, the C implementation takes 5.4s to search the minimum free number among 100,000 numbers, and takes more than 8 minutes to handle a million numbers.
-
-\subsection{Improvement}
-The key idea to improve the solution is based on the fact that, for $n$ numbers $x_1, x_2, ..., x_n$, if there exists free number, some $x_i$ must be outside the range $[0, n)$; otherwise the list is exactly some permutation of $0, 1, ..., n - 1$ hence $n$ should be returned as the minimum free number. In summary:
+\subsection*{Improvement}
+For $n$ numbers $x_1, x_2, \dotsc, x_n$, if there is a free number, some $x_i$ must be out of the range of $[0, n)$, where notation $[a, b)$ is the range from $a$ to $b$, but excludes $b$. Otherwise the list is exactly some permutation of $0, 1, \dotsc, n - 1$ hence $n$ is the minimum free number.
 
 \be
-\textit{minfree}(x_1, x_2, ..., x_n) \leq n
-\label{min-free}
+\textit{minfree}(x_1, x_2, \dotsc, x_n) \leq n
+{\label[equation]{eq:min-free}}
 \ee
 
-A better solution is to use an array of $n + 1$ flags to mark whether a number in range $[0, n]$ is free.
+Use an array $F$ of $n + 1$ flags to mark whether a number is free in $[0, n]$.
 
 \begin{algorithmic}[1]
 \Function{Min-Free}{$A$}
-  \State $F \gets $[False, False, ..., False] where $|F| = n+1$
-  \For{$\forall x \in A$}
+  \State $F \gets $[False, False, $\dotsc$, False] \Comment{$n+1$}
+  \For{$x$ in $A$}
     \If{$x < n$}
       \State $F[x] \gets$ True
     \EndIf
   \EndFor
-  \For{$i \gets [0, n]$}
+  \For{$i \gets 0$ to $n$}
     \If{$F[i] =$ False}
       \State \Return $i$
     \EndIf
@@ -102,133 +117,115 @@ A better solution is to use an array of $n + 1$ flags to mark whether a number i
 \EndFunction
 \end{algorithmic}
 
-Line 2 initializes a flag array all of False values. Then we scan all numbers in $A$ and mark the corresponding flag to True if the value is less than $n$. Finally, we iterate to find the first False flag. This program takes time proportion to $n$. It uses $n + 1$ flags to cover the special case that $sorted(A) = [0, 1, 2, ..., n-1]$. This solution is much faster than the brute force one. In the same computer, the Python implementation takes 0.02s when dealing with 100,000 numbers.
+Initialize $F$ with all False values. For every number $x$ in $A$, mark the flag $F[x]$ true if $x < n$. Finally, scan $F$ to find the first false flag. This program takes time proportion to $n$. It uses the $(n + 1)$-th flag to cover the special case of $sort(A) = [0, 1, 2, \dotsc, n-1]$. To avoid repeated allocating/releasing flags, one can pre-allocate a buffer sufficient big for reusing, and change to bit-wise flags instead of array. The corresponding C implementation handles 1 million numbers in 0.023s in the same computer.
 
-Although this solution only takes $O(n)$ time, it needs additional $O(n)$ space to store the flags. We haven't tuned it yet. Each time the program allocates memory to create an array of $n + 1$ flags, then releases it when finish. Such memory allocation and release is expensive and cost a lot of processing time.
+%% \begin{lstlisting}[language=C]
+%% #define N 1000000
+%% #define WORD_LENGTH (sizeof(int) * 8)
 
-To improve it, we can allocate the memory in advance for later reusing, and change to bit-wise flags instead of array. For example as the following C program:
+%% void setbit(unsigned int* bits, unsigned int i) {
+%%     bits[i / WORD_LENGTH] |= 1 << (i % WORD_LENGTH);
+%% }
 
-\begin{lstlisting}[language=C]
-#define N 1000000
-#define WORD_LENGTH (sizeof(int) * 8)
+%% int testbit(unsigned int* bits, unsigned int i) {
+%%     return bits[i / WORD_LENGTH] & (1 << (i % WORD_LENGTH));
+%% }
 
-void setbit(unsigned int* bits, unsigned int i) {
-    bits[i / WORD_LENGTH] |= 1 << (i % WORD_LENGTH);
-}
+%% unsigned int bits[N / WORD_LENGTH + 1];
 
-int testbit(unsigned int* bits, unsigned int i) {
-    return bits[i / WORD_LENGTH] & (1 << (i % WORD_LENGTH));
-}
+%% int minfree(int* xs, int n) {
+%%   int i, len = N/WORD_LENGTH + 1;
+%%   for (i = 0; i < len; ++i) {
+%%       bits[i]=0;
+%%   }
+%%   for (i=0; i < n; ++i) {
+%%       if(xs[i] < n) {
+%%           setbit(bits, xs[i]);
+%%       }
+%%   }
+%%   for (i=0; i <= n; ++i) {
+%%       if (!testbit(bits, i)) {
+%%           return i;
+%%       }
+%%   }
+%% }
+%% \end{lstlisting}
 
-unsigned int bits[N / WORD_LENGTH + 1];
+\subsection*{Divide and Conquer}
+The divide and conquer method breaks a problem into smaller ones, then solve them and consolidate the result. Collect $x_i \leq \lfloor n/2 \rfloor$ in sub-list $A'$ and the rest in another $A''$. By \cref{eq:min-free}, if the length of $|A'| = \lfloor n/2 \rfloor$, then $A'$ is \enquote{full}. The minimum free number must be in $A''$, otherwise in $A'$. Either case leads to a smaller problem. When search in $A''$, we start from $\lfloor n/2 \rfloor + 1$, but not from $0$. Define the algorithm as $search(A, l, u)$, where $l$ and $u$ are the lower and upper bounds. We start from $\textit{minfree}(A) = search(A, l = 0, u = |A|-1)$:
 
-int minfree(int* xs, int n) {
-  int i, len = N/WORD_LENGTH + 1;
-  for (i = 0; i < len; ++i) {
-      bits[i]=0;
-  }
-  for (i=0; i < n; ++i) {
-      if(xs[i] < n) {
-          setbit(bits, xs[i]);
-      }
-  }
-  for (i=0; i <= n; ++i) {
-      if (!testbit(bits, i)) {
-          return i;
-      }
-  }
-}
-\end{lstlisting}
+\begin{lalign*}
+  search(\nil, l, u) & = l \\
+  search(A, l, u) & = \begin{cases}
+    |A'| = m - l + 1 : & search(A'', m+1, u) \\
+    otherwise : & search(A',  l, m)
+  \end{cases}
+\end{lalign*}
 
-This program can handle 1 million numbers in 0.023s in the same computer.
-
-\subsection{Divide and Conquer}
-The above improvement costs $O(n)$ additional space for flags, can we eliminate it? The divide and conquer strategy is to break the problem into smaller ones, then solve them separately to get the answer.
-
-We can put numbers $x_i \leq \lfloor n/2 \rfloor$ into a sub-list $A'$ and put the rest into another sub-list $A''$. According to (\ref{min-free}), if the length of $A'$ equals to $\lfloor n/2 \rfloor$, it means $A'$ is `full'. The minimum free number must be in $A''$. We can recursively search in $A''$ which is shorter the original list. Otherwise, it means the minimum free number is in $A'$, which again leads to a smaller problem.
-
-When search in $A''$, the conditions change a bit. We do not start from $0$, but from $\lfloor n/2 \rfloor + 1$ as the new lower bound. We define the algorithm as $search(A, l, u)$, where $l$ is
-the lower bound and $u$ is the upper bound index. For the empty list as a special case, we return the $l$ as the result.
-
-\[
-minfree(A) = search(A, 0, |A|-1)
-\]
+where:
 
 \[
-\begin{array}{rcl}
-search(\nil, l, u) & = & l \\
-search(A, l, u) & = & \begin{cases}
-       |A'| = m - l + 1 : & search(A'', m+1, u) \\
-       otherwise : & search(A',  l, m) \\
+\begin{cases}
+m = \lfloor \dfrac{l + u}{2} \rfloor \\
+A' = [x \leq m, x \in A], A'' = [x > m, x \in A]
 \end{cases}
-\end{array}
 \]
 
-where
+This algorithm needn't additional space\footnote{The recursion takes $O(\lg n)$ stack spaces, which can be eliminated through tail recursion optimization}. Each recursive call performs $O(|A|)$ comparisons to partition $A'$ and $A''$, hence halves the problem as $T(n) = T(n/2) + O(n)$. The time complexity reduces to $O(n)$ by the master theorem\footnote{Alternatively, the first call takes $O(n)$ time to partition $A'$ and $A''$, the second call takes $O(n/2)$ time, the third call takes $O(n/4)$ time ... The total time is $O(n + n/2 + n/4 + \dotsc) = O(2n) = O(n)$.}. Below example program implements this algorithm.
 
-\[ \begin{array}{rcl}
-m & = & \displaystyle \lfloor \frac{l+u}{2} \rfloor \\
-A' & = & [ x | x \in A, x \leq m ] \\
-A''& = & [ x | x \in A, x > m ] \\
-\end{array} \]
-
-This algorithm doesn't need additional space\footnote{The recursion takes $O(\lg n)$ stack spaces, but it can be eliminated through tail recursion optimization}. Each recursive call performs $O(|A|)$ comparisons to build $A'$ and $A''$. After that the problem scale halves. Therefore, the time is bound to $T(n) = T(n/2) + O(n)$, which reduce to $O(n)$ according to master theorem. Alternatively, observe that the first call takes $O(n)$ to build $A'$ and $A''$ and the second call takes $O(n/2)$, and $O(n/4)$ for the third... The total time is $O(n + n/2 + n/4 + ...) = O(2n) = O(n)$. We use $[a | a \in A, p(a)]$ for list. It is different with $\{a | a \in A, p(a) \}$, which is a set.
-
-Below example Haskell program implements this algorithm.
-
+\lstset{frame = single}
 \begin{Haskell}
 minFree xs = bsearch xs 0 (length xs - 1)
 
 bsearch xs l u | xs == [] = l
-               | length as == m - l + 1 = bsearch bs (m+1) u
+               | length as == m - l + 1 = bsearch bs (m + 1) u
                | otherwise = bsearch as l m
-    where
-      m = (l + u) `div` 2
-      (as, bs) = partition (<=m) xs
+  where
+    m  = (l + u) `div` 2
+    as = [x | x <- xs, x <= m]
+    bs = [x | x <- xs, x > m]
 \end{Haskell}
 
-\subsection{Expressiveness and performance}
-One may concern the performance of this divide and conquer algorithm. There are $O(\lg n)$ recursive calls, which need additional stack space. If wanted, we can eliminate the recursion:
+There are $O(\lg n)$ recursive calls. Below implementation eliminates the recursion with loops:
 
 \begin{algorithmic}[1]
 \Function{Min-Free}{$A$}
   \State $l \gets 0, u \gets |A|$
   \While{$u - l > 0$}
-    \State $m \gets l + \dfrac{u - l}{2}$
-    \State $left \gets l$
+    \State $m \gets \lfloor \dfrac{u + l}{2} \rfloor$
+    \State $\textit{left} \gets l$
     \For{$right \gets l$ to $u - 1$}
       \If{$A[right] \leq m$}
-        \State $A[left] \leftrightarrow A[right]$
-        \State $left \gets left + 1$
+        \State Exchange $A[\textit{left}] \leftrightarrow A[right]$
+        \State $\textit{left} \gets \textit{left} + 1$
       \EndIf
     \EndFor
     \If{$left < m + 1$}
-      \State $u \gets left$
+      \State $u \gets \textit{left}$
     \Else
-      \State $l \gets left$
+      \State $l \gets \textit{left}$
     \EndIf
   \EndWhile
 \EndFunction
 \end{algorithmic}
 
-As shown in figure \ref{fig:divide}, this program re-arranges the array such that all elements before $left$ are less than or equal to $m$; while those between $left$ and $right$ are greater than $m$.
+As shown in \cref{fig:divide}, this program re-arranges the array such that all elements before $\textit{left}$ are less than or equal to $m$; while those between $\textit{left}$ and $right$ are greater than $m$.
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=0.7]{img/divide-by-m}
-  \caption{Divide the array, all $A[i] \leq m$ where $0 \leq i < left$; while all $A[i] > m$ where $left \leq i < right$. The rest elements haven't been processed yet.} \label{fig:divide}
+  \includegraphics[scale=0.7]{img/partition-by}
+  \caption{All $A[i] \leq m$ where $0 \leq i < \textit{left}$; while $A[i] > m$ where $\textit{left} \leq i < right$. The rest are yet to be scanned.}
+  \label{fig:divide}
 \end{figure}
 
-This solution is fast and needn't extra stack space. However, compare to the previous recursive one, there is some expressiveness drops. Depends on individual taste, one may prefer one over the other.
+\section*{Regular number}
 
-\section{Regular number}
-
-The second puzzle is to find the 1,500-th number, which only contains factor 2, 3 or 5. Such numbers are called regular number, also known as 5-smooth indicating the greatest prime factor is at most 5, or Hamming numbers named after Richard Hamming in computer science. 2, 3, and 5 are of course regular numbers. $60 = 2^23^15^1$ is the 25-th number. $21 = 2^03^17^1$ is not valid because it has a factor 7. We consider $1=2^03^05^0$ be the 0-th regular number. The first 10 regular numbers are:
+The second problem is to find the 1,500-th number, which only contains factor 2, 3 or 5. Such numbers are called the regular numbers\footnote{Also known as 5-smooth numbers in number theory, and Hamming numbers named after Richard Hamming.}. 2, 3, and 5 are definitely regular numbers. $60 = 2^23^15^1$ is the 25-th regular number. $21 = 2^03^17^1$ is not because it has a factor of 7. Let $1=2^03^05^0$ be the 0-th regular number. The first 10 are:
 
 1, 2, 3, 4, 5, 6, 8, 9, 10, 12, ...
 
-\subsection{The brute-force solution}
-The straightforward way is to check numbers one by one from 1, extract all factors of 2, 3 and 5 to see if the left part is 1:
+\subsection*{The brute-force solution}
+We check numbers one by one from 1, extract all factors of 2, 3 and 5 to see if the remaining is 1:
 
 \begin{algorithmic}[1]
 \Function{Regular-Number}{$n$}
@@ -244,42 +241,33 @@ The straightforward way is to check numbers one by one from 1, extract all facto
 \Statex
 \Function{Valid?}{$x$}
   \While{$x \bmod 2 = 0$}
-    \State $x \gets \lfloor x / 2 \rfloor$
+    \State $x \gets x / 2$
   \EndWhile
   \While{$x \bmod 3 = 0$}
-    \State $x \gets \lfloor x / 3 \rfloor$
+    \State $x \gets x / 3$
   \EndWhile
   \While{$x \bmod 5 = 0$}
-    \State $x \gets \lfloor x / 5 \rfloor$
+    \State $x \gets x / 5$
   \EndWhile
   \State \Return $x = 1$ ?
 \EndFunction
 \end{algorithmic}
 
-This `brute-force' algorithm works for small $n$. However, to find the 1500-th regular number (which is 860934420), its C implementation takes 40.39s in above computer. When $n$ increases to 15,000, it can't terminate after 10 minutes.
+This \enquote{brute-force} algorithm performs poor when $n$ increases. The corresponding C implementation takes 40.39s in above computer to find the 1500-th number (860934420).
 
-\subsection{Improvement}
-Modular and divide calculations are very expensive \cite{Bentley}. And they are executed a lot in loops. Instead of checking if a number only contains 2, 3, or 5 as factors, we can construct regular number from these three factors. We can start from 1, multiply it with 2, 3, or 5 to generate the rest numbers. The problem turns to be how to generate regular numbers in order? One method is to utilize the queue data structure.
-
-A queue allows to add element to one end (called enqueue), and delete from the other (called dequeue). The element enqueued first will be dequeued first. This nature is called FIFO (First In First Out). The idea is to add 1 as the first number to the queue. We repeatedly dequeue a number, multiply it with 2, 3, and 5, to generate 3 new numbers; then add them back to the queue in order. A new generated number may already exist in the queue. In such case, we drop the duplicated number. Because the new number may be smaller than the others in the queue, we must put them at the correct position. Figure \ref{fig:queues} shows this idea.
+\subsection*{Improvement}
+Division and modulo are expensive operations\cite{Bentley}. Instead of checking every number, we generate regular numbers from 1 in ascending order. Use a queue, which allows to add number to one end (enqueue), and remove from the other end (dequeue). The number enqueued first will be dequeued first (First In First Out). Initialize the queue with 1, the 0th regular number. Repeatedly dequeue a number, multiply it by 2, 3, and 5 to generate 3 new numbers; then add them back to the queue in ascending order. We drop the number if it is already in the queue, as shown in \cref{fig:queues}.
 
 \begin{figure}[htbp]
   \centering
-  \subcaptionbox{Initialize with 1}{\includegraphics[scale=0.5]{img/q1}}
-  \subcaptionbox{Add 2, 3, 5 back;}{\includegraphics[scale=0.5]{img/q2}}
-  \subcaptionbox{Add 4, 6, and 10 back;}{\includegraphics[scale=0.5]{img/q3}}
-  \subcaptionbox{Add 9 and 15 back, 6 is dropped.}{\includegraphics[scale=0.5]{img/q4}}
-  \caption{First 4 steps to generate regular numbers.}
+  \includegraphics[scale=0.5]{img/regular-num-1q}
+  \caption{First 4 steps.}
   \label{fig:queues}
 \end{figure}
 
-We can design the algorithm based on this idea:
-
 \begin{algorithmic}[1]
 \Function{Regular-Number}{$n$}
-  \State $Q \gets \nil$
-  \State $x \gets 1$
-  \State \Call{Enqueue}{$Q, x$}
+  \State $Q \gets [1]$
   \While{$n > 0$}
     \State $x \gets$ \Call{Dequeue}{$Q$}
     \State \Call{Unique-Enqueue}{$Q, 2x$}
@@ -301,64 +289,58 @@ We can design the algorithm based on this idea:
 \EndFunction
 \end{algorithmic}
 
-The \textproc{insert} function takes $O(m)$ time to insert a number at proper position, where $m = |Q|$ is the length of the queue. It skips insertion if the number already exists. The length of the queue increases proportion to $n$ (Each time, we dequeue an element, and enqueue 3 new at most. The increase ratio $\leq$ 2), the total time is $O(1 + 2 + 3 + ... + n) = O(n^2)$.
-
-Figure\ref{fig:big-O-1q} shows the number of access to the queue against $n$. It is a quadratic curve, which reflects the $O(n^2)$ performance.
+The \textproc{Unique-Enqueue} function takes $O(m)$ time to insert a unique number in ascending order, where $m = |Q|$ is the length of the queue. It increases proportion to $n$ (Each time, we dequeue an element, and enqueue at most 3. The increasing ratio $\leq$ 2), the total time is $O(1 + 2 + 3 + \dotsb + n) = O(n^2)$. \Cref{fig:big-O-1q} shows the queue access times against $n$. The quadratic curve reflects the $O(n^2)$ performance.
 
 \begin{figure}[htbp]
   \centering
   \includegraphics[scale=0.5]{img/big-O-1q}
-  \caption{Queue access count - $n$.} \label{fig:big-O-1q}
+  \caption{Queue access count - $n$.}
+  \label{fig:big-O-1q}
 \end{figure}
 
-The corresponding C implementation takes 0.016s to output 860934420. It is about 2500 times faster than the naive search solution.
-
-We can also realize this improvement recursively. Suppose $X$ is an infinite list of all regular numbers $[x_1, x_2, x_3, ...]$. For every number, we multiply it by 2, the result is still a list of regular numbers: $[2x_1, 2x_2, 2x_3, ...]$. We can also multiply numbers in $X$ by 3 and 5, to generate two new infinite lists. If we merge them together, remove the duplicated numbers, and prepend 1 as the first, then we get $X$ again. In other words, the following equation holds:
+The corresponding C implementation takes 0.016s to output 860934420, about 2500 times faster than the brute-force solution. Let $xs = [x_1, x_2, x_3, \dotsc]$ be the infinite list of all regular numbers. Multiply every number by 2, the result is again infinitely many regular numbers: $[2x_1, 2x_2, 2x_3, \dotsc]$, so as multiply by 3 and 5. If merge the three infinite lists together, filter out the duplicated numbers, and prepend 1 as the first, we get $xs$ back:
 
 \be
-  X = 1 : [2x | \forall x \in X]\cup [3x | \forall x \in X] \cup [5x | \forall x \in X]
+  xs = 1 : [2x | x \gets xs] \cup [3x | x \gets xs] \cup [5x | x \gets xs]
 \ee
 
-Where symbol $x : X$ means to link $x$ before list $X$, such that $x$ becomes the first element. It is called `cons' in Lisp. We link 1 before the rest, as it is the first regular number. To implement infinite lists merge, we define $\cup$ to recursively compare elements in two sorted lists. Let $X=[x_1, x_2, x_3...]$, $Y=[y_1, y_2, y_3, ...]$ be two such lists, $X' = [x_2, x_3, ...]$ and $Y'=[y_2, y_3, ...]$ contain the rest elements except without their heads $x_1$ and $y_1$. We define merge as below:
+Where $x \cons xs$ links $x$ before list $xs$. It is called \enquote{cons} in Lisp. 1 is linked as the head (the 0th regular number). $\cup$ merges two lists:
 
 \[
-X \cup Y = \begin{cases}
-  x_1 < y_1: & x_1 : X' \cup Y \\
-  x_1 = y_1: & x_1 : X' \cup Y' \\
-  y_1 < x_1: & y_1 : X \cup Y' \\
+(a \cons as) \cup (b \cons bs) = \begin{cases}
+  a < b: & a : as \cup (b \cons bs) \\
+  a = b: & a : as \cup bs \\
+  a > b: & b : (a \cons as) \cup bs
 \end{cases}
 \]
 
-We need not concern about either $X$ or $Y$ is empty, because they are both infinite lists. In functional settings that support lazy evaluation, this algorithm can be implemented as the following example program:
+We skip many parentheses on the right hand because (:) has lower priority than $\cup$, for example, $a : (as \cup (b \cons bs))$ is equivalent to $a : as \cup (b \cons bs)$. Below is the example program:
 
 \begin{Haskell}
-ns = 1 : (map (*2) ns) `merge` (map (*3) ns) `merge` (map (*5) ns)
+xs = 1 : [2*x | x <- xs] `merge` [3*x | x <- xs] `merge` [5*x | x <- xs]
 
-merge (x:xs) (y:ys) | x < y = x : merge xs (y:ys)
-                    | x == y = x : merge xs ys
-                    | otherwise = y : merge (x:xs) ys
+merge (a:as) (b:bs) | a < b     = a : merge as (b:bs)
+                    | a == b    = a : merge as bs
+                    | otherwise = b : merge (a:as) bs
 \end{Haskell}
 
-The 1500th number 860934420 is given by \texttt{ns !! 1500}. In the same computer, it takes about 0.03s to output the answer.
+This program gives the 1500th number 860934420 by \inlineHaskell{xs !! 1500} in 0.03s in the same computer.
 
-\subsection{Queues}
-Although the improved solution is much faster than the original brute-force one, it generates duplicated numbers, and they are eventually dropped. In order to keep numbers ordered, it needs linear time scan and insertion, which degrades the enqueue operation from constant time to $O(|Q|)$. To avoid duplication, we can separate all regular numbers into 3 disjoint buckets: $Q_2 = \{2^i | i > 0\}$, $Q_{23} = \{ 2^i3^j | i \geq 0, j > 0 \}$, and $Q_{235} = \{ 2^i3^j5^k | i,j \geq 0, k > 0\}$. The constraints that $j \neq 0$ in $Q_{23}$, and $k \neq 0$ in $Q_{235}$ ensure there is no overlap. The bucket is realized as a queue. They are initialized as $Q_2 = \{ 2 \}$, $Q_{23} = \{ 3\}$, and $Q_{235} = \{ 5 \}$. Starting from 1, each time we extract the smallest number $x$ from the three queues as the next regular number. Then do the following:
+\subsection*{Queues}
+The above solution needs filter out duplicated numbers, scan the queue to maintain the ascending order. We arrange all regular numbers into 3 disjoint buckets: $Q_2 = \{2^i | i > 0\}$, $Q_{23} = \{ 2^i3^j | i \geq 0, j > 0 \}$, and $Q_{235} = \{ 2^i3^j5^k | i,j \geq 0, k > 0\}$. Constraint $j \neq 0$ in $Q_{23}$, and $k \neq 0$ in $Q_{235}$ such there is no overlap. Realize the buckets as 3 queues starting from $Q_2 = \{ 2 \}$, $Q_{23} = \{ 3\}$, and $Q_{235} = \{ 5 \}$. Each time extract the smallest $x$ from the queues, then do the following:
 
-\begin{itemize}
-\item If $x$ comes from $Q_2$, we enqueue $2x$, $3x$, and $5x$ back to $Q_2$, $Q_{23}$, and $Q_{235}$ respectively;
-\item If $x$ comes from $Q_{23}$, we only enqueue $3x$ to $Q_{23}$, and $5x$ to $Q_{235}$. We should not add $2x$ to $Q_2$, because $Q_2$ cannot hold any numbers divided by 3.
-\item If $x$ comes from $Q_{235}$, we only need enqueue $5x$ to $Q_{235}$. We should not add $2x$ to $Q_2$, or $3x$ to $Q_{23}$ because they can't hold numbers divided by 5.
-\end{itemize}
+\begin{enumerate}[(a)]
+\item If $x$ comes from $Q_2$, enqueue $2x$ to $Q_2$, $3x$ to $Q_{23}$, and $5x$ to $Q_{235}$;
+\item If $x$ comes from $Q_{23}$, enqueue $3x$ to $Q_{23}$, and $5x$ to $Q_{235}$. We do not add $2x$ to $Q_2$, because $Q_2$ does not hold any numbers divisible by 3.
+\item If $x$ comes from $Q_{235}$, enqueue $5x$ to $Q_{235}$. We do not add $2x$ to $Q_2$, or $3x$ to $Q_{23}$ because they don't hold numbers divisible by 5.
+\end{enumerate}
 
-We reach to the answer after repeatedly enqueue the smallest number $n$ times. The following algorithm implements this idea:
+We reach to the answer after dequeue $n$ numbers. \Cref{fig:q235} gives the first 4 steps.
 
 \begin{figure}[htbp]
   \centering
-  \subcaptionbox{Enqueue 4, 6, 10;}{\includegraphics[scale=0.5]{img/q235-1}}
-  \subcaptionbox{Enqueue 9, 15;}{\includegraphics[scale=0.5]{img/q235-2}}
-  \subcaptionbox{Enqueue 8, 12, 20; }{\includegraphics[scale=0.5]{img/q235-3}}
-  \subcaptionbox{Enqueue 25.}{\includegraphics[scale=0.5]{img/q235-4}}
-  \caption{First 4 steps with $Q_2$, $Q_{23}$, and $Q_{235}$. They were initialize with 2, 3, 5.}
+  \includegraphics[scale=0.5]{img/q235}
+  \caption{First 4 steps with $Q_2$, $Q_{23}$, and $Q_{235}$.}
   \label{fig:q235}
 \end{figure}
 
@@ -387,82 +369,182 @@ We reach to the answer after repeatedly enqueue the smallest number $n$ times. T
 \EndFunction
 \end{algorithmic}
 
-This algorithm loops on $n$. Each time it extracts the minimum number from the head of three queues. This takes constant time. Then it add at most 3 numbers to each queue respectively. This takes constant time too. Therefore the algorithm is bound to $O(n)$.
+This algorithm loops $n$ times. Each time extracts the minimum number in constant time. Then adds at most 3 numbers to the queues in constant time. The overall performance is $O(n)$.
 
-%% We can also define this solution recursively as a function $reg(n, [1], [2], [3], [5])$, where:
+\section*{Summary}
+In the two examples, both brute-force solutions can't scale up. This book is {\em not} about coding contest or code interview, but aims to provide both purely functional algorithms and their counterpart imperative implementations. We reference many results from Okasaki's work\cite{okasaki-book} and classic text books\cite{CLRS}. We avoid relying on any specific programming language, because the reader may or may not be familiar with it, and programming languages keep changing. Instead, we use pseudo code or mathematics notation to make the algorithm definition generic. When give code examples, the functional ones look more like Haskell, and the imperative ones look like a mix of several languages.
 
-%% \[
-%% \begin{array}{rcl}
-%% reg(0, X, Q_2, Q_{23}, Q_{235}) & = & X \\
-%% reg(n, X, Q_2, Q_{23}, Q_{235}) & = & reg(n - 1, X \doubleplus [x], Q_2', Q_{23}', Q_{235}') \\
-%% \end{array}
-%% \]
-
-%% Where
-%% \[
-%%  x = min(head(Q_2), head(Q_{23}), head(Q_{235}))
-%% \]
-%% \[
-%%  Q_2', Q_{23}', Q_{235}' = \begin{cases}
-%%  x = head(Q_2) : & tail(Q_2) \doubleplus [2x], Q_{23} \doubleplus [3x], Q_{235} \doubleplus [5x] \\
-%%  x = head(Q_{23}) : & Q_2, tail(Q_{23}) \doubleplus [3x], Q_{235} \doubleplus [5x] \\
-%%  x = head(Q_{235}) : & Q_2, Q_{23}, tail(Q_{235}) \doubleplus [5x] \\
-%% \end{cases}
-%% \]
-
-%% \begin{Haskell}
-%% rs 0 xs _ _ _ = reverse xs
-%% rs n xs q2 q3 q5 = rs (n - 1) (x : xs) q2' q3' q5'
-%%     where
-%%       x = minimum $ map head [q2, q3, q5]
-%%       (q2', q3', q5')
-%%         | x == head q2 = ((tail q2) ++ [2 * x], q3 ++ [3 * x], q5 ++ [5 * x])
-%%         | x == head q3 = (q2, (tail q3) ++ [3 * x], q5 ++ [5 * x])
-%%         | otherwise = (q2, q3, (tail q5) ++ [5 * x])
-%% \end{Haskell} %$
-
-%% Run \texttt{last \$ rs 1500 [1] [2] [3] [5]} generates the answer 860934420.
-
-\section{Summary}
-One might think the brute-force solution was sufficient to solve both programming puzzles. However, as the problem scales up, we have to seek for better solutions. There are many interesting problems, which were hard before, but through computer programming, we are able to solve them nowadays. This book aims to provide both functional and imperative definition for the commonly used elementary algorithms and data structures. We referenced many results from Okasaki's work\cite{okasaki-book} and classic text books(for example \cite{CLRS}). We try to avoid relying on a specific programming language, because it may or may not be familiar with the reader, and programming languages keep changing. Instead, we use pseudo code or mathematics notation to make the algorithm definition generic. When give code examples, the functional ones look more like Haskell, and the imperative ones look like a mix of C, Java, and Python. They are only for illustration purpose, but not guaranteed following any language specification strictly.
-
-\begin{Exercise}
-\Question{For the free number puzzle, since all numbers are not negative, we can leverage the sign as a flag to indicate a number exists. We can scan the number list, for every number $|x| < n$ (where $n$ is the length), negate the number at position $|x|$. Then we run another round of scan to find out the first positive number. It's position is the answer. Write a program to realize this method.}
+\begin{Exercise}[label={ex:preface}]
+\Question{For the free number puzzle, since all numbers are not negative, we can reuse the sign as a flag. For every $|x| < n$ (where $n$ is the length), negate the number at position $|x|$. Then scan to find the first positive number. Its position is the answer. Write a program to realize this solution.}
 
 \Question{There are $n$ numbers 1, 2, ..., $n$. After some processing, they are shuffled, and a number $x$ is altered to $y$. Suppose $1 \leq y \leq n$, design a solution to find $x$ and $y$ in linear time with constant space.}
 
 \Question{Below example program is a solution for the regular number puzzle. Is it equivalent to the queue based solution?
 \begin{lstlisting}[language = Bourbaki]
 Int regularNum(Int m) {
-    nums = Int[m + 1]
-    n = 0, i = 0, j = 0, k = 0
+    [Int] nums(m + 1)
+    Int n = 0, i = 0, j = 0, k = 0
     nums[0] = 1
-    x2 = 2 * nums[i]
-    x3 = 3 * nums[j]
-    x5 = 5 * nums[k]
-    while (n < m) {
+    Int x2 = 2 * nums[i]
+    Int x3 = 3 * nums[j]
+    Int x5 = 5 * nums[k]
+    while n < m {
         n = n + 1
         nums[n] = min(x2, x3, x5)
-        if (x2 == nums[n]) {
+        if x2 == nums[n] {
             i = i + 1
             x2 = 2 * nums[i]
         }
-        if (x3 == nums[n]) {
+        if x3 == nums[n] {
             j = j + 1
             x3 = 3 * nums[j]
         }
-        if (x5 == nums[n]) {
+        if x5 == nums[n] {
             k = k + 1
             x5 = 5 * nums[k]
         }
     }
-    return nums[m];
+    return nums[m]
 }
 \end{lstlisting}
 }
 \end{Exercise}
 
+\begin{Answer}[ref={ex:preface}]
+\Question{For the free number puzzle, since all numbers are not negative, we can reuse the sign as a flag. For every $|x| < n$ (where $n$ is the length), negate the number at position $|x|$. Then scan to find the first positive number. Its position is the answer. Write a program to realize this solution.
+
+\vspace{3mm}
+\begin{Bourbaki}
+Int minFree([Int] nums) {
+    var n = length(nums)
+    for Int i = 0 to n - 1 {
+        var k = abs(nums[i])
+        if k < n then nums[k] = -abs(nums[k])
+    }
+    for Int i = 0 to n - 1 {
+        if nums[i] > 0 then return i
+    }
+    return n
+}
+\end{Bourbaki}
+}
+
+\Question{There are $n$ numbers 1, 2, ..., $n$. After some processing, they are shuffled, and a number $x$ is altered to $y$. Suppose $1 \leq y \leq n$, design a solution to find $x$ and $y$ in linear time with constant space.
+
+\vspace{3mm}
+For example $X$ = [3, 1, 3, 5, 4], the missing number $x = 2$, the duplicated one $y = 3$. We give 4 methods: (1) divide and conquer; (2) pigeon hole sort; (3) sign encoding; and (4) equations.
+
+\textbf{Divide and conquer}: Partition the numbers with the middle point $m = \lfloor \frac{1 + n}{2} \rfloor$: the left is $as = [a \leq m, a \gets X]$; the right is $bs = [b > m, b \gets X]$. If the length of $|as| < m$, then the missing number is on the left. Let $s = 1 + 2 + \dotsb + m = \frac{m (m + 1)}{2}$, then $x = s - sum(as)$. The duplicated one is on the right. Let $s' = (m + 1) + (m + 2) + \dotsb + n = \frac{(n + m + 1)(n - m)}{2}$, then $y = sum(bs) - s'$. If the length of $|as| > m$, then the duplicated number is on the left. In the same way, calculate the missing number $x = s' - sum(bs)$ and the duplicated number $y = sum(as) - s$. Otherwise if the length $|as| = m$, then there are $m$ numbers not greater than $m$. In order to know whether they are some permutation of 1, 2, ..., $m$, we calculate and compare $sum(as)$ and $s$. If equal, then drop all numbers on the left, and recursively find $x$ and $y$ on the right; otherwise, drop the right, recursively find on the left. In recursive finding, we need update the lower bound of 1 with $l$. Because we halve the list every time, the overall performance is $O(n)$ by the master theorem.
+
+\begin{Haskell}
+missDup xs = solve xs 1 (length xs) where
+  solve xs@(_:_:_) l u | k < m - l + 1 = (sl - sl', sr' - sr)
+                       | k > m - l + 1 = (sr - sr', sl' - sl)
+                       | sl == sl' = solve bs (m + 1) u
+                       | otherwise = solve as l m
+    where
+      m = (l + u) `div` 2
+      (as, bs) = partition (<=m) xs
+      k = length as
+      sl = (l + m) * (m - l + 1) `div` 2
+      sr = (m + 1 + u) * (u - m) `div` 2
+      (sl', sr') = (sum as, sum bs)
+\end{Haskell}
+
+\textbf{Pigeon hole sort}. We apply pigeon hole sort since all numbers are within the range from 1 to $n$. Scan from left to right, for every number $x$ at position $i$, if $x \neq i$, swap it with number $y$ at position $x$. We find the duplicated number if $x = y$, besides, we find the missing number $i$. Repeat this till $x = i$ or meet the duplicated number. Because every number is swapped to its right position a time, the total performance is $O(n)$.
+
+\begin{Bourbaki}
+(Int, Int) missDup([Int] xs) {
+    Int miss = -1, dup = -1
+    for Int i = 0 to length(xs) - 1 {
+        while xs[i] != i {
+            Int j = xs[i]
+            if xs[j] == xs[i] {
+                dup = xs[j]
+                miss = i
+                break
+            } else {
+                j = xs[i]
+                (xs[i], xs[j]) = (xs[j], xs[i])
+            }
+        }
+    }
+    return (miss, dup)
+}
+\end{Bourbaki}
+
+\textbf{Sign encoding}. Setup an array of $n$ flags. For every number $x$, mark the $x$-th flag in the array true. The flag will have been marked before when meet the duplicated number. Let the duplicated number be $d$, the sum $s = 1 + 2 + \dotsb + n = \frac{n (n + 1)}{2}$, and $s'$ be the sum of all numbers. The missing number $m = d + s - s'$. However, this method need additional $n$ flags. The existence of a number is a type of binary information (yes/no), we encode it as the positive/negative sign, hence re-use the space. For every $x$, flip the number at position $|x|$ to negative, where $|x|$ is the absolute value. If a number at some position is already negative, it's the duplicated one; from where we then calculate the missing one.
+
+\begin{Bourbaki}
+(Int, Int) missDup([Int] xs) {
+    Int miss = -1, dup = -1
+    Int n = length(xs)
+    Int s = sum(xs)
+    for i = 0 to n - 1 {
+        Int j = abs(xs[i]) - 1
+        if xs[j] < 0 {
+            dup = j
+            miss = dup + n * (n + 1) / 2 - s
+            break
+        }
+        xs[j] = -abs(xs[j])
+    }
+    return (miss, dup)
+}
+\end{Bourbaki}
+
+\textbf{Equation}. Consider a simplified problem: random drop a number after shuffle 1 to $n$, how to find it? We sum all the numbers, then subtract it from $\frac{n (n + 1)}{2}$:
+
+\[
+m = s - s'
+\]
+
+Where $m$ is the missing number, $s$ is the sum from 1 to $n$, $s'$ is the sum of all numbers. However, for a missing number and a duplicated number, we can't solve with only one equation:
+
+\be
+\sum (x[i] - i) = d - m
+\label{eq:miss-dup-1}
+\ee
+
+Where the left hand is the sum of the difference between the $i$-th number and $i$. We use square to figure out the second equation: sum the difference between the square of the $i$-th number and the square of $i$:
+
+\be
+\sum (x[i]^2 - i^2) = d^2 - m^2 = (d + m)(d - m)
+\label{eq:miss-dup-2}
+\ee
+
+Since $d - m \neq 0$, divide \cref{eq:miss-dup-1} by \cref{eq:miss-dup-2} on both sides to get another equation:
+
+\be
+\sum (x[i]^2 - i^2) / \sum (x[i] - i) = d + m
+\label{eq:miss-dup-3}
+\ee
+
+Compare \cref{eq:miss-dup-1} and \cref{eq:miss-dup-3}, there are two equations with two unknowns. Solve this system:
+
+\[
+\begin{dcases}
+m & = \dfrac{1}{2} [\dfrac{\sum (x[i]^2 - i^2)}{\sum (x[i] - i)} - \sum (x[i] - i)] \\
+d & = \dfrac{1}{2} [\dfrac{\sum (x[i]^2 - i^2)}{\sum (x[i] - i)} + \sum (x[i] - i)]
+\end{dcases}
+\]
+
+\begin{Haskell}
+missDup xs = ((b `div` a - a) `div` 2, (b `div` a + a) `div` 2)
+  where
+    ys = zip xs [1..]
+    a = sum [x - y | (x, y) <- ys]
+    b = sum [x^2 - y^2 | (x, y) <- ys]
+\end{Haskell}
+}
+
+\Question{Yes, it's essentially a solution based on queue.}
+\end{Answer}
+
 \ifx\wholebook\relax \else
+\section*{Answers}
+\shipoutAnswer
+
 \begin{thebibliography}{99}
 
 \bibitem{Bird-book}
@@ -480,5 +562,4 @@ Thomas H. Cormen, Charles E. Leiserson, Ronald L. Rivest and Clifford Stein. ``I
 \end{thebibliography}
 
 \expandafter\enddocument
-
 \fi

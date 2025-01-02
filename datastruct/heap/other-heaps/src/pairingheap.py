@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# pairingheap.py, pairing heap 
+# pairingheap.py, pairing heap
 # Copyright (C) 2012, Liu Xinyu (liuxinyu95@gmail.com)
 #
 # This program is free software: you can redistribute it and/or modify
@@ -17,32 +17,27 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #
-# Based on Michael L. Fredman, Robert Sedgewick, Daniel D. Sleator, 
-# and Robert E. Tarjan. ``The Pairing Heap: A New Form of Self-Adjusting 
+# Based on Michael L. Fredman, Robert Sedgewick, Daniel D. Sleator,
+# and Robert E. Tarjan. ``The Pairing Heap: A New Form of Self-Adjusting
 # Heap'' Algorithmica (1986) 1: 111-129
 #
 
-import random # for testing only
-from collections import deque # for right to left merge only
+from functools import reduce
+from random import sample, randint, choice
+from collections import deque # for right to left merge
 
-#
+
 # Assume the heap is min-heap
-#   If we don't realize decrease-key operation, there is no need
-#   to use the parent pointer.
-#
 class KTree:
     def __init__(self, x = None):
         self.key = x
         self.parent = None
-        self.children = []
+        self.subtrees = []
 
 # O(1) time merge two heaps
 #
-# Instead of add one tree as the first child, it is added at
-# the end of the children list to achieve O(1) time if the
-# built-in list is realized as array.
-# However, it should be insert at the beginning if it is realized
-# as linked list.
+# Add to tail (append) instead of insert to the head to achieve O(1) time for array.
+# Add to head for linked-list
 def merge(t1, t2):
     if t1 is None:
         return t2
@@ -50,34 +45,37 @@ def merge(t1, t2):
         return t1
     if t2.key < t1.key:
         (t1, t2) = (t2, t1)
-    t1.children.append(t2)
+    t1.subtrees.append(t2)
     t2.parent = t1
     return t1
 
-def insert(h, x):
-    return merge(h, KTree(x))
+# mitigate the worst case, that continuously insert n elements, followed with a pop
+# operation, when n is big, the pop performance overhead (to amortize) is big.
+MAX_SUBTREES = 16
 
-def insert_node(h, x):
-    return merge(h, x)
+def insert(h, x):
+    if h and len(h.subtrees) > MAX_SUBTREES:
+        h = insert(pop(h), top(h))
+    return merge(h, KTree(x))
 
 def top(h):
     return h.key
 
-def decrease_key(h, x, key):
-    x.key = key # assume key <= x.key
-    if x.parent is not None:
-        x.parent.children.remove(x) # Sadly, this is O(N) operation.
-    x.parent = None
-    return merge(x, h)
+def decrease_key(h, tr, key):
+    if (not tr) or tr.key < key:
+        return h
+    tr.key = key
+    if tr == h:
+        return h
+    tr.parent.subtrees.remove(tr) # O(n), where n = len(subtrees)
+    tr.parent = None
+    return merge(tr, h)
 
-# Python itertools and receipe provide plenty of
-# tools, which help for iterating over pairs.
-# They are not used here, so fresh python user
-# can read the code.
+# Alternative: to use itertools and receipe to iterate over pairs
 def pop(h):
     lst = deque()
     x = None
-    for y in h.children:
+    for y in h.subtrees:
         if x is None:
             x = y
         else:
@@ -86,54 +84,77 @@ def pop(h):
     for y in lst:
         x = merge(x, y)
     return x
-        
-# helper functions
+
+def lookuptr(h, x):
+    if h.key == x:
+        return h
+    for t in h.subtrees:
+        tr = lookuptr(t, x)
+        if tr:
+            return tr
+    return None
+
+def delete(h, x):
+    tr = lookuptr(h, x)
+    if not tr:
+        return h
+    if tr == h:
+        return pop(h)
+    tr.parent.subtrees.remove(tr)
+    tr.parent = None
+    return merge(pop(tr), h)
+
 def from_list(lst):
     return reduce(insert, lst, None)
 
-def heap_sort(lst):
-    h = from_list(lst)
-    res = []
-    while h is not None:
-        res.append(top(h))
+def to_list(h):
+    xs = []
+    while h:
+        xs.append(top(h))
         h = pop(h)
-    return res
+    return xs
+
+def heap_sort(lst):
+    return to_list(from_list(lst))
 
 def to_str(h):
     s = "(" + str(h.key) + ", "
-    for t in h.children:
+    for t in h.subtrees:
         s = s + to_str(t)
     s = s + ")"
     return s
 
-# testing
-def test_sort():
-    n = 1000
-    for i in range(n):
-        lst = random.sample(range(n), random.randint(1, n))
-        assert(heap_sort(lst) == sorted(lst))
-    print "heap-sort:", n, "test cases are OK."
+def test(f, n = 100):
+    for _ in range(100):
+        xs = sample(range(n), randint(1, n))
+        f(xs)
+    print(f"{n} tests for {f} passed.")
 
-def test_decrease_key():
-    n = 1000
-    m = 16 # too slow for big m
-    for i in range(m):
-        xs = random.sample(range(n), random.randint(1, n))
-        ns = [KTree(x) for x in xs]
-        h = reduce(insert_node, ns, None)
-        xs = [x - random.randint(1, n) for x in xs]
-        for node, x in zip(ns, xs):
-            h = decrease_key(h, node, x)
-        ys = []
-        while h is not None:
-            ys.append(top(h))
-            h = pop(h)
-        assert(ys == sorted(xs))
-    print "decrease-key:", m, "test cases are OK."
+def test_sort(xs):
+    ys = heap_sort(xs)
+    zs = sorted(xs)
+    assert ys == zs, f"heap sort fail: xs = {xs}, ys = {ys}, zs = {zs}"
 
-def test():
-    test_sort()
-    test_decrease_key()
+def test_decrease_key(xs):
+    n = len(xs)
+    x = choice(xs)
+    y = x - randint(1, n)
+    h = from_list(xs)
+    h = decrease_key(h, lookuptr(h, x), y)
+    ys = to_list(h)
+    zs = sorted(y if a == x else a for a in xs)
+    assert ys == zs, f"decease-key fail: xs = {xs}, changed from {x} to {y}, ys = {ys}, zs = {zs}"
+
+def test_del(xs):
+    h = from_list(xs)
+    n = len(xs)
+    y = choice(xs)
+    h = delete(h, y)
+    ys = to_list(h)
+    zs = sorted(filter(lambda x: x != y, xs))
+    assert ys == zs, f"del fail: xs = {xs}, y = {y}, ys = {ys}, zs = {zs}"
 
 if __name__ == "__main__":
-    test()
+    test(test_sort)
+    test(test_decrease_key)
+    test(test_del)

@@ -20,13 +20,13 @@
 
 \author{Xinyu LIU
 \thanks{{\bfseries Xinyu LIU} \newline
-  Email: liuxinyu95@gmail.com \newline}
+  Email: liuxinyu99@hotmail.com \newline}
   }
 
 \maketitle
 \fi
 
-\markboth{Red-black tree}{Elementary Algorithms}
+%\markboth{Red-black tree}{Elementary Algorithms}
 
 \ifx\wholebook\relax
 \chapter{Imperative delete for red-black tree}
@@ -35,7 +35,7 @@
 
 \index{Red-black tree!Imperative delete}
 
-We need handle more cases for imperative $delete$ than $insert$. To resume balance after cutting off a node fro the red-black tree, we perform rotations and re-coloring. When delete a black node, rule 5 will be violated because the number of black nodes along the path through that node reduces by one. We introduce `doubly-black' to maintain the number of black nodes unchanged. Below example program adds `doubly black' to the color definition:
+We need handle more cases for imperative $delete$ than $insert$. To resume balance after cutting off a node from the red-black tree, we perform rotations and re-coloring. When delete a black node, rule 5 will be violated because the number of black nodes along the path through that node reduces by one. We introduce `doubly-black' to maintain the number of black nodes unchanged. Below example program adds `doubly black' to the color definition:
 
 \lstset{frame = single}
 \begin{lstlisting}[language = Bourbaki]
@@ -87,13 +87,13 @@ When delete a node, we re-use the binary search tree $delete$ in the first step,
 \EndFunction
 \end{algorithmic}
 
-If both $p$ and $q$ are empty, we are deleting the only leaf from a singleton tree. The result is empty. If the parent $p$ is not empty, but $q$ is, we are deleting a black leaf. We use NIL to replace that black leaf. As NIL is already black, we change it to 'doubly black' NIL to maintain the blackness. Otherwise, if neither $p$ nor $q$ is empty, we call \textproc{Blacken}($q$). If $q$ is red, it changes to black; if $q$ is already black, it changes to doubly black. As the next step, we need eliminate the doubly blackness through tree rotations and re-coloring. There are three different cases (\cite{CLRS}, pp292). The doubly black node can be NIL or not in all the cases.
+If both $p$ and $q$ are empty, we are deleting the only leaf from a singleton tree. The result is empty. If the parent $p$ is not empty, but $q$ is, we are deleting a black leaf. We use NIL to replace it. As NIL is already black, we change it to 'doubly black' NIL to maintain the blackness. Otherwise, if neither $p$ nor $q$ is empty, we call \textproc{Blacken}($q$). If $q$ is red, it changes to black; if $q$ is already black, it changes to doubly black. As the next step, we need eliminate the doubly blackness through tree rotations and re-coloring. There are three different cases (\cite{CLRS}, pp292). The doubly black node can be NIL or not in all the cases.
 
-\textbf{Case 1}. {\em The sibling of the doubly black node is black, and it has a red sub-tree.} We can rotate the tree to fix the doubly black. There are 4 sub-cases, all can be transformed to a uniformed structure as shown in figure \ref{fig:del-case1}.
+\textbf{Case 1}. {\em The sibling of the doubly black node is black, and it has a red sub-tree.} We can rotate the tree to fix the doubly black. There are 4 sub-cases, all can be transformed to a uniformed structure as shown in \cref{fig:del-case1}.
 
 \begin{figure}[htbp]
    \centering
-   \includegraphics[scale=0.4]{../../../datastruct/tree/red-black-tree/img/del-case1}
+   \includegraphics[scale=0.4, page=3]{../../../datastruct/tree/red-black-tree/img/rbtree}
    \caption{The doubly black node has a black sibling, and a red nephew. It can be fixed with a rotation.}
    \label{fig:del-case1}
 \end{figure}
@@ -140,11 +140,11 @@ If both $p$ and $q$ are empty, we are deleting the only leaf from a singleton tr
 \EndFunction
 \end{algorithmic}
 
-\textbf{Case 2}. {\em The sibling of the doubly black is red.} We can rotate the tree to change the doubly black node to black. As shown in figure \ref{fig:del-case2}, change $a$ or $c$ to black. We can add this fixing to the previous implementation.
+\textbf{Case 2}. {\em The sibling of the doubly black is red.} We can rotate the tree to change the doubly black node to black. As shown in figure \cref{fig:del-case2}, change $a$ or $c$ to black. We can add this fixing to the previous implementation.
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=0.4]{../../../datastruct/tree/red-black-tree/img/del-case3}
+  \includegraphics[scale=0.4, page=4]{../../../datastruct/tree/red-black-tree/img/rbtree}
   \caption{The sibling of the doubly black is red}
   \label{fig:del-case2}
 \end{figure}
@@ -179,11 +179,11 @@ If both $p$ and $q$ are empty, we are deleting the only leaf from a singleton tr
 \EndFunction
 \end{algorithmic}
 
-\textbf{Case 3}. {\em The sibling of the doubly black node, and its two sub-trees are all black.} In this case, we re-color the sibling to red, change the doubly black node back to black, then move the doubly blackness up to the parent. As shown in figure \ref{fig:del-case3}, there are two symetric sub-cases.
+\textbf{Case 3}. {\em The sibling of the doubly black node, and its two sub-trees are all black.} In this case, we re-color the sibling to red, change the doubly black node back to black, then move the doubly blackness up to the parent. As shown in figure \cref{fig:del-case3}, there are two symetric sub-cases.
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=0.4]{../../../datastruct/tree/red-black-tree/img/del-case3}
+  \includegraphics[scale=0.4, page=5]{../../../datastruct/tree/red-black-tree/img/rbtree}
   \caption{move the blackness up}
   \label{fig:del-case3}
 \end{figure}
@@ -410,11 +410,14 @@ data Node<T> {
 
 The program terminates when reach the root or the doubly blackness is eliminated. As we maintain the red-black tree balanced, the delete algorithm is bound to $O(\lg n)$ time for the tree of $n$ nodes.
 
-\begin{Exercise}
-\Question{Write a program to test if a tree satisfies the 5 red-black tree rules. Use this program to verify the red-black tree delete implementation.}
-\end{Exercise}
+%% \begin{Exercise}
+%% \Question{Write a program to test if a tree satisfies the 5 red-black tree rules. Use this program to verify the red-black tree delete implementation.}
+%% \end{Exercise}
 
 \ifx\wholebook\relax \else
+%% \section{Answers}
+%% \shipoutAnswer
+
 \begin{thebibliography}{99}
 
 \bibitem{CLRS}

@@ -19,13 +19,13 @@
 
 \author{Xinyu LIU
 \thanks{{\bfseries Xinyu LIU} \newline
-  Email: liuxinyu95@gmail.com \newline}
+  Email: liuxinyu99@hotmail.com \newline}
   }
 
 \maketitle
 \fi
 
-\markboth{Radix tree}{Elementary algorithms}
+%\markboth{Radix tree}{Elementary algorithms}
 
 \ifx\wholebook\relax
 \chapter{Radix tree}
@@ -39,76 +39,74 @@ Binary search tree stores data in nodes. Can we use the edges to carry informati
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=0.4]{img/radix-tree}
+  \includegraphics[scale=0.6, page=1]{img/trie}
   \caption{Radix tree.}
   \label{fig:radix-tree}
 \end{figure}
 
-Figure \ref{fig:radix-tree} shows a Radix tree. It contains bits 1011, 10, 011, 100 and 0. When lookup a key $k=(b_0b_1...b_n)_2$, we take the first bit $b_0$ (MSB from left), check whether it is 0 or 1. For 0, turn left, else turn right. Then take the second bit and repeat looking up till either reach a leaf node or consume all the $n$ bits. We needn't store keys in Radix tree node. The information is represented by edges. The nodes labelled with key in figure \ref{fig:radix-tree} are for illustration purpose. If the keys are integers, we can represent them in binary format, and implement lookup with bit-wise manipulations.
+\Cref{fig:radix-tree} shows a Radix tree. It contains bits 1011, 10, 011, 100 and 0. When lookup a key $k=(b_0b_1...b_n)_2$, we take the first bit $b_0$ (MSB from left), check whether it is 0 or 1. For 0, turn left, else turn right. Then take the second bit and repeat looking up till either reach a leaf node or finish all the $n$ bits. We needn't store keys in node because they are represented by edges. The nodes labelled with key in \cref{fig:radix-tree} are for illustration purpose. For the integer keys, we represent them in binary format, and implement lookup with bit-wise manipulations.
 
 \section{Integer trie}
 \label{int-trie} \index{Integer trie}
 
-We call the data structure in figure \ref{fig:radix-tree} \emph{binary trie}. Trie was developed by Edward Fredkin in 1960. It comes from ``re\textbf{trie}val'', pronounce as /'tri:/ by Freddkin, while others pronounce it as /'trai/ ``try''\cite{wiki-trie}. Although it's also called prefix tree in some context, we treat trie and prefix tree different in this chapter. A binary trie is a special binary tree in which the placement of each key is controlled by its bits, each 0 means `go left' and each 1 means `go right'\cite{okasaki-int-map}. Consider the binary trie in figure \ref{fig:big-endian-trie}. The three keys are different bit strings of ``11'', ``011'', and ``0011'' although they are all equal to 3.
+We call the data structure in \cref{fig:radix-tree} \emph{binary trie}, which was developed by Edward Fredkin in 1960. The name comes from ``re\textbf{trie}val'', pronounce as /'tri:/ by Freddkin, while others pronounce it as /'trai/ ``try''\cite{wiki-trie}. Although it's also called prefix tree, we treat trie and prefix tree differently in this book. A binary trie is a special binary tree in which the placement of each key is controlled by its bits, each 0 means `go left' and each 1 means `go right'\cite{okasaki-int-map}. Consider the binary trie in \cref{fig:big-endian-trie}. The three keys of ``11'', ``011'', and ``0011'' all equal to 3.
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=0.4]{img/big-endian-trie}
+  \includegraphics[scale=0.6, page=2]{img/trie}
   \caption{A big-endian trie.}
   \label{fig:big-endian-trie}
 \end{figure}
 
-It is inefficient to treat the prefix zeros as valid bits. For 32 bits integers, we need a tree of 32 levels to insert number 1. Okasaki suggested to use little-endian integers instead\cite{okasaki-int-map}. 1 is represented as bits $(1)_2$, 2 as $(01)_2$, and 3 is $(11)_2$, ...
+It is inefficient to treat the prefix zeros as valid bits. We need a tree of 32 levels to insert 1 as an integer of 32 bits. Okasaki suggests to use little-endian integers instead\cite{okasaki-int-map}. 1 is represented as bits $(1)_2$, 2 as $(01)_2$, and 3 is $(11)_2$, ...
 
 \subsection{Definition}
-We can re-use binary tree structure to define the little-endian binary trie. A node is either empty, or a branch containing the left, right sub-trees, and an optional value. The left sub-tree is encoded as 0 and the right sub-tree is encoded as 1.
+Re-use binary tree definition, a node is either empty, or a branch containing the left, right sub-trees, and an optional value $v$. The left sub-tree $l$ is encoded as 0 and the right $r$ is encoded as 1.
 
 \lstset{frame = single}
 \begin{Haskell}
-data IntTrie a = Empty
-               | Branch (IntTrie a) (Maybe a) (IntTrie a)
+data IntTrie a = Empty | Branch (IntTrie a) (Maybe a) (IntTrie a)
 \end{Haskell}
 
-Given a node in the binary trie, the integer key bound to it is uniquely determined through its position. That is the reason we need not save the key, but only the value in the node. The type of the key is always integer, we call the tree $IntTrie\ A$ if the value is of type $A$.
+Given a node, the corresponding integer key is uniquely determined through its position. That is the reason we need not save the key, but only the value in the node. The type of the tree is $IntTrie\ A$ where $A$ is the type of the value.
 
 \subsection{Insert}
 \index{Integer trie!insert}
 
-When insert an integer key $k$ and a value $v$, we convert $k$ into binary form. If $k$ is even, the lowest bit is 0, we recursively insert to the left sub-tree; otherwise if $k$ is odd, the lowest bit is 1, we recursively insert to the right. We next divide $k$ by 2 to remove the lowest bit. For none empty trie $T = (l, v', r)$, where $l, r$ are the left and right sub-trees, and $v'$ is the optional value, function $insert$ can be defined as below:
+When insert a key $k$ and a value $x$, we convert the integer $k$ into binary. If $k$ is even, the lowest bit is 0, we recursively insert to the left sub-tree; otherwise $k$ is odd, the lowest bit is 1, we insert to the right. Next divide $k$ by 2 to remove the lowest bit. For none empty trie $T = (l, v, r)$, function $insert$ is defined as below:
 
 \be
 \begin{array}{rcl}
-insert\ \nil\ k\ v & = & insert (\nil, \textit{Nothing}, \nil)\ k\ v \\
-insert\ (l, v', r)\ 0\ v & = & (l, \textit{Just}\ v, r) \\
-insert\ (l, v', r)\ k\ v & = & \begin{cases}
-  even(k): & (insert\ l\ \dfrac{k}{2}\ v, v', r) \\
-  odd(k) : & (l, v', insert\ r\ \lfloor \dfrac{k}{2} \rfloor\ v) \\
+insert\ k\ x\ \nil & = & insert\ k\ x\ (\nil, \textit{Nothing}, \nil) \\
+insert\ 0\ x\ (l, v, r) & = & (l, \textit{Just}\ x, r) \\
+insert\ k\ x\ (l, v, r) & = & \begin{cases}
+  even(k): & (insert\ \dfrac{k}{2}\ x\ l, v, r) \\
+  odd(k) : & (l, v, insert\ \lfloor \dfrac{k}{2} \rfloor\ x\ r) \\
 \end{cases}
 \end{array}
 \ee
 
-If $k = 0$, we put $v$ in the node. When $T = \nil$, it becomes $(\nil, \textit{Just}\ v, \nil)$. As far as $k \neq 0$, we goes down along the tree based on the parity of $k$. We create empty leaf $(\nil, \textit{Nothing}, \nil)$ whenever meet $\nil$ node. This algorithm overrides the value if $k$ already exists. Alternatively, we can store a list, and append $v$ to it. Figure \ref{fig:int-trie} shows an example trie, generated by inserting the key-value pairs of \{$ 1 \rightarrow a, 4 \rightarrow b, 5 \rightarrow c, 9 \rightarrow d$\}. Below is the example program implements $insert$:
+If $k = 0$, we put $x$ in the node. This algorithm overrides the value if $k$ already exists. Alternatively, we can store a list, and append $x$ to it. As far as $k \neq 0$, we goes down along the tree based on the parity of $k$. We create empty leaf $(\nil, \textit{Nothing}, \nil)$ whenever meet $\nil$. \Cref{fig:int-trie} shows an example trie, generated with key-value pairs of \{$ 1 \rightarrow a, 4 \rightarrow b, 5 \rightarrow c, 9 \rightarrow d$\}. Below example program implements $insert$:
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=0.5]{img/int-trie}
+  \includegraphics[scale=0.6, page=3]{img/trie}
   \caption{A little-endian integer binary trie of
           \{$ 1 \rightarrow a, 4 \rightarrow b, 5 \rightarrow c, 9 \rightarrow d$\}.}
   \label{fig:int-trie}
 \end{figure}
 
 \begin{Haskell}
-insert Empty k x = insert (Branch Empty Nothing Empty) k x
-insert (Branch l v r) 0 x = Branch l (Just x) r
-insert (Branch l v r) k x | even k    = Branch (insert l (k `div` 2) x) v r
-                          | otherwise = Branch l v (insert r (k `div` 2) x)
+insert k x Empty = insert k x (Branch Empty Nothing Empty)
+insert 0 x (Branch l v r) = Branch l (Just x) r
+insert k x (Branch l v r) | even k    = Branch (insert (k `div` 2) x l) v r
+                          | otherwise = Branch l v (insert (k `div` 2) x r)
 \end{Haskell}
 
-We can define the even/odd testing by modular 2, and check if the remainder is 0 or not: $even(k) = (k \bmod 2 = 0)$. Or use bit-wise operation in some environment, like \texttt{(k \& 0x1) == 0}. We can eliminate the recursion through loops to realize an iterative implementation as below:
+We can test even/odd with the remainder modulo 2: $even(k) = (k \bmod 2 = 0)$m or use bit-wise operation, like \texttt{(k \& 0x1) == 0}. We can eliminate the recursion through loops to realize an iterative implementation:
 
-%\begin{algorithm}
 \begin{algorithmic}[1]
-\Function{Insert}{$T, k, v$}
+\Function{Insert}{$T, k, x$}
   \If{$T =$ NIL}
     \State $T \gets$ \Call{Empty-Node}{}  \Comment{(NIL, Nothing, NIL)}
   \EndIf
@@ -127,40 +125,40 @@ We can define the even/odd testing by modular 2, and check if the remainder is 0
     \EndIf
     \State $k \gets \lfloor k/2 \rfloor$
   \EndWhile
-  \State \Call{Value}{$p$} $\gets v$
+  \State \Call{Value}{$p$} $\gets x$
   \State \Return $T$
 \EndFunction
 \end{algorithmic}
-%\end{algorithm}
 
-\textproc{Insert} takes, a trie $T$, a key $k$, and a value $v$. For integer $k$ with $m$ bits in binary, it goes into $m$ levels of the trie. The performance is bound to $O(m)$.
+\textproc{Insert} takes a trie $T$, a key $k$, and a value $x$. For integer $k$ of $m$ bits, it goes $m$ levels. The performance is bound to $O(m)$. We design $insert\ k\ x\ T$ and \textproc{Insert}($T, k, x$) symmetric, apply $foldr$ to the former, and $foldl$ (or for-loops) to the latter to convert a list of key-value pairs to tree. For example:
 
-\subsection{Look up}
-\index{Integer trie!look up}
+\be
+fromList = foldr\ (uncurry\ insert)\ \nil
+\ee
 
-When look up key $k$ in a none empty integer trie, if $k = 0$, then the root node is the target. Otherwise, we check the lowest bit, then recursively look up the left or right sub-tree accordingly.
+The usage is $fromList$\ [(1, a), (4, b), (5, c), (9, d)], where $uncurry$ is the revert of Currying, it unpack a pair and feed to $insert$:
+
+\be
+uncurry\ f\ (a, b) = f\ a\ b
+\ee
+
+\subsection{Lookup}
+\index{Integer trie!lookup}
+
+When lookup key $k$, if $k = 0$, then the root is the target. Otherwise, we check the lowest bit, then recursively look up the left or right sub-tree accordingly.
 
 \be
 \begin{array}{rcl}
-lookup\ \nil\ k & = & \textit{Nothing} \\
-lookup\ (l, v, r)\ 0 & = & v \\
-lookup\ (l, v, r)\ k & = & \begin{cases}
-  even(k): & lookup\ l\ \dfrac{k}{2} \\
-  odd(k):  & lookup\ r\ \lfloor \dfrac{k}{2} \rfloor \\
+lookup\ k\ \nil & = & \textit{Nothing} \\
+lookup\ 0\ (l, v, r) & = & v \\
+lookup\ k\ (l, v, r) & = & \begin{cases}
+  even(k): & lookup\ \dfrac{k}{2}\ l \\
+  odd(k):  & lookup\ \lfloor \dfrac{k}{2} \rfloor\ r \\
 \end{cases}
 \end{array}
 \ee
 
-Below example program implements the $lookup$ function:
-
-\begin{Haskell}
-lookup Empty _ = Nothing
-lookup (Branch _ v _) 0 = v
-lookup (Branch l _ r) k | even k    = lookup l (k `div` 2)
-                        | otherwise = lookup r (k `div` 2)
-\end{Haskell}
-
-We can eliminate the recursion to implement the iterative $lookup$ as the following:
+We can eliminate the recursion to implement the iterative $lookup$:
 
 \begin{algorithmic}[1]
 \Function{Lookup}{$T, k$}
@@ -181,36 +179,39 @@ We can eliminate the recursion to implement the iterative $lookup$ as the follow
 
 The $lookup$ function is bound to $O(m)$ time, where $m$ is the number of bits of $k$.
 
-\begin{Exercise}
+\begin{Exercise}[label={ex:int-trie-empty-node}]
 \Question{Can we change the definition from \texttt{Branch (IntTrie a) (Maybe a) (IntTrie a)} to \texttt{Branch (IntTrie a) a (IntTrie a)}, and return \textit{Nothing} if the value does not exist, and \textit{Just\ v} otherwise?}
 \end{Exercise}
 
-\section{Integer prefix tree}
-\label{int-patricia}
-\index{Integer Patricia} \index{Integer prefix tree}
+\begin{Answer}[ref = {ex:int-trie-empty-node}]
+\Question{Can we change the definition from \texttt{Branch (IntTrie a) (Maybe a) (IntTrie a)} to \texttt{Branch (IntTrie a) a (IntTrie a)}, and return \textit{Nothing} if the value does not exist, and \textit{Just\ v} otherwise?
 
-Trie is not space efficient. As shown in figure \ref{fig:int-trie}, there are only 4 nodes with value, while the rest 5 are empty. The space usage is less than 50\%. To improve the efficiency, we can consolidate the chained nodes to one. Integer prefix tree is such a data structure developed by Donald R. Morrison in 1968. He named it as `Patricia', standing for \textbf{P}ractical \textbf{A}lgorithm \textbf{T}o \textbf{R}etrieve \textbf{I}nformation \textbf{C}oded \textbf{I}n \textbf{A}lphanumeric\cite{patricia-morrison}. When the keys are integer, we call it integer prefix tree or simply integer tree when the context is clear. Okasaki provided the implementation in \cite{okasaki-int-map}. Consolidate the chained nodes in figure \ref{fig:int-trie}, we obtained an integer tree as shown in figure \ref{fig:little-endian-patricia}.
+Besides $lookup$, we need handle branch node without value (the blank circle nodes in \cref{fig:int-trie}) when $insert$. Alternatively, we can add an additional constructor in the algebraic data type (ADT) to replace the Maybe type:
+
+\begin{Haskell}
+data IntTrie a = Empty
+               | Branch (IntTrie a) a (IntTrie a)
+               | EmptyBranch (IntTrie a) (IntTrie a)
+\end{Haskell}
+}
+\end{Answer}
+
+\section{Integer prefix tree}
+\label{int-patricia} \index{Integer Patricia} \index{Integer prefix tree}
+
+Trie is not space efficient. As shown in \cref{fig:int-trie}, there are only 4 nodes with value, while the rest 5 are empty. The space usage is less than 50\%. To improve the efficiency, we can consolidate the chained nodes. Integer prefix tree is such a data structure developed by Donald R. Morrison in 1968. He named it as `Patricia', standing for \textbf{P}ractical \textbf{A}lgorithm \textbf{T}o \textbf{R}etrieve \textbf{I}nformation \textbf{C}oded \textbf{I}n \textbf{A}lphanumeric\cite{patricia-morrison}. When the keys are integer, we call it integer prefix tree or simply integer tree when the context is clear. Consolidate the chained nodes in \cref{fig:int-trie}, gives the integer tree in \cref{fig:little-endian-patricia}. The key of the branch node is the longest common prefix for its descendant trees. In other words, the sibling sub-trees branch out at the bit where ends at their longest prefix.
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=0.5]{img/little-endian-patricia}
-  \caption{Little endian integer tree for the map
+  \includegraphics[scale=0.6, page=4]{img/trie}
+  \caption{Little endian integer tree of the map
      \{$ 1 \rightarrow a, 4 \rightarrow b, 5 \rightarrow c, 9 \rightarrow d$\}.}
   \label{fig:little-endian-patricia}
 \end{figure}
 
-The key to the branch node is the longest common prefix for its descendant trees. In other words, the sibling sub-trees branch out at the bit where ends at their longest prefix. As the result, integer tree eliminates the redundant spaces in trie.
-
 \subsection{Definition}
 
-Integer prefix tree is a special binary tree. It is either empty or a node of:
-
-\begin{itemize}
-\item A leaf contains an integer key $k$ and a value $v$;
-\item Or a branch with the left and right sub-trees, that share the \textbf{longest common prefix} bits for their keys. For the left sub-tree, the next bit is 0, for the right, it is 1.
-\end{itemize}
-
-Below example program defines the integer prefix tree. The branch node contains 4 components: The longest prefix, a mask integer indicating from which bit the sub-trees branch out, the left and right sub-trees. The mask is $m = 2^n$ for some integer $n \geq 0$. All bits that are lower than $n$ do not belong to the common prefix.
+Integer prefix tree is a special binary tree. It is empty $\nil$, or a leaf of $(k, v)$, that contains an integer key $k$ and a value $v$, or a branch with the left and right sub-trees, that share the \textbf{longest common prefix} bits for their keys. For the left sub-tree, the next bit is 0, for the right, it is 1. Denoted as $(p, m, l, r)$. Below example program defines the integer prefix tree. The branch node contains 4 components: The longest prefix $p$, a mask integer $m$ indicating from which bit the sub-trees branch out, the left and right sub-trees $l$ and $r$. The mask $m = 2^n$ for some integer $n \geq 0$. All bits below$n$ do not belong to the common prefix.
 
 \begin{Haskell}
 data IntTree a = Empty
@@ -220,37 +221,35 @@ data IntTree a = Empty
 
 \subsection{Insert}
 \index{Integer tree!insert}
-When insert integer $y$ to tree $T$, if $T$ is empty, we create a leaf of $y$; If $T$ is a singleton leaf of $x$, besides the new leaf of $y$, we need create a branch node, set $x$ and $y$ as the two sub-trees. To determine whether $y$ is on the left or right, we need find the longest common prefix $p$ of $x$ and $y$. For example if $x = 12 = (1100)_2$, $y = 15 = (1111)_2$, then $p = (11oo)_2$, where $o$ denotes the bits we don't care. We can use another integer $m$ to mask those bits. In this example, $m = 4 = (100)_2$. The next bit after $p$ presents $2^1$. It is 0 in $x$, 1 in $y$. Hence, we set $x$ as the left sub-tree and $y$ as the right, as shown in figure \ref{fig:int-patricia-insert-b}.
+When insert integer $y$ to tree $T$, if $T$ is empty, we create a leaf of $y$; If $T$ is a singleton leaf of $x$, we create a new leaf of $y$, and a branch, set $x$ and $y$ as the two sub-trees. To determine which one is on the left between $x$ and $y$, we find the longest common prefix $p$ of $x$ and $y$. For example if $x = 12 = (1100)_2$, $y = 15 = (1111)_2$, then $p = (11oo)_2$, where $o$ denotes the bits we don't care. We can use another integer $m$ to mask those bits. In this example, $m = 4 = (100)_2$. The next bit after $p$ presents $2^1$. It is 0 in $x$, 1 in $y$. Hence, we set $x$ as the left sub-tree and $y$ as the right in \cref{fig:int-patricia-insert-b}.
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=0.7]{img/int-patricia-insert-b}
+  \includegraphics[scale=0.6, page=5]{img/trie}
   \caption{Left: $T$ is a leaf of 12; Right: After insert 15.}
   \label{fig:int-patricia-insert-b}
 \end{figure}
 
-If $T$ is neither empty nor a leaf, we firstly check if $y$ matches the longest common prefix $p$ in the root, then recursively insert it to the sub-tree according to the next bit after $p$. For example, when insert $y = 14 = (1110)_2$ to the tree shown in figure \ref{fig:int-patricia-insert-b}, since $p = (11oo)_2$ and the next bit (the bit of $2^1$) is 1, we recursively insert $y$ to the right sub-tree. If $y$ does not match $p$ in the root, we need branch a new leaf as shown in figure \ref{fig:int-patricia-insert-c}.
+If $T$ is neither empty nor a leaf, we firstly check if $y$ matches the longest common prefix $p$ in the root, then recursively insert it to the sub-tree according to the next bit to $p$. For example, when insert $y = 14 = (1110)_2$ to the tree in \cref{fig:int-patricia-insert-b}, since $p = (11oo)_2$ and the next bit (the bit of $2^1$) is 1, we recursively insert $y$ to the right sub-tree. If $y$ does not match $p$ in the root, we need branch a new leaf as shown in \cref{fig:int-patricia-insert-c}.
 
 \begin{figure}[htbp]
   \centering
-  \subcaptionbox{Insert $14 = (1110)_2$, which matches $p = (1100)_2$. It is inserted to the right.}{\includegraphics[scale=0.5]{img/int-patricia-insert-c}}\\
-  \subcaptionbox{Insert $5 = (101)_2$, which does not match $p = (1100)_2$. Branch out a new leaf.}{\includegraphics[scale=0.5]{img/int-patricia-insert-d}}
-  \caption{The tree is a branch node.}
+  \subcaptionbox{Insert $14 = (1110)_2$, which matches $p = (1100)_2$, to right.}{\includegraphics[scale=0.6, page=6]{img/trie}}\\
+  \subcaptionbox{Insert $5 = (101)_2$, which does not match $p = (1100)_2$. Branch out a new leaf.}{\includegraphics[scale=0.6, page=7]{img/trie}}
+  \caption{Insert to a branch.}
   \label{fig:int-patricia-insert-c}
 \end{figure}
-
-For integer key $k$ and value $v$, let $(k, v)$ be the leaf. For branch node, denote it as $(p, m, l, r)$, where $p$ is the longest common prefix, $m$ is the mask, $l$ and $r$ are the left and right sub-trees. Below $insert$ function defines the above 3 cases:
 
 \be
 \resizebox{\textwidth}{!}{\ensuremath{
 \begin{array}{rcl}
-insert\ \nil\ k\ v\ & = & (k, v) \\
-insert\ (k, v')\ k\ v\ & = & (k, v) \\
-insert\ (k', v')\ k\ v\ & = & join\ k\ (k, v)\ k'\ (k', v') \\
-insert\ (p, m, l, r)\ k\ v\ & = & \begin{cases}
+insert\ k\ v\ \nil & = & (k, v) \\
+insert\ k\ v\ (k, v') & = & (k, v) \\
+insert\ k\ v\ (k', v') & = & join\ k\ (k, v)\ k'\ (k', v') \\
+insert\ k\ v\ (p, m, l, r) & = & \begin{cases}
   match(k, p, m): & \begin{cases}
-    zero(k, m): & (p, m, insert\ l\ k\ v) \\
-    otherwise:  & (p, m, insert\ r\ k\ v) \\
+    zero(k, m): & (p, m, insert\ k\ v\ l, r) \\
+    otherwise:  & (p, m, l, insert\ k\ v\ r) \\
   \end{cases} \\
   otherwise: & join\ k\ (k, v)\ p\ (p, m, l, r) \\
 \end{cases} \\
@@ -258,42 +257,42 @@ insert\ (p, m, l, r)\ k\ v\ & = & \begin{cases}
 }}
 \ee
 
-The first clause creates a leaf when $T = \nil$; the second clause overrides the value for the same key. Function $match(k, p, m)$ tests if integer $k$ and prefix $p$ have the same bits after masked with $m$ through: $mask(k, m) = p$, where $mask(k, m) = \overline{m-1} \& k$. It applies bit-wise not to $m-1$, then does bit-wise and with $k$. $zero(k, m)$ tests the next bit in $k$ masked with $m$ is 0 or not. We shift $m$ one bit to right, then do bit-wise and with $k$:
+We create a leaf of $(k, v)$ when $T = \nil$, override the value for the same key. Function $match(k, p, m)$ tests if $k$ and $p$ have the same bits after masked with $m$ through: $mask(k, m) = p$, where $mask(k, m) = \overline{m-1} \& k$. It applies bit-wise not to $m-1$, then does bit-wise and with $k$. $zero(k, m)$ tests the next bit in $k$ masked with $m$ is 0 or not. We shift $m$ one bit to right, then do bit-wise and with $k$:
 
 \be
-zero(k, m) = x \& (m >> 1)
+zero(k, m) = x \& (m \gg 1)
 \ee
 
-Function $join(p_1, T_1, p_2, T_2)$ takes two different prefixes and trees. It extracts the longest common prefix of $p_1$ and $p_2$ as $(p, m) = LCP(p_1, p_2)$, creates a new branch node, then set $T_1$ and $T_2$ as the two sub-trees:
+Function $join(p_1, T_1, p_2, T_2)$ takes two prefixes and trees. It extracts the longest common prefix of $p_1$ and $p_2$ as $(p, m) = LCP(p_1, p_2)$, creates a new branch node, then set $T_1$ and $T_2$ as the sub-trees:
 
 \be
 join(p_1, T_1, p_2, T_2) = \begin{cases}
-  zero(p1, m): & (p, m, T_1, T_2) \\
+  zero(p_1, m): & (p, m, T_1, T_2) \\
   otherwise: & (p, m, T_2, T_1) \\
 \end{cases}
 \ee
 
-To calculate the longest common prefix, we can firstly compute bit-wise exclusive-or for $p1$ and $p2$, then count the highest bit $highest(xor(p_1, p_2))$ as:
+To calculate the longest common prefix, we firstly compute bit-wise exclusive-or for $p1$ and $p2$, then count the highest bit $h = highest(xor(p_1, p_2))$ as:
 
 \[
 \begin{array}{rcl}
 highest(0) & = & 0 \\
-highest(n) & = & 1 + highest(n >> 1) \\
+highest(n) & = & 1 + highest(n \gg 1) \\
 \end{array}
 \]
 
-Then generate a mask $m = 2^{highest(xor(p_1,p_2))}$. The longest common prefix $p$ can be given by masking the bits with $m$ for either $p_1$ or $p_2$, like $p = mask(p_1, m)$. The following example program implements the $insert$ function:
+Then generate a mask $m = 2^h$. The longest common prefix $p$ can be given by masking the bits with $m$ for either $p_1$ or $p_2$, like $p = mask(p_1, m)$. The following example program implements the $insert$ function:
 
 \begin{Haskell}
-insert t k x
+insert k x t
    = case t of
        Empty -> Leaf k x
        Leaf k' x' -> if k == k' then Leaf k x
                      else join k (Leaf k x) k' t
        Branch p m l r
           | match k p m -> if zero k m
-                           then Branch p m (insert l k x) r
-                           else Branch p m l (insert r k x)
+                           then Branch p m (insert k x l) r
+                           else Branch p m l (insert k x r)
           | otherwise -> join k (Leaf k x) p t
 
 join p1 t1 p2 t2 = if zero p1 m then Branch p m t1 t2
@@ -389,11 +388,11 @@ Function \textproc{LCP} find the longest bit prefix from two integers:
 \Statex
 \end{algorithmic}
 
-Figure \ref{fig:int-patricia-haskell-insert} gives an example integer tree created from the $insert$ algorithm. Although integer prefix tree consolidates the chained nodes, the operation to extract the longest common prefix need linear scan the bits. For integer of $m$ bits, the insert is bound to $O(m)$.
+\Cref{fig:int-patricia-haskell-insert} gives an example tree. Although the integer prefix tree consolidates the chained nodes, the operation to extract the longest common prefix need scan the bits. For integer of $m$ bits, it is bound to $O(m)$.
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=0.6]{img/int-patricia-haskell-insert}
+  \includegraphics[scale=0.6, page=8]{img/trie}
   \caption{Insert $\{1 \rightarrow x, 4 \rightarrow y, 5 \rightarrow z\}$ to the big-endian integer tree.}
   \label{fig:int-patricia-haskell-insert}
 \end{figure}
@@ -402,33 +401,26 @@ Figure \ref{fig:int-patricia-haskell-insert} gives an example integer tree creat
 \subsection{Lookup}
 \index{Integer tree!lookup}
 
-When lookup key $k$, if the integer tree $T = \nil$ or it is a leaf of $T = (k', v)$ with different key, then $k$ does not exist; if $k = k'$, then $v$ is the result; if $T = (p, m, l, r)$ is a branch node, we need check if the common prefix $p$ matches $k$ under the mask $m$, then recursively lookup the sub-tree $l$ or $r$ upon next bit. If fails to match the common prefix $p$, then $k$ does not exist.
+When lookup key $k$, if the tree $T = \nil$ or a leaf $T = (k', v)$ with different key, then $k$ does not exist; if $k = k'$, then $v$ is the result; if $T = (p, m, l, r)$, we need check if the common prefix $p$ matches $k$ under the mask $m$, then recursively lookup the sub-tree $l$ or $r$. If fails to match $p$, then $k$ does not exist.
 
 \be
 \begin{array}{rcl}
-lookup\ \nil\ k & = & \textit{Nothing} \\
-lookup\ (k', v)\ k & = & \begin{cases}
+lookup\ k\ \nil & = & \textit{Nothing} \\
+lookup\ k\ (k', v) & = & \begin{cases}
   k = k': & \textit{Just}\ v \\
   otherwise: & \textit{Nothing} \\
   \end{cases} \\
-lookup\ (p, m, l, r)\ k & = & \begin{cases}
+lookup\ k\ (p, m, l, r) & = & \begin{cases}
   match(k, p, m): & \begin{cases}
-    zero(k, m): & lookup\ l\ k \\
-    otherwise: &  lookup\ r\ k \\
+    zero(k, m): & lookup\ k\ l \\
+    otherwise: &  lookup\ k\ r \\
     \end{cases} \\
   otherwise: & \textit{Nothing} \\
   \end{cases}\\
 \end{array}
 \ee
 
-%% \begin{Haskell}
-%% lookup Empty _ = Nothing
-%% lookup (Leaf k' v) k = if k == k' then Just v else Nothing
-%% lookup (Branch p m l r) k | match k p m = if zero k m then lookup l k else lookup r k
-%%                           | otherwise = Nothing
-%% \end{Haskell}
-
-We can also eliminate the recursion to implement the iterative lookup algorithm.
+We can also eliminate the recursion to implement the iterative lookup.
 
 \begin{algorithmic}[1]
 \Function{Look-Up}{$T, k$}
@@ -452,80 +444,168 @@ We can also eliminate the recursion to implement the iterative lookup algorithm.
 
 The $lookup$ algorithm is bound to $O(m)$, where $m$ is the number of bits in the key.
 
-\begin{Exercise}
-\Question{Write a program to implement the $lookup$ function.}
+\begin{Exercise}[label={ex:int-tree-lookup}]
+\Question{Implement the $lookup$ function for integer tree.}
 \Question{Implement the pre-order traverse for both integer trie and integer tree. Only output the keys when the nodes store values. What pattern does the result follow?}
 \end{Exercise}
 
+\begin{Answer}[ref = {ex:int-tree-lookup}]
+\Question{Implement the $lookup$ function for integer tree.
+
+\begin{Haskell}
+import Data.Bits
+
+type Key = Int
+type Prefix = Int
+type Mask = Int
+
+data IntTree a = Empty
+               | Leaf Key a
+               | Branch Prefix Mask (IntTree a) (IntTree a)
+
+lookup :: Key -> IntTree a -> Maybe a
+lookup _ Empty = Nothing
+lookup k (Leaf k' v) = if k == k' then Just v else Nothing
+lookup k (Branch p m l r) | match k p m = if zero k m then lookup k l
+                                          else lookup k r
+                          | otherwise = Nothing
+
+match :: Key -> Prefix -> Mask -> Bool
+match k p m = (mask k m) == p
+
+mask :: Int -> Mask -> Int
+mask x m = (x .&. complement (m - 1))
+
+zero :: Int -> Mask -> Bool
+zero x m = x .&. (shiftR m 1) == 0
+\end{Haskell}
+}
+\Question{Implement the pre-order traverse for both integer trie and integer tree. Only output the keys when the nodes store values. What pattern does the result follow?
+
+\label{ex:prefix-tree-pre-order-traverse}
+\vspace{3mm}
+We first convert an integer trie to assoc-list. The pre-order is the recursive `middle-left-right' order. When traverse the empty tree, the result is $[\ ]$, For branch node $(l, m, r)$, let the recursive pre-order lists of the left and right sub-trees be $as$ and $bs$ respectively. For the middle Maybe value $m$, if it's Nothing, the result is $as \doubleplus bs$; if it's Just $v$, then the result is $(k, v) \cons as \doubleplus bs$, where $k$ is the corresponding binary integer (in little endian, 0 for left, 1 for right).
+
+\begin{Haskell}
+toList = go 0 1 where
+  go _ _ Empty = []
+  go k n (Branch l m r) = case m of
+    Nothing -> as ++ bs
+    (Just v) -> (k, v) : as ++ bs
+    where
+      as = go k       (2 * n) l
+      bs = go (n + k) (2 * n) r
+\end{Haskell}
+
+We start from the root. Let $k = 0$, the depth $d = 0$. If go left, then $k' = 0$, if go right, then $k' = 1 = 2^d + k = 1 + 0$; For the next level $d = 1$, the corresponding $k$ for the four nodes are $(00)_2 = 0$, $(10)_2 = 2^1 + 0$, $(01)_2 = 1$, and $(11)_2 = 2^1 + 1$. Basically, for the node in level $d$, let $k = (a_d...a_2 a_1 a_0)_2$, when go left, then $k' = k$, when go right, then $k' = a_d 2^d + k$. In above implementation, we start with $k = 0$, $n = 2^0 = 1$ to call $go\ k\ n$. Call $go\ k\ 2n$ when go left, $go\ (n + k)\ 2n$ when go right.
+
+We get the keys in pre-order through $keys = fst \circ unzip \circ toList$. We can use tail recursive call to optimize $as \doubleplus bs$:
+
+\begin{Haskell}
+toList = go 0 1 [] where
+  go _ _ z Empty = z
+  go k n z (Branch l m r) = case m of
+    Nothing -> xs
+    (Just v) -> (k, v) : xs
+    where xs = go k (2 * n) (go (n + k) (2 * n) z r) l
+\end{Haskell}
+
+Further, we can define generic pre-order fold for integer trie. Different from the $fold$ in chapter 2, the keys are computed while folding.
+
+\begin{Haskell}
+foldpre f z = go 0 1 z where
+  go _ _ z Empty = z
+  go k n z (Branch l m r) = f k m (go k (2 * n) (go (n + k) (2 * n) z r) l)
+\end{Haskell}
+
+We redefine the $toList$ with fold:
+
+\begin{Haskell}
+toList = foldpre f [] where
+  f _ Nothing xs = xs
+  f k (Just v) xs = (k, v) : xs
+\end{Haskell}
+
+It's more straightforward to implement the pre-order traverse for integer prefix tree than trie. We needn't compute keys. Below is the generic fold in pre-order:
+
+\begin{Haskell}
+foldpre _ z Empty = z
+foldpre f z (Leaf k v) = f k v z
+foldpre f z (Branch p m l r) = foldpre f (foldpre f z r) l
+\end{Haskell}
+
+We can convert a integer tree to assoc-list and get keys with fold:
+\begin{Haskell}
+toList = foldpre (\k v xs -> (k, v):xs) []
+keys = fst . unzip . toList
+\end{Haskell}
+
+When populate keys of a tree, their binary bits are in ascending order for both little endian binary trie and big endian integer prefix tree. To verify it, we define a function $bitsLE$ converting an integer to a list of bits in little endian. Then use it to verify the key ordering of trie:
+
+\begin{Haskell}
+verify kvs = sorted $ map bitsLE $ keys $ fromList kvs where
+  sorted [] = True
+  sorted xs = and $ zipWith (<=) xs (tail xs)
+  bitsLE 0 = []
+  bitsLE n = (n `mod` 2) : bitsLE (n `div` 2)
+\end{Haskell}
+
+Where $kvs$ is a list of random key-value pairs. The corresponding verification for big endian integer prefix tree is as below:
+
+\begin{Haskell}
+verify kvs = sorted $ keys $ fromList kvs
+\end{Haskell}
+}
+\end{Answer}
+
 \section{Trie}
 \index{Trie}
-From integer trie and tree, we can extend the key to a list of elements. Particularly the trie and tree with key in alphabetic string are powerful tools for text manipulation.
-
-\subsection{Definition}
-When extend the key type from 0/1 bits to generic list, the tree structure changes from binary tree to multiple sub-trees. Taking English characters for example, there are up to 26 sub-trees when ignore the case as shown in figure \ref{fig:trie-of-26}.
+When extend the key type from 0/1 bits to generic list, the tree structure changes from binary tree to multiple sub-trees. Taking English characters for example, there are up to 26 sub-trees when ignore the case as shown in \cref{fig:trie-of-26}.
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=0.5]{img/trie-of-26}
+  \includegraphics[scale=0.5, page=9]{img/trie}
   \caption{A trie of 26 branches, containing key `a', `an', `another', `bool', `boy', and `zoo'.}
   \label{fig:trie-of-26}
 \end{figure}
 
-Not all the 26 sub-trees contain data. In figure \ref{fig:trie-of-26}, there are only three none empty sub-trees bound to `a', `b', and `z'. Other sub-trees, such as for `c', are empty. We can hide them in the figure. When it is case sensitive, or extent the key from alphabetic string to generic list, we can adopt collection types, like map to define trie.
-
-A trie is either empty or a node of 2 kinds:
+Not all the 26 sub-trees contain data. In \cref{fig:trie-of-26}, there are only three none empty sub-trees bound to `a', `b', and `z'. Other sub-trees, such as `c', are empty. We will hide them later. When it is case sensitive, or extent the key from alphabetic string to generic list, we adopt collection types, like map to define trie. A trie of type $Trie\ K\ V$ is either empty $\nil$ or a node of 2 cases:
 
 \begin{enumerate}
-\item A leaf of value $v$ without any sub-trees;
-\item A branch, containing a value $v$ and multiple sub-trees. Each sub-tree is bound to an element $k$ of type $K$.
+\item A leaf of value $v$ without any sub-trees as $(v, \nil)$, where the type of $v$ is $V$;
+\item A branch, containing a value $v$ and multiple sub-trees. Each sub-tree is bound to an element $k$ of type $K$. Denoted as $(v, ts)$, where $ts = \{ k_1 \mapsto T_1, k_2 \mapsto T_2, ..., k_m \mapsto T_m \}$, contains the mapping from $k_i$ to sub-tree $T_i$. The mapping can be assoc list or self-balancing trees (see chapter 4, 5).
 \end{enumerate}
 
-Let the type of value be $V$, we denote the trie as $Trie\ K\ V$. Below example program defines trie.
+Let the empty content be $(\textit{Nothing}, \nil)$, Below example program defines trie.
 
 \begin{Haskell}
 data Trie k v = Trie { value :: Maybe v
-                     , subTrees :: [(k, Trie k v)]}
+                     , subTrees :: Map k (Trie k v)}
 \end{Haskell}
-
-The empty trie is in form of $(\textit{Nothing}, \nil)$.
 
 \subsection{Insert}
 \index{Trie!insert}
 
-When insert a pair of key and value to the trie, where the key is a list of elements. Let the trie be $T = (v, ts)$, where $v$ is the value stored in the trie, and $ts = \{ c_1 \mapsto T_1, c_2 \mapsto T_2, ..., c_m \mapsto T_m \}$ contains mappings between elements and sub-trees. Element $c_i$ is mapped to sub-tree $T_i$. We can either implement the mapping through associated list: $[(c_1, T_1), (c_2, T_2), ..., (c_m, T_m)]$, or through self-balanced tree map (Chapter 4 or 5).
+When insert a pair of key and value, where the key is a list of elements. Let the trie be $T = (v, ts)$, $ts[k]$ looks up $k$ in map $ts$. It returns empty when $k$ doesn't exist; $ts[k] \gets t$ inserts a mapping from $k$ to tree $t$, and returns the updated map.
 
 \be
 \begin{array}{rcl}
-insert\ (v, ts)\ \nil\ v' & = & (v', ts) \\
-insert\ (v, ts)\ (k:ks)\ v' & = & (v, ins\ ts) \\
+insert\ [\ ]\ v\ (v', ts)\  & = & (\textit{Just}\ v, ts) \\
+insert\ (k \cons ks)\ v\ (v', ts)\  & = & (v', ts[k] \gets insert\ ks\ v\ ts[k]) \\
 \end{array}
 \ee
 
-When the key is empty, we override the value; otherwise, we extract the first element $k$, check if there is a map among the sub-trees for $k$, and recursively insert $ks$ and $v'$:
-
-\be
-\begin{array}{rcl}
-ins\ \nil & = & [k \mapsto insert\ (\textit{Nothing}, \nil)\ ks\ v'] \\
-ins\ ((c \mapsto t) : ts) & = & \begin{cases}
-  c = k: & (k \mapsto insert\ t\ ks\ v') : ts \\
-  otherwise: & (c \mapsto t) : (ins\ ts) \\
-  \end{cases}
-\end{array}
-\ee
-
-If there is no sub-tree in the node, we create a mapping from $k$ to an empty trie node $t = (\textit{Nothing}, \nil)$; otherwise, we located the sub-tree $t$ mapped to $k$, then recursively insert $ks$ and $v'$ to $t$. Below is the example program implement $insert$, it's based on associated list to manage sub-tree mappings.
+Below is the example program:
 
 \begin{Haskell}
-insert (Trie _ ts) [] x = Trie (Just x) ts
-insert (Trie v ts) (k:ks) x = Trie v (ins ts) where
-    ins [] = [(k, insert empty ks x)]
-    ins ((c, t) : ts) = if c == k then (k, insert t ks x) : ts
-                        else (c, t) : (ins ts)
-
-empty = Trie Nothing []
+insert [] x (Trie _ ts) = Trie (Just x) ts
+insert (k:ks) x (Trie v ts) = Trie v (Map.insert k (insert ks x t) ts) where
+    t = case Map.lookup k ts of
+         Nothing -> Trie Nothing Map.empty
+         (Just t) -> t
 \end{Haskell}
 
-We can also eliminate the recursion to implement $insert$ iteratively.
+We can eliminate the recursion with loops:
 
 \begin{algorithmic}[1]
 \Function{Insert}{$T, k, v$}
@@ -544,24 +624,24 @@ We can also eliminate the recursion to implement $insert$ iteratively.
 \EndFunction
 \end{algorithmic}
 
-For the key type $[K]$ (list of $K$), if $K$ is finite set of $m$ elements, and the length of the key is $n$, then the insert algorithm is bound to $O(mn)$. When the key is lower case English strings, then $m = 26$, the insert operation is proportion to the length of key string.
+For the key type $[K]$ (list of $K$), if $K$ is finite set of $m$ elements, and the length of the key is $n$, then the insert algorithm is bound to $O(n \lg m)$. For lower case English strings, $m = 26$, the insert operation is proportion to the length of the key string.
 
-\subsection{Look up}
-\index{Trie!look up}
+\subsection{Lookup}
+\index{Trie!lookup}
 
-When look up a none empty key $(k:ks)$ from trie $T = (v, ts)$, starting from the first element $k$, if there exists sub-tree $T'$ mapped to $k$, we then recursively lookup $ks$ in $T'$. When the key is empty, then return the value as result:
+When look up a none empty key $(k \cons ks)$ from trie $T = (v, ts)$, starting from the first element $k$, if there exists sub-tree $T'$ mapped to $k$, we then recursively lookup $ks$ in $T'$. When the key is empty, then return the value as result:
 
 \be
 \begin{array}{rcl}
-lookup\ \nil\ (v, ts) & = & v \\
-lookup\ (k:ks)\ (v, ts) & = & \begin{cases}
-  lookup_{l}\ k\ ts = \textit{Nothing}: & \textit{Nothing} \\
-  lookup_{l}\ k\ ts = \textit{Just}\ t: & lookup\ ks\ t \\
+lookup\ [\ ]\ (v, ts) & = & v \\
+lookup\ (k \cons ks)\ (v, ts) & = & \begin{cases}
+  ts[k] = \textit{Nothing}: & \textit{Nothing} \\
+  ts[k] = \textit{Just}\ t: & lookup\ ks\ t \\
 \end{cases}
 \end{array}
 \ee
 
-Where function $lookup_{l}$ is defined in chapter 1. It looks up if a key exits in an assoc list. Below is the corresponding iterative implementation:
+Below is the corresponding iterative implementation:
 
 \begin{algorithmic}[1]
 \Function{Look-Up}{$T, key$}
@@ -578,39 +658,32 @@ Where function $lookup_{l}$ is defined in chapter 1. It looks up if a key exits 
 \EndFunction
 \end{algorithmic}
 
-The lookup algorithm is bound to $O(mn)$, where $n$ is the length of the key, and $m$ is the size of the element set.
-
-\begin{Exercise}
-\Question{Use the self-balance binary tree, like red-black tree or AVL tree to implement a $map$ data structure, and manage the sub-trees with $map$. We call such implementation $MapTrie$ and $MapTree$ respectively. What are the performance of $insert$ and $lookup$ for map based tree and trie?}
-\end{Exercise}
+The lookup algorithm is bound to $O(n \lg m)$, where $n$ is the length of the key, and $m$ is the size of the element set.
 
 \section{Prefix tree}
 \index{Patricia} \index{Prefix tree}
 
-Trie is not space efficient. We can consolidate the chained nodes to obtain the prefix tree.
-
-\subsection{Definition}
-A prefix tree node $t$ contains two parts: an optional value $v$; zero or multiple sub prefix trees, each $t_i$ is bound to a list $s_i$. The sub-trees and their mappings are denoted as $[s_i \mapsto t_i]$. These lists share the longest common prefix $s$ bound to the node $t$. i.e. $s$ is the longest common prefix of $s \doubleplus s_1$, $s \doubleplus s_2$, ... For any $i \neq j$, list $s_i$ and $s_j$ don't have none empty common prefix. Consolidate the chained nodes in figure \ref{fig:trie-of-26}, we obtain the corresponding prefix tree in figure \ref{fig:patricia-tree}.
+Trie is not space efficient. We consolidate the chained nodes to obtain the prefix tree. A prefix tree node $t$ contains two parts: an optional value $v$; zero or multiple sub prefix trees, each $t_i$ is bound to a list $s_i$, as $[s_i \mapsto t_i]$. These lists share the longest common prefix $s$ bound to the node $t$. i.e. $s$ is the longest common prefix of $s \doubleplus s_1$, $s \doubleplus s_2$, ... For any $i \neq j$, list $s_i$ and $s_j$ don't have none empty common prefix. Consolidate the chained nodes in \cref{fig:trie-of-26}, we get the prefix tree in \cref{fig:patricia-tree}.
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=0.5]{img/patricia-tree}
+  \includegraphics[scale=0.6, page=10]{img/trie}
   \caption{A prefix tree with keys: `a', `an', `another', `bool', `boy', `zoo'.}
   \label{fig:patricia-tree}
 \end{figure}
 
-Below example program defines the prefix tree:
+Below example program defines the prefix tree\footnote{Alternatively, we can use \texttt{Map [k] PrefixTree k v} to manage the sub-trees.}:
 
 \begin{Haskell}
 data PrefixTree k v = PrefixTree { value :: Maybe v
                                  , subTrees :: [([k], PrefixTree k v)]}
 \end{Haskell}
 
-We denote prefix tree $t = (v, ts)$. Particularly, $(\textit{Nothing}, \nil)$ is the empty node, and $(\textit{Just}\ v, \nil)$ is a leaf node of value $v$.
+Denote prefix tree $t = (v, ts)$. Particularly, $(\textit{Nothing}, [\ ])$ is the empty node, and $(\textit{Just}\ v, [\ ])$ is the leaf of $v$.
 
 \subsection{Insert}
 \index{Prefix tree!insert}
-When insert key $s$, if the prefix tree is empty, we create a leaf node of $s$ as figure \ref{fig:patricia-insert} (a); otherwise, if there exits common prefix between $s$ and $s_i$, where $s_i$ is bound to some sub-tree $t_i$, we branch out a new leaf $t_j$, extract the common prefix, and map it to a new internal branch node $t'$, then put $t_i$ and $t_j$ as two sub-trees of $t'$. Figure \ref{fig:patricia-insert} (b) shows this case. There are two special cases: $s$ is the prefix of $s_i$ as shown in figure \ref{fig:patricia-insert} (c) $\to$ (e); or $s_i$ is the prefix of $s$ as shown in figure \ref{fig:patricia-insert} (d) $\to$ (e).
+When insert key $s$, if the tree is empty, we create a leaf of $s$ as \cref{fig:patricia-insert} (a); otherwise, if there is none empty common prefix between $s$ and $s_i$, where $s_i$ is bound to some sub-tree $t_i$, we branch out a new leaf $t_j$. Extract the common prefix, and map it to a new internal branch node $t'$; then put $t_i$ and $t_j$ as two sub-trees of $t'$. \Cref{fig:patricia-insert} (b) shows this case. There are two special cases: $s$ is the prefix of $s_i$ as shown in \cref{fig:patricia-insert} (c) $\to$ (e); or $s_i$ is the prefix of $s$ as shown in \cref{fig:patricia-insert} (d) $\to$ (e).
 
 \begin{figure}[htbp]
   \centering
@@ -623,8 +696,8 @@ Below function inserts key $s$ and value $v$ to the prefix tree $t = (v', ts)$:
 
 \be
 \begin{array}{rcl}
-insert\ (v', ts)\ \nil\ v & = & (\textit{Just}\ v, ts) \\
-insert\ (v', ts)\ s\ v & = & (v', ins\ ts) \\
+insert\ [\ ]\ v\ (v', ts) & = & (\textit{Just}\ v, ts) \\
+insert\ s\ v\ (v', ts) & = & (v', ins\ ts) \\
 \end{array}
 \ee
 
@@ -632,55 +705,55 @@ If the key $s$ is empty, we overwrite the value to $v$; otherwise, we call $ins$
 
 \be
 \begin{array}{rcl}
-ins\ \nil\ & = & [ s \mapsto (\textit{Just}\ v, \nil) ] \\
-ins\ (s' \mapsto t) : ts' & = & \begin{cases}
+ins\ [\ ]\ & = & [ s \mapsto (\textit{Just}\ v, [\ ]) ] \\
+ins\ ((s' \mapsto t) \cons ts') & = & \begin{cases}
   match\ s\ s': & (branch\ s\ v\ s'\ t) : ts' \\
-  otherwise: & (s' \mapsto t) : ins\ ts' \\
+  \text{otherwise}: & (s' \mapsto t) : ins\ ts' \\
   \end{cases}
 \end{array}
 \ee
 
-If there is no sub-tree in the node, then we create a leaf of $v$ as the single sub-tree, and map $s$ to it; otherwise, for each sub-tree mapping $s' \mapsto t$, we compare $s'$ with $s$. If they have common prefix (tested by the $match$ function), then we $branch$ out new sub-tree. We define two lists matching if they have common prefix:
+If the node hasn't any sub-trees, we create a leaf of $v$ as the only sub-tree, and map $s$ to it; otherwise, for each mapping $s' \mapsto t$, we compare $s'$ with $s$. If they have common prefix (tested by the $match$ function), then we $branch$ out new sub-tree. We define two lists matching if they have common prefix:
 
 \be
 \begin{array}{rcl}
-match\ \nil\ B & = & True \\
-match\ A\ \nil & = & True \\
-match\ (a:as)\ (b:bs) & = & a = b \\
+match\ [\ ]\ B & = & True \\
+match\ A\ [\ ] & = & True \\
+match\ (a \cons as)\ (b \cons bs) & = & a = b \\
 \end{array}
 \ee
 
-To extract the longest common prefix of two lists $A$ and $B$, we define a function $(C, A', B') = lcp\ A\ B$, where $C \doubleplus A' = A$ and $C \doubleplus B' = B$ hold. If either $A$ or $B$ is empty, or their first elements are different, then the common prefix $C = \nil$; otherwise, we recursively extract the longest common prefix from the rest lists, and preprend the head element:
+To extract the longest common prefix of $A$ and $B$, define $(C, A', B') = lcp\ A\ B$, where $C \doubleplus A' = A$ and $C \doubleplus B' = B$. If either $A$ or $B$ is empty, or their first elements are different, then the common prefix $C = [\ ]$; otherwise, we recursively extract the longest common prefix from the rest, and preprend the head:
 
 \be
 \begin{array}{rcl}
-lcp\ \nil\ B & = & (\nil, \nil, B) \\
-lcp\ A\ \nil & = & (\nil, A, \nil) \\
-lcp\ (a:as)\ (b:bs) & = & \begin{cases}
-  a \neq b: & (\nil, a:as, b:bs) \\
-  otherwise: & (a:cs, as', bs')\\
+lcp\ [\ ]\ B & = & ([\ ], [\ ], B) \\
+lcp\ A\ [\ ] & = & ([\ ], A, [\ ]) \\
+lcp\ (a \cons as)\ (b \cons bs) & = & \begin{cases}
+  a \neq b: & ([\ ], a \cons as, b \cons bs) \\
+  \text{otherwise}: & (a \cons cs, as', bs'), \text{where}\ (cs, as', bs') = lcp\ as\ bs\\
   \end{cases}
 \end{array}
 \ee
 
-where $(cs, as', bs') = lcp\ as\ bs$ in the recursive case. Function $branch\ A\ v\ B\ t$ takes two keys $A$, $B$, a value $v$, and a tree $t$. It extracts the longest common prefix $C$ from $A$ and $B$, maps it to a new branch node, and assign sub-trees:
+Function $branch\ A\ v\ B\ t$ takes two keys $A$, $B$, a value $v$, and a tree $t$. It extracts the longest common prefix $C$ from $A$ and $B$, maps it to a new branch node, and assign sub-trees:
 
 \be
 \begin{array}{l}
 branch\ A\ v\ B\ t = \\
 \ lcp\ A\ B = \begin{cases}
-   (C, \nil, B'): & (C, (\textit{Just}\ v, [B' \mapsto t])) \\
-   (C, A', \nil): & (C, insert\ t\ A'\ v) \\
-   (C, A', B'): & (C, (\textit{Nothing}, [A' \mapsto (\textit{Just}\ v, \nil), B' \mapsto t])) \\
+   (C, [\ ], B'): & (C, (\textit{Just}\ v, [B' \mapsto t])) \\
+   (C, A', [\ ]): & (C, insert\ A'\ v\ t) \\
+   (C, A', B'): & (C, (\textit{Nothing}, [A' \mapsto (\textit{Just}\ v, [\ ]), B' \mapsto t])) \\
 \end{cases}
 \end{array}
 \ee
 
-If $A$ is the prefix of $B$, then $A$ is mapped to the node of $v$, and the remaining list is re-mapped to $t$, which is the single sub-tree in the branch; if $B$ is the prefix of $A$, then we recursively insert the remaining list and the value to $t$; otherwise, we create a leaf node of $v$ put it together with $t$ as the two sub-trees of the branch. The following example program implements the $insert$ algorithm:
+If $A$ is the prefix of $B$, then $A$ is mapped to the node of $v$, and the remaining list is re-mapped to $t$, which is the only sub-tree in the branch; if $B$ is the prefix of $A$, then we recursively insert the remaining list and the value to $t$; otherwise, we create a leaf of $v$, put it together with $t$ as the two sub-trees. The following example program implements the $insert$ algorithm:
 
 \begin{Haskell}
-insert (PrefixTree _ ts) [] v = PrefixTree (Just v) ts
-insert (PrefixTree v' ts) k v = PrefixTree v' (ins ts) where
+insert [] v (PrefixTree _ ts) = PrefixTree (Just v) ts
+insert k v (PrefixTree v' ts) = PrefixTree v' (ins ts) where
     ins [] = [(k, leaf v)]
     ins ((k', t) : ts) | match k k' = (branch k v k' t) : ts
                        | otherwise  = (k', t) : ins ts
@@ -693,7 +766,7 @@ match (a:_) (b:_) = a == b
 
 branch a v b t = case lcp a b of
   (c, [], b') -> (c, PrefixTree (Just v) [(b', t)])
-  (c, a', []) -> (c, insert t a' v)
+  (c, a', []) -> (c, insert a' v t)
   (c, a', b') -> (c, PrefixTree Nothing [(a', leaf v), (b', t)])
 
 lcp [] bs = ([], [], bs)
@@ -767,16 +840,16 @@ There is a special case in \textproc{Branch}($s_1, T_1, s_2, T_2$). If $s_1$ is 
 \EndFunction
 \end{algorithmic}
 
-Although the prefix tree improves the space efficiency of trie, it is still bound to $O(m n)$, where $n$ is the length of the key, and $m$ is the size of the element set.
+Although the prefix tree improves the space efficiency, it is still bound to $O(m n)$, where $n$ is the length of the key, and $m$ is the size of the element set.
 
-\subsection{Look up}
+\subsection{Lookup}
 \index{Prefix tree!look up}
 
-When look up a key $k$, we start from the root. If $k = \nil$ is empty, then return the root value as the result; otherwise, we examine the sub-tree mappings, locate the one $s_i \mapsto t_i$, such that $s_i$ is some prefix of $k$, then recursively look up $k - s_i$ in sub-tree $t_i$. If there does not exist $s_i$ as the prefix of $k$, then there is no such key in the prefix tree.
+When look up a key $k$, we start from the root. If $k = [\ ]$, then return the root value; otherwise, examine the sub-tree mappings, locate the one $s_i \mapsto t_i$, such that $s_i$ is some prefix of $k$, then recursively look up $k - s_i$ in sub-tree $t_i$. If does not exist $s_i$ as the prefix of $k$, then there is no such key in the tree.
 
 \be
 \begin{array}{rcl}
-lookup\ \nil\ (v, ts) & = & v \\
+lookup\ [\ ]\ (v, ts) & = & v \\
 lookup\ k\ (v, ts) & = & find\ ((s, t) \mapsto s \sqsubseteq k)\ ts\ =  \\
   & & \begin{cases}
     \textit{Nothing} : & Nothing \\
@@ -785,7 +858,7 @@ lookup\ k\ (v, ts) & = & find\ ((s, t) \mapsto s \sqsubseteq k)\ ts\ =  \\
 \end{array}
 \ee
 
-Where $A \sqsubseteq B$ means list $A$ is prefix of $B$. Function $find$ is defined in chapter 1, which searches element in a list with a given predication. Below example program implements the look up algorithm.
+Where $A \sqsubseteq B$ means list $A$ is prefix of $B$. Function $find$ is defined in chapter 1, which searches element in a list with a given predication. Below example program implements lookup.
 
 \begin{Haskell}
 lookup [] (PrefixTree v _) = v
@@ -795,18 +868,44 @@ lookup ks (PrefixTree v ts) =
     Just (s, t) -> lookup (drop (length s) ks) t
 \end{Haskell}
 
-The prefix testing is linear to the length of the list, the $lookup$ algorithm is bound to $O(mn)$ time, where $m$ is the size of the element set, and $n$ is the length of the key. We skip the imperative implementation, and leave it as the exercise.
+The prefix testing is linear to the length of the list, the $lookup$ algorithm is bound to $O(mn)$ time, where $m$ is the size of the element set, and $n$ is the length of the key. We leave the imperative implementation as the exercise.
 
-\begin{Exercise}
-\Question{Eliminate the recursion to implement the prefix tree $lookup$ purely with loops}
+\begin{Exercise}[label={ex:prefix-tr-lookup}]
+\Question{Eliminate the recursion to implement the prefix tree $lookup$ purely with loops.}
 \end{Exercise}
 
+\begin{Answer}[ref = {ex:prefix-tr-lookup}]
+\Question{Eliminate the recursion to implement the prefix tree $lookup$ purely with loops.
+
+\begin{Bourbaki}
+Optional<V> lookup(PrefixTree<K, V> t, K key) {
+    if t == null then return Optional.Nothing
+    Bool match
+    repeat {
+        match = False
+        for k, tr in t.subtrees {
+            if k == key then return Optional.of(tr.value)
+            (K prefix, K k1, K k2) = lcp(key, k)
+            if prefix != [] and k2 == [] {
+                match = True
+                key = k1
+                t = tr
+                break
+            }
+        }
+    } until not match
+    return Optional.Nothing
+}
+\end{Bourbaki}
+}
+\end{Answer}
+
 \section{Applications of trie and prefix tree}
-We can use trie and prefix tree to solve many interesting problems, like implement a dictionary, populate candidate inputs, and realize the textonym input method. Different from the industry implementation, we give the examples to illustrate the ideas of trie and prefix tree.
+We can use trie and prefix tree to solve many interesting problems, like to develop a smart dictionary that can populate candidate words, and realize the textonym input method. Different from the commercial software, we give the examples to illustrate the ideas of trie and prefix tree.
 
 \subsection{Dictionary and input completion}
 \index{Auto completion}
-As shown in figure \ref{fig:e-dict}, when user enters some characters, the dictionary application searches the library, populates a list of candidate words or phrases that start from what input.
+As shown in \cref{fig:e-dict}, when user enters some characters, the dictionary application searches the library, populates a list of candidate words or phrases that start from what input.
 
 \begin{figure}[htbp]
   \centering
@@ -815,7 +914,7 @@ As shown in figure \ref{fig:e-dict}, when user enters some characters, the dicti
   \label{fig:e-dict}
 \end{figure}
 
-A dictionary can contain hundreds of thousands words. It's expensive to perform a complete search. Commercial dictionaries adopt varies engineering approach, like caching, indexing to speed up search. Similarly, figure \ref{fig:word-completion} shows a smart text input component. When type some characters, it populates a candidate lists, with all items starting with the input string.
+A dictionary contains hundreds of thousands words. It's expensive to perform a complete search. Commercial dictionaries adopt varies engineering approach, like caching, indexing to speed up search. \Cref{fig:word-completion} shows a smart text input component. When type some characters, it populates a candidate lists, with all items starting with the input.
 
 \begin{figure}[htbp]
   \centering
@@ -824,29 +923,30 @@ A dictionary can contain hundreds of thousands words. It's expensive to perform 
   \label{fig:word-completion}
 \end{figure}
 
-Both examples give the `auto-completion' functionality. We can implement it with prefix tree. For illustration purpose, we limit to English characters, and set a upper bound $n$ for the number of candidates. A dictionary stores key-value pairs, where the key is English word or phrase, the value is the corresponding meaning and explanation. When user input string $s$, we look up the prefix tree for all keys start with $s$. If $s$ is empty we expand all sub-trees till reach to $n$ candidates; otherwise, we locate the sub-tree from the mapped key, and look up recursively. In the environment supports lazy evaluation, we can expand all candidates, and take the first $n$ on demand: $take\ n\ (startsWith\ s\ t)$, where $t$ is the prefix tree.
+Both examples give the `auto-completion' functionality. We can implement it with prefix tree. For illustration purpose, we limit to English characters, and set a upper bound $n$ for the number of candidates. A dictionary stores key-value pairs, where the key is English word or phrase, the value is the corresponding meaning and explanation. When user input string $s$, we look up the prefix tree for all keys start with $s$. If $s$ is empty we expand all sub-trees till reach to $n$ candidates; otherwise, we locate the sub-tree from the mapped key, and look up recursively. If the environment supports lazy evaluation, we can expand all candidates, and take the first $n$ on demand: $take\ n\ (startsWith\ s\ t)$, where $t$ is the prefix tree.
 
 \be
 \begin{array}{c}
 \begin{array}{rcl}
-startsWith\ \nil\ (\textit{Nothing}, ts) & = & enum\ ts \\
-startsWith\ \nil\ (\textit{Just}\ x, ts) & = & (\nil, x) : enum\ ts \\
+startsWith\ [\ ]\ (\textit{Nothing}, ts) & = & enum\ ts \\
+startsWith\ [\ ]\ (\textit{Just}\ x, ts) & = & ([\ ], x) : enum\ ts \\
 startsWith\ s\ (v, ts) & = & find\ ((k, t) \mapsto s \sqsubseteq k\ \text{or}\ k \sqsubseteq s)\ ts = \\
 \end{array} \\
 \quad \begin{cases}
-  \textit{Nothing}: & \nil \\
+  \textit{Nothing}: & [\ ] \\
   \textit{Just}\ (k, t): & [(k \doubleplus a, b) | (a, b) \in startsWith\ (s - k)\ t]
 \end{cases}
 \end{array}
 \ee
 
-Given a prefix $s$, function $startsWith$ searches all candidates in the prefix tree starts with $s$. If $s$ is empty, it enumerates all sub-trees, and prepand $(\nil, x)$ for none empty value $x$ in the root. Function $enum\ ts$ is defined as:
+Given a prefix $s$, function $startsWith$ searches all candidates in the prefix tree starts with $s$. If $s$ is empty, it enumerates all sub-trees, and prepand $([\ ], x)$ for none empty value $x$ in the root. Function $enum\ ts$ is defined as:
 
 \be
-enum = \textit{concatMap}\ (k, t) \mapsto [(k \doubleplus a, b) | (a, b) \in startsWith\ \nil\ t]
+enum = \textit{concatMap}\ (k, t) \mapsto [(k \doubleplus a, b) | (a, b) \in startsWith\ [\ ]\ t]
 \ee
 
-Where $\textit{concatMap}$ (also known as $\textit{flatMap}$) is an important concept for list computation. Literally, it results like firstly map on each element, then concatenate the result together. It's typically realized with 'build-foldr' fusion law to eliminate the intermediate list overhead. (see chapter 5 in my book {\em Isomorphism -- mathematics of programming}) If the input prefix $s$ is not empty, we examine the sub-tree mappings, for each list and sub-tree pair $(k, t)$, if either $s$ is prefix of $k$ or vice versa, we recursively expand $t$ and prepand $k$ to each result key; otherwise, $s$ does not match any sub-trees, hence the result is empty. Below example program implements this algorithm.
+\label{sec:list-concatmap}
+Where $\textit{concatMap}$ (also known as $\textit{flatMap}$) is an important concept for list computation. Literally, it results like firstly map on each element, then concatenate the result together. It's typically realized with the `build-foldr' fusion law to eliminate the intermediate list overhead. (chapter 5 of \cite{unplugged}) If the input prefix $s$ is not empty, we examine the sub-tree mappings, for each list and sub-tree pair $(k, t)$, if either $s$ is prefix of $k$ or vice versa, we recursively expand $t$ and prepand $k$ to each result key; otherwise, $s$ does not match any sub-trees, hence the result is empty. Below example program implements this algorithm.
 
 \begin{Haskell}
 startsWith [] (PrefixTree Nothing ts) = enum ts
@@ -887,7 +987,7 @@ We can also realize the algorithm \textproc{Starts-With}($T, k, n$) imperatively
 \EndFunction
 \end{algorithmic}
 
-Where function \textproc{Expand}($s, T, n$) populates $n$ results from $T$ and prepand $s$ to each key. We implement it with `breadth first search' method (see section 14.3):
+Where function \textproc{Expand}($s, T, n$) populates $n$ results from $T$ and prepand $s$ to each key. We implement it with `breadth first search' method (see \cref{sec:DFS-BFS}):
 
 \begin{algorithmic}[1]
 \Function{Expand}{$s, T, n$}
@@ -909,7 +1009,7 @@ Where function \textproc{Expand}($s, T, n$) populates $n$ results from $T$ and p
 \subsection{Predictive text input}
 \index{T9}
 
-Before 2010, most mobile phones had a small keypad as shown in \ref{fig:itut-keypad}, called ITU-T keypad. It maps a digit to 3 - 4 characters. For example, when input word `home', one can press keys in below sequence:
+Before 2010, most mobile phones had a small keypad as shown in \cref{fig:itut-keypad}, called ITU-T keypad. It maps a digit to 3 - 4 characters. For example, when input the word `home', one presses keys in below sequence:
 
 \begin{figure}[htbp]
   \centering
@@ -934,7 +1034,7 @@ A smarter input method allows to press less keys:
 \item ...
 \end{enumerate}
 
-This is called predictive input, or abbreviated as `T9'\cite{wiki-t9}, \cite {wiki-predictive-text}. We can realize it by storing the word dictionary in a prefix tree. The commercial implementations uses multiple layers of caches/index in both memory and file system. We simplify it as an example of prefix tree application. First, we need define the digit key mappings:
+This is called predictive input, or abbreviated as `T9'\cite{wiki-t9}, \cite {wiki-predictive-text}. The commercial implementations use multiple layers of caches/index in both memory and file system. We simplify it as an example of prefix tree application. First, we need define the digit key mappings:
 
 \be
 \begin{array}{ll}
@@ -947,16 +1047,16 @@ M_{T9} = \{ & 2 \mapsto \texttt{"abc"}, 3 \mapsto \texttt{"def"}, 4 \mapsto \tex
 $M_{T9}[i]$ gives the corresponding characters for digit $i$. We can also define the reversed mapping from a character back to digit.
 
 \be
-M^{-1}_{T9} = \textit{concatMap}\ ((d, s) \mapsto [(c, d) | c \in s])\ M_{T9}
+M^{-1}_{T9} = \textit{concatMap}\ ((d, s) \mapsto [(c, d) | c \gets s])\ M_{T9}
 \ee
 
 Given a string, we can convert it to a sequence of digits by looking up $M^{-1}_{T9}$.
 
 \be
-digits(s) = [ M^{-1}_{T9}[c] | c \in s ]
+digits(s) = [ M^{-1}_{T9}[c] | c \gets s ]
 \ee
 
-For any character does not belong [\texttt{a..z}], we map it to a special key \texttt{'\#'} as fallback. Below example program defines the above two mappings.
+For any character not in [\texttt{a..z}], we map it to a special key `\texttt{\#}'. Below example program defines the two mappings.
 
 \begin{Haskell}
 mapT9 = Map.fromList [('2', "abc"), ('3', "def"), ('4', "ghi"),
@@ -969,7 +1069,7 @@ rmapT9 = Map.fromList $ concatMap (\(d, s) -> [(c, d) | c <- s]) $
 digits = map (\c -> Map.findWithDefault '#' c rmapT9)
 \end{Haskell}
 
-Suppose we already build the prefix tree $(v, ts)$ from all words in a dictionary. We need change the above auto completion algorithm to process digit string $ds$. For every sub-tree mappings $(s \mapsto t) \in ts$, we convert the prefix $s$ to $digits(s)$, check if it matches to $ds$ (either one is the prefix of the other). There can be multiple sub-trees match $ds$ as:
+Suppose we already builded the prefix tree $(v, ts)$ from the words. We need change the above auto completion algorithm to process digit string $ds$. For every sub-tree mappings $(s \mapsto t) \in ts$, we convert the prefix $s$ to $digits(s)$, check if it matches to $ds$ (either one is the prefix of the other). There can be multiple sub-trees match $ds$ as:
 
 \[
 \textit{pfx} = [(s, t) | (s \mapsto t) \in ts, digits(s) \sqsubseteq ds\ \textit{or}\ ds\ \sqsubseteq digits(s)]
@@ -977,18 +1077,18 @@ Suppose we already build the prefix tree $(v, ts)$ from all words in a dictionar
 
 \be
 \begin{array}{rcl}
-find_{T9}\ t\ \nil & = & [ \nil ] \\
+find_{T9}\ t\ [\ ] & = & [ [\ ] ] \\
 find_{T9}\ (v, ts)\ ds & = & \textit{concatMap}\ find\ \textit{pfx} \\
 \end{array}
 \ee
 
-For each mapping $(s, t)$ in \textit{pfx}, function $find$ recursively lookup the remaining digits $ds'$ in $t$, where $ds' = drop\ |s|\ ds$, then prepend $s$ to every candidate. However, the length may exceeds the number of digits, we need cut and only take $n = |ds|$ characters:
+For each mapping $(s, t)$ in \textit{pfx}, function $find$ recursively looks up the remaining digits $ds'$ in $t$, where $ds' = drop\ |s|\ ds$, then prepend $s$ to every candidate. However, the length may exceed the number of input digits, we need cut and only take $n = |ds|$ characters:
 
 \be
 find\ (s, t) = [ take\ n\ (s \doubleplus s_i) | s_i \in find_{T9}\ t\ ds']
 \ee
 
-The following example program implements the predictive input look up algorithm:
+The following example program implements the predictive input algorithm:
 
 \begin{Haskell}
 findT9 _ [] = [[]]
@@ -998,7 +1098,7 @@ findT9 (PrefixTree _ ts) k = concatMap find pfx where
               ds `isPrefixOf` k || k `isPrefixOf` ds]
 \end{Haskell} %$
 
-To realize the predictive text input imperatively, we can perform breadth first search with a queue $Q$ of tuples $(\textit{prefix}, D, t)$. Every tuple records the possible \textit{prefix} searched so far; the remaining digits $D$ to be searched; and the sub-tree $t$ we are going to search. $Q$ is initialized with the empty prefix, the whole digits sequence, and the root. We repeatedly pop the tuple from the queue, and examine the sub-tree mappings. for every mapping $(s \mapsto T')$, we convert $s$ to $digits(s)$. If $D$ is prefix of it, then we find a candidate. We append $s$ to \textit{prefix}, and record it in the result. If $digits(s)$ is prefix of $D$, we need further search the sub-tree $T'$. We create a new tuple of $(\textit{prefix} \doubleplus s, D', T')$, where $D'$ is the remaining digits to be searched. Then push this new tuple back to the queue.
+To realize the predictive text input imperatively, we can perform breadth first search with a queue $Q$ of tuples $(\textit{prefix}, D, t)$. Every tuple records the possible \textit{prefix} searched so far; the remaining digits $D$ to be searched; and the sub-tree $t$ we are going to search. $Q$ is initialized with the empty prefix, the whole digits sequence, and the root. We repeatedly pop the tuple from the queue, and examine the sub-tree mappings. for every mapping $(s \mapsto T')$, we convert $s$ to $digits(s)$. If $D$ is prefix of it, then we find a candidate. We append $s$ to \textit{prefix}, and record it in the result. If $digits(s)$ is prefix of $D$, we need further search the sub-tree $T'$. We create a new tuple of $(\textit{prefix} \doubleplus s, D', T')$, where $D'$ is the remaining digits to be searched. Then add this new tuple back to the queue.
 
 \begin{algorithmic}[1]
 \Function{Look-Up-T9}{$T, D$}
@@ -1023,14 +1123,53 @@ To realize the predictive text input imperatively, we can perform breadth first 
 \EndFunction
 \end{algorithmic}
 
-\begin{Exercise}
+We start from integer trie and prefix tree. With binary format, we re-use binary tree to realize the integer based map data structure. Then extend the key from integer to generic list of finite set. Particularly for alphabetic strings, the generic trie and prefix tree are powerful tools to manipulate the text. We give examples about auto-completion and predictive text input. As another instance of radix tree, the {\em suffix tree}, that is widely used in text/DNA processing, is closely related to trie and prefix tree.
+
+\begin{Exercise}[label={ex:prefix-tree-app}]
 \Question{Implement the auto-completion and predictive text input with trie.}
 \Question{How to ensure the candidates in lexicographic order in the auto-completion and predictive text input program? What's the performance change accordingly?}
-\Question{In the environment without lazy evaluation support, how to return the first $n$ candidates on-demand?}
 \end{Exercise}
 
-\section{Summary}
-We start from integer trie and prefix tree. By turning the integer key to binary format, we re-used binary tree to realize the integer based map data structure. Then extend the key from integer to generic list, and limit the list element to finite set. Particularly for alphabetic strings, the generic trie and prefix tree can be used as tools to manipulate the text information. We give example applications about auto-completion and predictive text input. as another instance of radix tree, the suffix tree is closely related to trie and prefix tree used in text, and DNA processing.
+\begin{Answer}[ref = {ex:prefix-tree-app}]
+\Question{Implement the auto-completion and predictive text input with trie.
+
+For input prefix $ks$, we advance to node $t$ in the trie, expand all sub-trees, the take the first $n$ items:
+
+\begin{Haskell}
+import Data.Map (Map)
+import qualified Data.Map as Map
+
+startsWith :: Ord k => [k] -> Trie k v -> [([k], v)]
+startsWith [] (Trie Nothing  ts) = enum ts
+startsWith [] (Trie (Just v) ts) = ([], v) : enum ts
+startsWith (k:ks) (Trie _ ts) = case Map.lookup k ts of
+  Nothing -> []
+  Just t -> map (first (k:)) (startsWith ks t)
+
+enum :: Ord k => Map k (Trie k v) -> [([k], v)]
+enum = (concatMap (\(k, t) ->
+                    map (first (k:)) (startsWith [] t))) . Map.assocs
+
+get n k t = take n $ startsWith k t
+\end{Haskell} %$
+
+Where $\textit{first}\ f\ (a, b) = (f\ a, b)$, it applies the function $f$ to the first one of a pair. When implement predictive input with trie, we lookup $M_{T9}$ for all characters mapped to a digit, then lookup the trie for candidate words.
+
+\begin{Haskell}
+findT9 [] _ = [[]]
+findT9 (d:ds) (Trie _ ts) = concatMap find cts where
+  cts = case Map.lookup d mapT9 of
+    Nothing -> []
+    Just cs -> Map.assocs $ Map.filterWithKey (\c _ -> c `elem` cs) ts
+  find (c, t) = map (c:) (findT9 ds t)
+\end{Haskell}
+}
+
+\Question{How to ensure the candidates in lexicographic order in the auto-completion and predictive text input program? What's the performance change accordingly?
+
+From \cref{ex:prefix-tree-pre-order-traverse}, if traverse a binary prefix tree in pre-order, the result is in lexicographic order. For multi-way prefix tree, we need traverse sub-trees in lexicographic order. If the sub-trees are managed with self-balancing tree (like the red-black tree or AVL tree), we can do this in linear time (\cref{ex:bst-iterate}). If the sub-trees are stored in hash table or assoc-list, then we need $O(n \lg n)$ time to sort them.
+}
+\end{Answer}
 
 \section{Appendix: Example programs}
 
@@ -1038,17 +1177,16 @@ Definition of integer binary trie:
 
 \begin{lstlisting}[language = Bourbaki]
 data IntTrie<T> {
-    IntTrie<T> left = null
-    IntTrie<T> right = null
-    Optional<T> value = Optional.None
+    IntTrie<T> left = null, right = null
+    Optional<T> value = Optional.Nothing
 }
 \end{lstlisting}
 
-The following example $insert$ program uses bit-wise operation to test even/odd, and shift the bit to right:
+Imperative $insert$ with bit-wise operations:
 
 \begin{lstlisting}[language = Bourbaki]
 IntTrie<T> insert(IntTrie<T> t, Int key,
-                  Optional<T> value = Optional.None) {
+                  Optional<T> value = Optional.Nothing) {
     if t == null then t = IntTrie<T>()
     p = t
     while key != 0 {
@@ -1082,10 +1220,8 @@ Definition of integer prefix tree:
 data IntTree<T> {
     Int key
     T value
-    Int prefix
-    Int mask = 1
-    IntTree<T> left = null
-    IntTree<T> right = null
+    Int prefix = 0, mask = 1
+    IntTree<T> left = null, right = null
 
     IntTree(Int k, T v) {
         key = k, value = v, prefix = k
@@ -1155,11 +1291,11 @@ Int lcp(Int p1, Int p2) {
 %% }
 %% \end{lstlisting}
 
-Definition of trie and the insert program:
+Definition of trie and the insert:
 
 \begin{lstlisting}[language = Bourbaki]
 data Trie<K, V> {
-  Optional<V> value = Optional.None
+  Optional<V> value = Optional.Nothing
   Map<K, Trie<K, V>> subTrees = Map.empty()
 }
 
@@ -1175,11 +1311,11 @@ Trie<K, V> insert(Trie<K, V> t, [K] key, V value) {
 }
 \end{lstlisting}
 
-Definition of Prefix Tree and insert program:
+Definition of Prefix Tree and insert:
 
 \begin{lstlisting}[language = Bourbaki]
 data PrefixTree<K, V> {
-    Optional<V> value = Optional.None
+    Optional<V> value = Optional.Nothing
     Map<[K], PrefixTree<K, V>> subTrees = Map.empty()
 
     Self PrefixTree(V v) {
@@ -1221,7 +1357,7 @@ PrefixTree<K, V> insert(PrefixTree<K, V> t, [K] key, V value) {
 }
 \end{lstlisting}
 
-The longest common prefix \texttt{lcp} and \texttt{branch} example programs.
+The longest common prefix \texttt{lcp} and \texttt{branch}.
 
 \begin{lstlisting}[language = Bourbaki]
 ([K], [K], [K]) lcp([K] s1, [K] s2) {
@@ -1284,8 +1420,8 @@ Populate multiple candidates, they share the common prefix
 
 Predictive text input lookup
 \begin{lstlisting}[language = Bourbaki]
-var T9MAP={'2':"abc", '3':"def", '4':"ghi", '5':"jkl", \
-       '6':"mno", '7':"pqrs", '8':"tuv", '9':"wxyz"}
+var T9MAP={'2':"abc", '3':"def", '4':"ghi", '5':"jkl",
+           '6':"mno", '7':"pqrs", '8':"tuv", '9':"wxyz"}
 
 var T9RMAP = { c : d for var (d, cs) in T9MAP for var c in cs }
 
@@ -1312,6 +1448,9 @@ string digits(string w) = ''.join([T9RMAP[c] for c in w])
 \end{lstlisting}
 
 \ifx\wholebook\relax \else
+\section{Answers}
+\shipoutAnswer
+
 \begin{thebibliography}{99}
 
 \bibitem{CLRS}

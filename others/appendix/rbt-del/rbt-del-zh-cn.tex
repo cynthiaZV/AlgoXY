@@ -20,13 +20,13 @@
 
 \author{刘新宇
 \thanks{{\bfseries 刘新宇} \newline
-  Email: liuxinyu95@gmail.com \newline}
+  Email: liuxinyu99@hotmail.com \newline}
   }
 
 \maketitle
 \fi
 
-\markboth{红黑树}{基本算法}
+%\markboth{红黑树}{基本算法}
 
 \ifx\wholebook\relax
 \chapter{红黑树的命令式删除算法}
@@ -91,11 +91,11 @@ data Color {RED, BLACK, DOUBLY_BLACK}
 
 如果$p$和$q$都为空，我们在删除只有一个叶子节点的树，树变为空。如果父节点$p$不为空，而$q$为空，说明删除了一个黑色叶子节点。我们用NIL替换掉它。根据红黑树性质3，NIL是黑色的。我们把这一NIL变成“双重黑色”的NIL来保持性质5仍然成立。如果$p$、$q$都不为空，我们调用\textproc{Blacken}($q$)检查$q$的颜色，如果是红色的，将它染成黑色，如果$q$已经是黑色的，将它染成双重黑色。接下来，我们通过旋转和重新染色，最终去掉“双重黑色”。这里有三种情况需要处理（\cite{CLRS}，292页）。每种情况中，双重黑色的节点即可以是普通节点，也可以是双重黑色NIL。
 
-\textbf{情况1}: {\em 双重黑色节点的兄弟为黑色，并且该兄弟节点有一个红色子节点。}我们可以通过旋转来修复。共有四种细分情况，它们全部可以变换到一种统一形式。如图\ref{fig:del-case1}所示。
+\textbf{情况1}: {\em 双重黑色节点的兄弟为黑色，并且该兄弟节点有一个红色子节点。}我们可以通过旋转来修复。共有四种细分情况，它们全部可以变换到一种统一形式。如图\cref{fig:del-case1}所示。
 
 \begin{figure}[htbp]
    \centering
-   \includegraphics[scale=0.4]{../../../datastruct/tree/red-black-tree/img/del-case1}
+   \includegraphics[scale=0.4, page=3]{../../../datastruct/tree/red-black-tree/img/rbtree}
    \caption{双重黑色节点的兄弟为黑色，并且该兄弟节点有一个红色子节点。通过一次旋转操作修复。}
    \label{fig:del-case1}
 \end{figure}
@@ -142,11 +142,11 @@ data Color {RED, BLACK, DOUBLY_BLACK}
 \EndFunction
 \end{algorithmic}
 
-\textbf{情况2}: {\em 双重黑色节点的兄弟节点为红色。}可以通过旋转，将双重黑色恢复为普通黑色。如图\ref{fig:del-case2}所示，$a$或$c$恢复为黑色。
+\textbf{情况2}: {\em 双重黑色节点的兄弟节点为红色。}可以通过旋转，将双重黑色恢复为普通黑色。如图\cref{fig:del-case2}所示，$a$或$c$恢复为黑色。
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=0.4]{../../../datastruct/tree/red-black-tree/img/del-case3}
+  \includegraphics[scale=0.4, page=4]{../../../datastruct/tree/red-black-tree/img/rbtree}
   \caption{双重黑色节点的兄弟节点为红色}
   \label{fig:del-case2}
 \end{figure}
@@ -183,11 +183,11 @@ data Color {RED, BLACK, DOUBLY_BLACK}
 \EndFunction
 \end{algorithmic}
 
-\textbf{情况3}: {\em 双重黑色节点的兄弟节点为黑色，该兄弟节点的两个子节点也全是黑色。}可以将兄弟节点染成红色，将双重黑色变回黑色，然后将黑色向上传递。如图\ref{fig:del-case3}所示，有两种对称的情况。
+\textbf{情况3}: {\em 双重黑色节点的兄弟节点为黑色，该兄弟节点的两个子节点也全是黑色。}可以将兄弟节点染成红色，将双重黑色变回黑色，然后将黑色向上传递。如图\cref{fig:del-case3}所示，有两种对称的情况。
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=0.4]{../../../datastruct/tree/red-black-tree/img/del-case3}
+  \includegraphics[scale=0.4, page=5]{../../../datastruct/tree/red-black-tree/img/rbtree}
   \caption{向上传递黑色}
   \label{fig:del-case3}
 
@@ -415,11 +415,14 @@ data Node<T> {
 
 考虑红黑树的平衡性，删除算法或者到达根节点终止，或者在双重黑色消失时终止。对于含有$n$个节点的红黑树，其复杂度为$O(\lg n)$。
 
-\begin{Exercise}
-\Question{编写程序判断一棵树是否满足红黑树的5条性质，并用来验证红黑树的删除算法。}
-\end{Exercise}
+%% \begin{Exercise}
+%% \Question{编写程序判断一棵树是否满足红黑树的5条性质，并用来验证红黑树的删除算法。}
+%% \end{Exercise}
 
 \ifx\wholebook\relax \else
+%% \section{参考答案}
+%% \shipoutAnswer
+
 \begin{thebibliography}{99}
 
 \bibitem{CLRS}

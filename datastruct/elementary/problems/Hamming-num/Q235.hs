@@ -1,6 +1,6 @@
 {-
     Q235.hs, find the n-th number which only contains factors of 2,3,5.
-    Copyright (C) 2010, Liu Xinyu (liuxinyu95@gmail.com)
+    Copyright (C) 2010, Liu Xinyu (liuxinyu99@hotmail.com)
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,6 +28,8 @@ merge (x:xs) (y:ys) | x <y = x : merge xs (y:ys)
 ns = 1 : (map (*2) ns) `merge` (map (*3) ns) `merge` (map (*5) ns)
 
 -- ns !! 1500
+
+xs = 1 : [2*x | x <- xs] `merge` [3*x | x <- xs] `merge` [5*x | x <- xs]
 
 -- method 2, three queues
 rs 0 xs _ _ _ = reverse xs

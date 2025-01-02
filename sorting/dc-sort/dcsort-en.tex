@@ -1,350 +1,276 @@
 \ifx\wholebook\relax \else
-% ------------------------
+\documentclass[b5paper]{article}
+\usepackage[nomarginpar
+  %, margin=.5in
+]{geometry}
 
-\documentclass{article}
+\addtolength{\oddsidemargin}{-0.05in}
+\addtolength{\evensidemargin}{-0.05in}
+\addtolength{\textwidth}{0.1in}
 \usepackage[en]{../../prelude}
 
 \setcounter{page}{1}
 
 \begin{document}
 
-%--------------------------
+\title{Quick sort and merge sort}
 
-% ================================================================
-%                 COVER PAGE
-% ================================================================
-
-\title{Divide and conquer, Quick sort vs. Merge sort}
-
-\author{Larry~LIU~Xinyu
-\thanks{{\bfseries Larry LIU Xinyu } \newline
-  Email: liuxinyu95@gmail.com \newline}
+\author{Xinyu~LIU
+\thanks{{\bfseries Xinyu LIU} \newline
+  Email: liuxinyu99@hotmail.com \newline}
   }
 
 \maketitle
 \fi
 
-\markboth{Quick sort vs. Merge sort}{Elementary Algorithms}
+%\markboth{Quick sort and merge sort}{Elementary Algorithms}
 
 \ifx\wholebook\relax
-\chapter{Divide and conquer, Quick sort vs. Merge sort}
+\chapter{Quick sort and merge sort}
 \numberwithin{Exercise}{chapter}
 \fi
 
-% ================================================================
-%                 Introduction
-% ================================================================
-\section{Introduction}
-\label{introduction}
+People prove the upper limit of performance is $O(n \lg n)$ for comparison based sort\cite{TAOCP}. This chapter gives two divide and conquer sort algorithms: quick sort and merge sort, both achieve $O(n \lg n)$ time bound. We also give their variants, like natural merge sort, in-place merge sort, and etc.
 
-It's proved that the best approximate performance of comparison based sorting is $O(n \lg n)$ \cite{TAOCP}.
-In this chapter, two divide and conquer sorting algorithms are introduced. Both of them
-perform in $O(n \lg n)$ time. One is quick sort. It is
-the most popular sorting algorithm. Quick sort has been well studied, many programming libraries provide
-sorting tools based on quick sort.
-
-In this chapter, we'll first introduce the idea of quick sort, which demonstrates the power of divide
-and conquer strategy well. Several variants will be explained, and we'll see when quick sort performs poor
-in some special cases. That the algorithm is not able to partition the sequence in balance.
-
-In order to solve the unbalanced partition problem, we'll next introduce about merge sort, which ensure
-the sequence to be well partitioned in all the cases. Some variants of merge sort, including nature merge
-sort, bottom-up merge sort are shown as well.
-
-Same as other chapters, all the algorithm will be realized in both imperative and functional approaches.
-
-% ================================================================
-% Quick sort
-% ================================================================
 \section{Quick sort}
 \index{Quick sort}
 
-Consider a teacher arranges a group of kids in kindergarten to stand in a line for some game.
-The kids need stand in order of their heights, that the shortest one stands on the left most,
-while the tallest stands on the right most. How can the teacher instruct these kids, so that
-they can stand in a line by themselves?
-
 \begin{figure}[htbp]
  \centering
- \includegraphics[scale=0.8]{img/kids-inline}
- \caption{Instruct kids to stand in a line}
- \label{fig:knuth-ssort}
+ \includegraphics[scale=0.3]{img/kids}
+ \captionsetup{labelformat = empty}
+ \label{fig:kids-sort}
 \end{figure}
 
-There are many strategies, and the quick sort approach can be applied here:
+Consider arrange kids in a line ordered by height.
 
 \begin{enumerate}
-  \item The first kid raises his/her hand. The kids who are shorter than him/her stands to the left to this child; the kids who are taller than him/her stands to the right of this child;
-  \item All the kids move to the left, if there are, repeat the above step; all the kids move to the right repeat the same step as well.
+\item The first kid raises hand, all shorter ones move to left, and the others move to right;
+\item All kids on the left and right repeat.
 \end{enumerate}
 
-Suppose a group of kids with their heights as $\{102, 100, 98, 95, 96, 99, 101, 97\}$ with [cm] as the unit.
-The following table illustrate how they stand in order of height by following this method.
+For example, the heights (in cm) are $[102, 100, 98, 95, 96, 99, 101, 97]$. \Cref{tab:kids-sort} gives the steps. (1) The kid of 102 cm raises hand as the pivot (underlined in the first row). He happens to be the tallest, hence all others move to the left as shown in the second row in the table. (2) The kid of 100 cm is the pivot. Those of height 98, 95, 96, and 99 cm move to the left, and the one of 101 cm moves to the right, as shown in the third row. (3) The kid of 98 cm is the left pivot, while 101 cm is the right pivot. Because there is only one kid on the right, it's sorted. Repeat this to sort all kids.
 
+\begin{table}[htbp]
+\centering
 \begin{tabular}{ | c c c c c c c c |}
 \hline
-{\bf 102} & 100 & 98 & 95 & 96 & 99 & 101 & 97 \\
-{\bf 100} & 98 & 95 & 96 & 99 & 101 & 97 & {\em 102} \\
-{\bf 98} & 95 & 96 & 99 & 97 & {\em 100} & 101 & {\em 102} \\
-{\bf 95} & 96 & 97 & {\em 98} & 99 & {\em 100} & {\em 101} & {\em 102} \\
-{\em 95} & {\bf 96} & 97 & {\em 98} & {\em 99} & {\em 100} & {\em 101} & {\em 102} \\
-{\em 95} & {\em 96} & 97 & {\em 98} & {\em 99} & {\em 100} & {\em 101} & {\em 102} \\
-{\em 95} & {\em 96} & {\em 97} & {\em 98} & {\em 99} & {\em 100} & {\em 101} & {\em 102} \\
+\underline{102} & 100 & 98 & 95 & 96 & 99 & 101 & 97 \\
+\underline{100} & 98 & 95 & 96 & 99 & 101 & 97 & `102' \\
+\underline{98} & 95 & 96 & 99 & 97 & `100' & 101 & `102' \\
+\underline{95} & 96 & 97 & `98' & 99 & `100' & `101' & `102' \\
+`95' & \underline{96} & 97 & `98' & `99' & `100' & `101' & `102' \\
+`95' & `96' & 97 & `98' & `99' & `100' & `101' & `102' \\
+`95' & `96' & `97' & `98' & `99' & `100' & `101' & `102' \\
 \hline
 \end{tabular}
+\caption{Sort steps}
+\label{tab:kids-sort}
+\end{table}
 
-At the beginning, the first child with height 102 cm raises his/her hand. We call this kid the pivot and mark
-this height in bold.
-It happens that this is the tallest kid.
-So all others stands to the left side, which is represented in the second row in the above table. Note that
-the child with height 102 cm is in the final ordered position, thus we mark it italic. Next the kid with
-height 100 cm raise hand, so the children of heights 98, 95, 96 and 99 cm stand to his/her left, and there
-is only 1 child of height 101 cm who is taller than this pivot kid. So he stands to the right hand.
-The 3rd row in the table shows this stage accordingly. After that, the child of 98 cm high is selected
-as pivot on left hand; while the child of 101 cm high on the right is selected as pivot. Since there
-are no other kids in the unsorted group with 101 cm as pivot, this small group is ordered already and
-the kid of height 101 cm is in the final proper position. The same method is applied to the group of kids
-which haven't been in correct order until all of them are stands in the final position.
-
-\subsection{Basic version}
-\index{Quick Sort!Basic version}
-Summarize the above instruction leads to the recursive description of quick sort. In order to sort a sequence
-of elements $L$.
+Summarize the quick sort. Let the list be $L$:
 
 \begin{itemize}
-\item If $L$ is empty, the result is obviously empty; This is the trivial edge case;
-\item Otherwise, select an arbitrary element in $L$ as a pivot, recursively sort all elements not greater than the pivot, put
-the result on the left hand of the pivot, {\em and} recursively sort all elements which are greater than the pivot, put
-the result on the right hand of the pivot.
+\item If $L$ is empty$[\ ]$, the result is $[\ ]$;
+\item Otherwise, select an element as the pivot $p$, recursively sort elements $\leq p$ to the left; {\em and} sort other elements $> p$ to the right.
 \end{itemize}
 
-Note that the emphasized word {\em and}, we don't use `then' here, which indicates it's quite OK that
-the recursive sort on the left and right can be done in parallel. We'll return this parallelism topic soon.
-
-Quick sort was first developed by C. A. R. Hoare in 1960 \cite{TAOCP}, \cite{wiki-qs}. What we describe here
-is a basic version. Note that it doesn't state how to select the pivot. We'll see soon that the pivot selection
-affects the performance of quick sort dramatically.
-
-The most simple method to select the pivot is always choose the first one so that quick sort can be formalized
-as the following.
+We say {\em and}, but not `then', indicate we can sort left and right in parallel. C. A. R. Hoare developed quick sort in 1960\cite{TAOCP}\cite{wiki-qs}. There are varies of ways to pick the pivot, for example, always choose the first element.
 
 \be
-sort(L) = \left \{
-  \begin{array}
-  {r@{\quad:\quad}l}
-  \phi & L = \phi \\
-  sort(\{ x | x \in L', x \leq l_1 \}) \cup \{ l_1 \} \cup sort(\{ x | x \in L', l_1 < x \}) & otherwise \\
-  \end{array}
-\right.
+\begin{array}{rcl}
+sort\ [\ ] & = & [\ ] \\
+sort\ (x \cons xs) & = & sort\ [y \gets xs, y \leq x] \doubleplus [x] \doubleplus sort\ [y \gets xs, x < y] \\
+\end{array}
 \ee
 
-Where $l_1$ is the first element of the non-empty list $L$, and $L'$ contains the rest elements $\{l_2, l_3, ...\}$.
-Note that we use Zermelo Frankel expression (ZF expression for short)\footnote{Name for the two mathematics who found the modern set theory.}, which is also known as list
-comprehension. A ZF expression $\{ a | a \in S, p_1(a), p_2(a), ... \}$ means taking all element in set $S$,
-if it satisfies all the predication $p_1, p_2, ...$. ZF expression is originally used for representing
-{\em set}, we extend it to express list for the sake of brevity. There can be duplicated elements, and
-different permutations represent for different list. Please refer to the appendix
-about list in this book for detail.
+We use ZF expression (see \cref{sec:zf-expr,sec:list-filter}) to filter the list. Below is the example program:
 
-It's quite straightforward to translate this equation to real code if list comprehension is supported.
-The following Haskell code is given for example:
-
-\lstset{language=Haskell}
-\begin{lstlisting}
+\lstset{frame = single}
+\begin{Haskell}
 sort [] = []
 sort (x:xs) = sort [y | y<-xs, y <= x] ++ [x] ++ sort [y | y<-xs, x < y]
-\end{lstlisting}
+\end{Haskell}
 
-This might be the shortest quick sort program in the world at the time when this book is written. Even
-a verbose version is still very expressive:
-
-\lstset{language=Haskell}
-\begin{lstlisting}
-sort [] = []
-sort (x:xs) = as ++ [x] ++ bs where
-    as = sort [ a | a <- xs, a <= x]
-    bs = sort [ b | b <- xs, x < b]
-\end{lstlisting}
-
-There are some variants of this basic quick sort program, such as using explicit filtering instead of
-list comprehension. The following Python program demonstrates this for example:
-
-\lstset{language=Python}
-\begin{lstlisting}
-def sort(xs):
-    if xs == []:
-        return []
-    pivot = xs[0]
-    as = sort(filter(lambda x : x <= pivot, xs[1:]))
-    bs = sort(filter(lambda x : pivot < x, xs[1:]))
-    return as + [pivot] + bs
-\end{lstlisting}
-
-\subsection{Strict weak ordering}
-\index{Quick Sort!Strict weak ordering}
-We assume the elements are sorted in monotonic none decreasing order so far. It's quite possible to customize
-the algorithm, so that it can sort the elements in other ordering criteria. This is necessary in practice because
-users may sort numbers, strings, or other complex objects (even list of lists for example).
-
-The typical generic solution is to abstract the comparison as a parameter as we mentioned in chapters about
-insertion sort and selection sort. Although it needn't the total ordering, the comparison must satisfy
-{\em strict weak ordering} at least \cite{wiki-total-order} \cite{wiki-sweak-order}.
-
-For the sake of brevity, we only considering sort the elements by using less than or equal
-(equivalent to not greater than) in the rest of the chapter.
+We assume to sort in ascending order. We can abstract the ($\leq$) as generic comparison to sort different things like numbers, strings, and etc. We needn't total ordering, but at least need {\em strict weak ordering}\cite{wiki-total-order}\cite{wiki-sweak-order}(see \cref{sec:strict-weak-order}).
 
 \subsection{Partition}
 \index{Quick sort!partition}
-Observing that the basic version actually takes two passes to find all elements which are greater than the pivot
-as well as to find the others which are not respectively. Such partition can be accomplished by only one pass. We explicitly define the partition as below.
+We traverse the elements in two passes: first filter all elements $\leq x$ ; next filter all $> x$. Let us combine them into one pass:
 
 \be
-partition(p, L) = \left \{
-  \begin{array}
-  {r@{\quad:\quad}l}
-  (\phi, \phi) & L = \phi \\
-  (\{ l_1 \} \cup A, B) & p(l_1), (A, B) = partition(p, L') \\
-  (A, \{ l_1 \} \cup B) & \lnot p(l_1)
-  \end{array}
-\right.
+\begin{array}{rcl}
+\textit{part}\ p\ [\ ] & = & ([\ ], [\ ]) \\
+\textit{part}\ p\ (x \cons xs) & = & \begin{cases}
+ p(x): & (x \cons as, bs), \text{where}\ (as, bs) = \textit{part}\ p\ xs \\
+ \text{otherwise}: & (as, x \cons bs) \\
+\end{cases} \\
+\end{array}
+\label{eq:qsort-partition}
 \ee
 
-Note that the operation $\{x\} \cup L$ is just a `cons' operation, which only takes constant time.
-The quick sort can be modified accordingly.
+And change the quick sort to:
 
 \be
-sort(L) = \left \{
-  \begin{array}
-  {r@{\quad:\quad}l}
-  \phi & L = \phi \\
-  sort(A) \cup \{l_1\} \cup sort(B) & otherwise, (A, B) = partition(\lambda_x x \leq l_1, L')
-  \end{array}
-\right.
+\begin{array}{rcl}
+sort\ [\ ] & = & [\ ] \\
+sort\ (x \cons xs) & = & sort\ as \doubleplus [x] \doubleplus sort\ bs, \text{where}\ (as, bs) = \textit{part}\ (\leq x)\ xs \\
+\end{array}
 \ee
 
-Translating this new algorithm into Haskell yields the below code.
+Alternatively, we can define partition with fold (in Curried form):
 
-\lstset{language=Haskell}
-\begin{lstlisting}
-sort [] = []
-sort (x:xs) = sort as ++ [x] ++ sort bs where
-    (as, bs) = partition (<= x) xs
+\be
+\textit{part}\ p\ = foldr\ f\ ([\ ], [\ ])
+\ee
 
-partition _ [] = ([], [])
-partition p (x:xs) = let (as, bs) = partition p xs in
-    if p x then (x:as, bs) else (as, x:bs)
-\end{lstlisting}
+Where:
 
-The concept of partition is very critical to quick sort. Partition is also very important to many
-other sort algorithms. We'll explain how it generally affects the sorting methodology by the end
-of this chapter. Before further discussion about fine tuning of quick sort specific partition, let's
-see how to realize it in-place imperatively.
+\be
+f\ (as, bs)\ x = \begin{cases}
+p(x): & (x \cons as, bs) \\
+\text{otherwise}: & (as, x \cons bs) \\
+\end{cases}
+\ee
 
-There are many partition methods. The one given by Nico Lomuto \cite{pearls} \cite{CLRS} will be used here as it's
-easy to understand. We'll show other partition algorithms soon and see how partitioning affects the performance.
+It's essentially to accumulate to $(as, bs)$. If $p(x)$ holds, then add $x$ to $as$, otherwise to $bs$. Change the partition to tail recursive:
+
+\be
+\begin{array}{rcl}
+\textit{part}\ p\ [\ ]\ as\ bs & = & (as, bs) \\
+\textit{part}\ p\ (x \cons xs)\ as\ bs & = & \begin{cases}
+  p(x): & \textit{part}\ p\ xs\ (x \cons as)\ bs \\
+  \text{otherwise}: & \textit{part}\ p\ xs\ as\ (x \cons bs) \\
+\end{cases}
+\end{array}
+\ee
+
+To partition $(x \cons xs)$, call $(as, bs) = \textit{part}\ (\leq x)\ xs\ [\ ]\ [\ ]$. We eliminate the concatenation ($\doubleplus$) in `$sort\ as \doubleplus [x] \doubleplus sort\ bs$' with an accumulators $s$ as:
+
+\be
+\begin{array}{rcl}
+sort'\ s\ [\ ] & = & s \\
+sort'\ s\ (x \cons xs) & = & sort'\ (x : sort'\ s\ bs)\ as \\
+\end{array}
+\ee
+
+Start it with an empty list: $sort = sort'\ [\ ]$. After partition, we need recursively sort $as, bs$. We can first sort $bs$, prepend $x$, then pass it as the new accumulator to sort $as$:
+
+\begin{Haskell}
+sort = sort' []
+
+sort' s [] = s
+sort' s (x:xs) = sort' (x : sort' s bs) as where
+  (as, bs) = part xs [] []
+  part [] as bs = (as, bs)
+  part (y:ys) as bs | y <= x = part ys (y:as) bs
+                    | otherwise = part ys as (y:bs)
+\end{Haskell}
+
+\subsection{In-place sort}
+
+\Cref{fig:partition-1-way} gives a way to partition in-place\cite{Bentley}\cite{CLRS}. Scan from left to right. At any time, the array is consist of four parts (\cref{fig:partition-1-way} (a)):
 
 \begin{figure}[htbp]
    \centering
-   \subcaptionbox{Partition invariant}{\includegraphics[scale=0.5]{img/partition-1-way}} \\
-   \subcaptionbox{Start}{\includegraphics[scale=0.5]{img/partition-1-way-start}} \\
-   \subcaptionbox{Finish}{\includegraphics[scale=0.5]{img/partition-1-way-finish}}
-   \caption{Partition a range of array by using the left most element as pivot.}
+   \subcaptionbox{Partition invariant}{
+      \begin{tikzpicture}[scale=0.8]
+      \draw (0, 0) rectangle (1, 1) node (xl) [pos=.5] {$A[l]$}
+            (1, 0) rectangle (5, 1) node (leq) [pos=.5] {... $\leq p$ ...}
+            (5, 0) rectangle (9, 1) node (ge) [pos=.5] {... $> p$ ...}
+            (9, 0) rectangle (11, 1) node (rest) [pos=.5] {...?...}
+            (11, 0) rectangle (12, 1) node (xu) [pos=.5] {$A[u]$};
+      \fill [black] (5, 0) rectangle (5.1, 1) node (leftbar) [pos=.5] {}
+                    (9, 0) rectangle (9.1, 1) node (rightbar) [pos=.5] {};
+      \draw (0, 2) node (pivot) {$p = A[l]$}
+            (5, 2) node (left) {left $L$}
+            (9, 2) node (right) {right $R$};
+      \draw[thick, ->] (pivot) edge (xl)
+                       (left) edge [bend right] (leftbar)
+                       (right) edge [bend right] (rightbar);
+      \end{tikzpicture}} \\
+   \subcaptionbox{Initialize}{
+      \begin{tikzpicture}[scale=0.8]
+      \draw (-0.5, 0) rectangle (1, 1) node (xl) [pos=.5] {$A[l]$}
+            (1, 0) rectangle (2.5, 1) node (xl1) [pos=.5] {$A[l+1]$}
+            (2.5, 0) rectangle (4, 1) node (rest) [pos=.5] (ai) {...?...}
+            (4, 0) rectangle (5, 1) node (xu) [pos=.5] {$A[u]$};
+      \fill [black] (1, 0) rectangle (1.1, 1) node (leftbar) [pos=.5] {};
+      \draw (-2, 2) node (pivot) {$p$}
+            (0, 2) node (left) {$L$}
+            (2, 2) node (right) {$R$};
+      \draw[thick, ->] (pivot) edge [bend right] (xl)
+                       (left) edge [bend right] (leftbar)
+                       (right) edge [bend left] (leftbar);
+      \end{tikzpicture}} \\
+   \subcaptionbox{Terminate}{
+      \begin{tikzpicture}[scale=0.8]
+      \draw (0, 0) rectangle (1, 1) node (xl) [pos=.5] {$A[l]$}
+            (1, 0) rectangle (5, 1) node (leq) [pos=.5] {... $\leq p$ ...}
+            (5, 0) rectangle (6, 1) node (xleft) [pos=.5] {$A[L]$}
+            (6, 0) rectangle (10, 1) node (ge) [pos=.5] {... $> p$ ...}
+            (10, 0) rectangle (11, 1) node (xu) [pos=.5] {$A[u]$};
+      \fill [black] (6, 0) rectangle (6.1, 1) node (leftbar) [pos=.5] {}
+                    (11, 0) rectangle (11.1, 1) node (rightbar) [pos=.5] {};
+      \draw (0, 2) node (pivot) {$p$}
+            (6, 2) node (left) {$L$}
+            (12, 2) node (right) {$R$};
+      \draw[thick, ->] (pivot) edge (xl)
+                       (left) edge [bend right] (leftbar)
+                       (right) edge [bend left] (rightbar);
+      \draw[thick, <->] (xl) edge [bend right] node [below] {swap} (xleft);
+      \end{tikzpicture}} \\
+   \caption{In-place partition, pivot $p = A[l]$}
    \label{fig:partition-1-way}
 \end{figure}
 
-Figure \ref{fig:partition-1-way} shows the idea of this one-pass partition method. The array is processed from
-left to right. At any time, the array consists of the following parts as shown in figure \ref{fig:partition-1-way} (a):
+\begin{enumerate}
+\item The pivot is the left element: $p = A[l]$. It moves to the final position after partition;
+\item A section of elements $\leq p$, extends right to $L$;
+\item A section of elements $> p$, extends right to $R$. The elements between $L$ and $R$ are $> p$;
+\item Elements after $R$ haven't been partitioned (maybe $>$ or $=$ or $< p$).
+\end{enumerate}
 
-\begin{itemize}
-\item The left most cell contains the pivot; By the end of the partition process, the pivot will be moved to the
-final proper position;
-\item A segment contains all elements which are not greater than the pivot. The right boundary of this segment is
-marked as `left';
-\item A segment contains all elements which are greater than the pivot. The right boundary of this segment is marked
-as `right'; It means that elements between `left' and `right' marks are greater than the pivot;
-\item The rest of elements after `right' mark haven't been processed yet. They may be greater than the
-pivot or not.
-\end{itemize}
-
-At the beginning of partition, the `left' mark points to the pivot and the `right' mark points to the
-the second element next to the pivot in the array as in Figure
-\ref{fig:partition-1-way} (b); Then the algorithm repeatedly advances the right mark one element after the other
-till passes the end of the array.
-
-In every iteration, the element pointed by the `right' mark is compared with the
-pivot. If it is greater than the pivot, it should be among the segment between the `left' and `right' marks, so that
-the algorithm goes on to advance the `right' mark and examine the next element; Otherwise, since the element pointed
-by `right' mark is less than or equal to the pivot (not greater than), it should be put before the `left' mark.
-In order to achieve this, the `left' mark needs be advanced by one, then exchange the elements pointed by the `left'
-and `right' marks.
-
-Once the `right' mark passes the last element, it means that all the elements have been processed. The elements
-which are greater than the pivot have been moved to the right hand of `left' mark while the others are to the
-left hand of this mark. Note that the pivot should move between the two segments. An extra exchanging between the pivot and
-the element pointed by `left' mark makes this final one to the correct location. This is shown by the swap
-bi-directional arrow in figure \ref{fig:partition-1-way} (c).
-
-The `left' mark (which points the pivot finally) partitions the whole array into two parts, it is
-returned as the result. We typically increase the `left' mark by one, so that it points to the
-first element greater than the pivot for convenient. Note that the array is modified in-place.
-
-The partition algorithm can be described as the following. It takes three arguments, the array $A$, the lower
-and the upper bound to be partitioned \footnote{The partition algorithm used here is slightly different from
-the one in \cite{CLRS}. The latter uses the last element in the slice as the pivot.}.
+When partition starts, $L$ points to $p$, $R$ points to the next (\cref{fig:partition-1-way} (b)). We advance $R$ to the right boundary. Every time, compare $A[R]$ and $p$. If $A[R] > p$, it should be between $L$ and $R$, we move $R$ forward; otherwise if $A[R] \leq p$, it should be on the left of $L$. We advance $L$ a step, then swap $A[L] \leftrightarrow A[R]$. The partition ends when $R$ passes the last element. All elements $> p$ are moved to the right of $L$, while others are on the left. We need move $p$ to the position between the two parts. To do that, swap $p \leftrightarrow A[L]$, as shown in \cref{fig:partition-1-way} (c). $L$ finally points to $p$, partitioned the array in two parts. We return $L + 1$ as the result, that points to the first element $> p$. Let the array be $A$, the lower, upper boundaries be $l, u$. The in-place partition is defined below:
 
 \begin{algorithmic}[1]
-\Function{Partition}{A, l, u}
-  \State $p \gets A[l]$  \Comment{the pivot}
-  \State $L \gets l$ \Comment{the left mark}
-  \For{$R \in [l+1, u]$} \Comment{iterate on the right mark}
-    \If{$\lnot (p < A[R])$} \Comment{negate of $<$ is enough for strict weak order}
+\Function{Partition}{$A, l, u$}
+  \State $p \gets A[l]$  \Comment{pivot}
+  \State $L \gets l$ \Comment{left}
+  \For{$R$ in $[l+1, u]$} \Comment{iterate on right}
+    \If{$p \geq A[R]$}
       \State $L \gets L + 1$
       \State \textproc{Exchange} $A[L] \leftrightarrow A[R]$
     \EndIf
   \EndFor
   \State \textproc{Exchange} $A[L] \leftrightarrow p$
-  \State \Return $L + 1$ \Comment{The partition position}
+  \State \Return $L + 1$ \Comment{partition position}
 \EndFunction
 \end{algorithmic}
 
-Below table shows the steps of partitioning the array $\{ 3, 2, 5, 4, 0, 1, 6, 7\}$.
+\Cref{tab:partition-steps} lists the steps to partition $[3, 2, 5, 4, 0, 1, 6, 7]$.
 
-\begin{tabular}{ | c c c c c c c c | l |}
+\begin{table}[htbp]
+\centering
+\begin{tabular}{|llllllll|l|}
 \hline
-(l) {\bf 3} & (r) 2 & 5 & 4 & 0 & 1 & 6 & 7 & initialize, $pivot = 3, l = 1, r = 2$ \\
-{\bf 3} & (l)(r) 2 & 5 & 4 & 0 & 1 & 6 & 7 & $2 < 3$, advance $l$, ($r=l$)\\
-{\bf 3} & (l) 2 & (r) 5 & 4 & 0 & 1 & 6 & 7 & $5 > 3$, move on \\
-{\bf 3} & (l) 2 & 5 & (r) 4 & 0 & 1 & 6 & 7 & $4 > 3$, move on \\
-{\bf 3} & (l) 2 & 5 & 4 & (r) 0 & 1 & 6 & 7 & $0 < 3$ \\
-{\bf 3} & 2 & (l) 0 & 4 & (r) 5 & 1 & 6 & 7 & Advance $l$, then swap with $r$ \\
-{\bf 3} & 2 & (l) 0 & 4 & 5 & (r) 1 & 6 & 7 & $1 < 3$ \\
-{\bf 3} & 2 & 0 & (l) 1 & 5 & (r) 4 & 6 & 7 & Advance $l$, then swap with $r$ \\
-{\bf 3} & 2 & 0 & (l) 1 & 5 & 4 & (r) 6 & 7 & $6 > 3$, move on \\
-{\bf 3} & 2 & 0 & (l) 1 & 5 & 4 & 6 & (r) 7 & $7 > 3$, move on \\
-1 & 2 & 0 & 3 & (l+1) 5 & 4 & 6 & 7 & $r$ passes the end, swap pivot and $l$ \\
+\underline{3}(l)  & 2(r) & 5 & 4 & 0 & 1 & 6 & 7 & start, $p = 3$, $l = 1$, $r = 2$ \\
+\underline{3} & 2(l)(r) & 5 & 4 & 0 & 1 & 6 & 7 & $2 < 3$, advance $l$ ($r=l$) \\
+\underline{3} & 2(l) & 5(r) & 4 & 0 & 1 & 6 & 7 & $5 > 3$, move on \\
+\underline{3} & 2(l) & 5 & 4(r) & 0 & 1 & 6 & 7 & $4 > 3$, move on \\
+\underline{3} & 2(l) & 5 & 4 & 0(r) & 1 & 6 & 7 & $0 < 3$ \\
+\underline{3} & 2 & 0(l) & 4 & 5(r) & 1 & 6 & 7 & advance $l$, swap with $r$ \\
+\underline{3} & 2 & 0(l) & 4 & 5 & 1(r) & 6 & 7 & $1 < 3$ \\
+\underline{3} & 2 & 0 & 1(l) & 5 & 4(r) & 6 & 7 & advance $l$, swap with $r$ \\
+\underline{3} & 2 & 0 & 1(l) & 5 & 4 & 6(r) & 7 & $6 > 3$, move on \\
+\underline{3} & 2 & 0 & 1(l) & 5 & 4 & 6 & 7(r) & $7 > 3$, move on \\
+1 & 2 & 0 & 3 & 5(l+1) & 4 & 6 & 7 & terminate, swap $p$ and $l$ \\
 \hline
 \end{tabular}
+\caption{Partition array} \label{tab:partition-steps}
+\end{table}
 
-This version of partition algorithm can be implemented in ANSI C as the following.
-\lstset{language=C}
-\begin{lstlisting}
-int partition(Key* xs, int l, int u) {
-    int pivot, r;
-    for (pivot = l, r = l + 1; r < u; ++r)
-        if (!(xs[pivot] < xs[r])) {
-            ++l;
-            swap(xs[l], xs[r]);
-        }
-    swap(xs[pivot], xs[l]);
-    return l + 1;
-}
-\end{lstlisting}
-
-Where \texttt{swap(a, b)} can either be defined as function or a macro. In ISO C++, \texttt{swap(a, b)}
-is provided as a function template. the type of the elements can be defined somewhere or abstracted
-as a template parameter in ISO C++. We omit these language specific details here.
-
-With this partition method realized, the imperative in-place quick sort can be accomplished as the following.
+We implement quick sort with \textproc{Partition} as bellow:
 
 \begin{algorithmic}[1]
 \Procedure{Quick-Sort}{$A, l, u$}
@@ -356,268 +282,52 @@ With this partition method realized, the imperative in-place quick sort can be a
 \EndProcedure
 \end{algorithmic}
 
-When sort an array, this procedure is called by passing the whole range as the lower and upper bounds.
-\textproc{Quick-Sort}($A, 1, |A|$). Note that when $l \geq u$ it means the array slice is either empty,
-or just contains only one element, both can be treated as ordered, so
-the algorithm does nothing in such cases.
+We pass the array and its boundaries as \textproc{Quick-Sort}($A, 1, |A|$) to sort. It returns immediately if the array is empty or a singleton.
 
-Below ANSI C example program completes the basic in-place quick sort.
-
-\lstset{language=C}
-\begin{lstlisting}
-void quicksort(Key* xs, int l, int u) {
-    int m;
-    if (l < u) {
-        m = partition(xs, l, u);
-        quicksort(xs, l, m - 1);
-        quicksort(xs, m, u);
-    }
-}
-\end{lstlisting}
-
-\subsection{Minor improvement in functional partition}
-\index{Quick Sort!One pass functional partition}
-Before exploring how to improve the partition for basic version quick sort, it's obviously that the
-one presented so far can be defined by using folding. Please refer to the appendix A of this book for
-definition of folding.
-
-\be
-partition(p, L) = fold(f(p), (\phi, \phi), L)
-\ee
-
-Where function $f$ compares the element to the pivot with predicate $p$ (which is passed to $f$ as a parameter, so that
-$f$ is in curried form, see appendix A for detail. Alternatively, $f$ can be a lexical closure which is in
-the scope of $partition$, so that it can access the predicate in this scope.),
-and update the result pair accordingly.
-
-\be
-f(p, x, (A, B)) =  \left \{
-  \begin{array}
-  {r@{\quad:\quad}l}
-  (\{ x \} \cup A, B) & p(x) \\
-  (A, \{ x \} \cup B) & otherwise(\lnot p(x))
-  \end{array}
-\right.
-\ee
-
-Note we actually use pattern-matching style definition. In environment without pattern-matching support,
-the pair $(A, B)$ should be represented by a variable, for example $P$, and use access functions
-to extract its first and second parts.
-
-The example Haskell program needs to be modified accordingly.
-
-\lstset{language=Haskell}
-\begin{lstlisting}
-sort [] = []
-sort (x:xs) = sort small ++ [x] ++ sort big where
-  (small, big) = foldr f ([], []) xs
-  f a (as, bs) = if a <= x then (a:as, bs) else (as, a:bs)
-\end{lstlisting}
-
-\subsubsection{Accumulated partition}
-\index{Quick Sort!Accmulated partition}
-The partition algorithm by using folding actually accumulates to the result pair of lists $(A, B)$. That
-if the element is not greater than the pivot, it's accumulated to $A$, otherwise to $B$. We can explicitly
-express it which save spaces and is friendly for tail-recursive call optimization (refer to the appendix A
-of this book for detail).
-
-\be
-partition(p, L, A, B) = \left \{
-  \begin{array}
-  {r@{\quad:\quad}l}
-  (A, B) & L = \phi \\
-  partition(p, L', \{ l_1 \} \cup A, B) & p(l_1) \\
-  partition(p, L', A, \{ l_1 \} \cup B) & otherwise
-  \end{array}
-\right.
-\ee
-
-Where $l_1$ is the first element in $L$ if $L$ isn't empty, and $L'$ contains the rest elements except for
-$l_1$, that $L' = \{ l_2, l_3, ...\}$ for example.
-The quick sort algorithm then uses this accumulated partition function by passing the $\lambda_x x \leq pivot$
-as the partition predicate.
-
-\be
-sort(L) =  \left \{
-  \begin{array}
-  {r@{\quad:\quad}l}
-  \phi & L = \phi \\
-  sort(A) \cup \{ l_1 \} \cup sort(B) & otherwise
-  \end{array}
-\right.
-\ee
-
-Where $A, B$ are computed by the accumulated partition function defined above.
-
-\[
-(A, B) = partition(\lambda_x x \leq l_1, L', \phi, \phi)
-\]
-
-\subsubsection{Accumulated quick sort}
-\index{Quick Sort!Accumulated quick sort}
-Observe the recursive case in the last quick sort definition. the list concatenation operations $sort(A) \cup \{l_1\} \cup sort(B)$
-actually are proportion to the length of the list to be concatenated. Of course we can use some general solutions
-introduced in the appendix A of this book to improve it. Another way is to change the sort algorithm to accumulated
-manner. Something like below:
-
-\[
-sort'(L, S) =  \left \{
-  \begin{array}
-  {r@{\quad:\quad}l}
-  S & L = \phi \\
-  ... & otherwise
-  \end{array}
-\right.
-\]
-
-Where $S$ is the accumulator, and we call this version by passing empty list as the accumulator to start sorting:
-$sort(L) = sort'(L, \phi)$.
-The key intuitive is that after the partition finishes, the two sub lists need to be recursively sorted. We can
-first recursively sort the list contains the elements which are greater than the pivot, then link the pivot in front
-of it and use it as an {\em accumulator} for next step sorting.
-
-Based on this idea, the '...' part in above definition can be realized as the following.
-
-\[
-sort'(L, S) =  \left \{
-  \begin{array}
-  {r@{\quad:\quad}l}
-  S & L = \phi \\
-  sort(A, \{l_1\} \cup sort(B, ?)) & otherwise
-  \end{array}
-\right.
-\]
-
-The problem is what's the accumulator when sorting $B$. There is an important invariant actually, that at
-every time, the accumulator $S$ holds the elements have been sorted so far. So that we should sort $B$ by
-accumulating to $S$.
-
-\be
-sort'(L, S) =  \left \{
-  \begin{array}
-  {r@{\quad:\quad}l}
-  S & L = \phi \\
-  sort(A, \{l_1\} \cup sort(B, S)) & otherwise
-  \end{array}
-\right.
-\ee
-
-The following Haskell example program implements the accumulated quick sort algorithm.
-
-\lstset{language=Haskell}
-\begin{lstlisting}
-asort xs = asort' xs []
-
-asort' [] acc = acc
-asort' (x:xs) acc = asort' as (x:asort' bs acc) where
-  (as, bs) = part xs [] []
-  part [] as bs = (as, bs)
-  part (y:ys) as bs | y <= x = part ys (y:as) bs
-                    | otherwise = part ys as (y:bs)
-\end{lstlisting}
-
-\begin{Exercise}
-\begin{itemize}
-\item Implement the recursive basic quick sort algorithm in your favorite imperative programming language.
-\item Same as the imperative algorithm, one minor improvement is that besides the empty case, we needn't sort the singleton list, implement
-this idea in the functional algorithm as well.
-\item The accumulated quick sort algorithm developed in this section uses intermediate variable $A, B$. They
-can be eliminated by defining the partition function to mutually recursive call the sort function. Implement this
-idea in your favorite functional programming language. Please don't refer to the downloadable example program
-along with this book before you try it.
-\end{itemize}
+\begin{Exercise}[label={ex:basic-qsort}]
+\Question{Optimize the basic quick sort definition for the singleton list case.}
 \end{Exercise}
 
-\section{Performance analysis for quick sort}
-\index{Quick Sort!Performance analysis}
+\begin{Answer}[ref = {ex:basic-qsort}]
+\Question{Optimize the basic quick sort definition for the singleton list case.
 
-Quick sort performs well in practice, however, it's not easy to give theoretical analysis. It needs the tool
-of probability to prove the average case performance.
+Add a case:
+\begin{Haskell}
+sort [x] = [x]
+\end{Haskell}
+}
+\end{Answer}
 
-Nevertheless, it's intuitive to calculate the best case and worst case performance. It's obviously that
-the best case happens when every partition divides the sequence into two slices with equal size. Thus
-it takes $O(\lg n)$ recursive calls as shown in figure \ref{fig:qsort-best}.
+\subsection{Performance}
+\index{Quick sort!Performance} \label{sec:quick-sort-big-o}
+
+Quick sort performs well in most cases. Consider the best/worst cases. For the best case, it always halves the elements into two equal sized parts. As shown in figure \cref{fig:qsort-best}, there are total $O(\lg n)$ levels of recursions. At level one, it processes $n$ elements with one partition; at level two, partitions twice, each processes $n/2$ elements, taking total $2 O(n/2) = O(n)$ time; at level three, partitions four times, each processes $n/4$ elements, taking total $O(n)$ time too, ..., at the last level, there are $n$ singleton segments, taking total $O(n)$ time. Sum all levels, the time is bound to $O(n \lg n)$.
 
 \begin{figure}[htbp]
  \centering
- \includegraphics[scale=0.6]{img/qsort-best}
- \caption{In the best case, quick sort divides the sequence into two slices with same length.}
+ \includegraphics[scale=0.55]{img/qsort-best}
+ \caption{The best case, halve every time.}
  \label{fig:qsort-best}
 \end{figure}
 
-There are total $O(\lg n)$ levels of recursion. In the first level, it executes one partition, which
- processes $n$ elements; In the second level, it executes partition two times, each processes $n/2$
-elements, so the total time in the second level bounds to $2 O(n/2) = O(n)$ as well. In the third
-level, it executes partition four times, each processes $n/4$ elements. The total time in the third
-level is also bound to $O(n)$; ... In the last level, there are $n$ small slices each contains a
-single element, the time is bound to $O(n)$. Summing all the time in each level gives the total
-performance of quick sort in best case as $O(n \lg n)$.
+For the worst case, the partition is totally unbalanced, one part is of $O(1)$ length, the other is $O(n)$. The level of recursions decays to $O(n)$. Model the partition as a tree. It's balanced binary tree in the best case, while it becomes a linked-list of $O(n)$ length in the worst case. Every branch node has an empty sub-tree. At each level, we process all elements, hence the total time is bound to $O(n^2)$. This is same as insertion sort, and selection sort. There are several challenging cases, for example, the sequence has many duplicated elements, or is largely ordered, and etc. There isn't a method can avoid the worst case completely.
 
-However, in the worst case, the partition process unluckily divides the sequence to two slices
-with unbalanced lengths in most time. That one slices with length $O(1)$, the other is $O(n)$.
-Thus the recursive time degrades to $O(n)$. If we draw a similar figure, unlike in the best
-case, which forms a balanced binary tree, the worst case degrades into a very unbalanced tree
-that every node has only one child, while the other is empty. The binary tree turns to be
-a linked list with $O(n)$ length. And in every level, all the elements are processed, so the
-total performance in worst case is $O(n^2)$, which is as same poor as insertion sort and
-selection sort.
+\subsubsection{Average case\texorpdfstring{$\bigstar$}{â˜…}}
+\index{Quick Sort!Average case}
 
-Let's consider when the worst case will happen. One special case is that
-all the elements (or most of the elements) are same. Nico Lomuto's partition method deals
-with such sequence poor. We'll see how to solve this problem by introducing other
-partition algorithm in the next section.
-
-The other two obvious cases which lead to worst case happen when the sequence has already in
-ascending or descending order. Partition the ascending sequence makes an empty sub list
-before the pivot, while the list after the pivot contains all the rest elements.
-Partition the descending sequence gives an opponent result.
-
-There are other cases which lead quick sort performs poor. There is no completely satisfied solution
-which can avoid the worst case. We'll see some engineering practice in next section which can
-make it very seldom to meet the worst case.
-
-\subsection{Average case analysis $\star$}
-\index{Quick Sort!Average case analysis}
-In average case, quick sort performs well. There is a vivid example that even the partition
-divides the list every time to two lists with length 1 to 9. The performance is still bound
-to $O(n \lg n)$ as shown in \cite{CLRS}.
-
-This subsection need some mathematic background, reader can safely skip to next part.
-
-There are two methods to proof the average case performance, one uses an important fact
-that the performance is proportion to the total comparing operations during quick sort \cite{CLRS}.
-Different with the selections sort that every two elements have been compared. Quick sort
-avoid many unnecessary comparisons. For example suppose a partition operation on list
-$\{ a_1, a_2, a_3, ..., a_n\}$. Select $a_1$ as the pivot, the partition builds two sub lists
-$A = \{x_1, x_2, ..., x_k\}$ and $B = \{ y_1, y_2, ..., y_{n-k-1} \}$.
-In the rest time of quick sort, The element in $A$ will never be compared with any elements in $B$.
-
-Denote the final sorted result as $\{ a_1, a_2, ..., a_n \}$,
-this indicates that if element $a_i < a_j$, they will not be compared
-any longer if and only if some element $a_k$ where $a_i < a_k < a_j$ has ever been selected as pivot
-before $a_i$ or $a_j$ being selected as the pivot.
-
-That is to say, the only chance that $a_i$ and $a_j$ being compared is either $a_i$ is chosen
-as pivot or $a_j$ is chosen as pivot before any other elements in ordered range
-$a_{i+1} < a_{i+2} < ... < a_{j-1}$ are selected.
-
-Let $P(i, j)$ represent the probability that $a_i$ and $a_j$ being compared. We have:
+Quick sort performs well in average. For example, even if every partition gives two parts of 1:9, the performance still achieves $O(n \lg n)$\cite{CLRS}. We give two methods to evaluate the performance. The first one is based on the fact, that the performance is proportion to the number of comparisons. In selection sort, every two elements are compared, while in quick sort, we save many comparisons. When partition sequence $[a_1, a_2, a_3, ..., a_n]$ with $a_1$ as the pivot, we obtain two sub sequences $A = [x_1, x_2, ..., x_k]$ and $B = [y_1, y_2, ..., y_{n-k-1}]$. After that, none element $x_i$ in $A$ will be compared with any $y_j$ in $B$. Let the sorted result be $[a_1, a_2, ..., a_n]$, if $a_i < a_j$, we do not compare them if and only if there is some element $a_k$, where $a_i < a_k < a_j$, is picked as the pivot before either $a_i$ or $a_j$ being the pivot. In other word, the only chance that we compare $a_i$ and $a_j$ is either $a_i$ or $a_j$ is chosen as the pivot before any other elements in $a_{i+1} < a_{i+2} < ... < a_{j-1}$ being the pivot. Let $P(i, j)$ be the probability that we compare $a_i$ and $a_j$. We have:
 
 \be
 P(i, j) = \frac{2}{j - i + 1}
 \ee
 
-Since the total number of compare operation can be given as:
+The total number of comparisons is:
 
 \be
 C(n) = \sum_{i=1}^{n-1}\sum_{j=i+1}^{n} P(i, j)
 \ee
 
-Note the fact that if we compared $a_i$ and $a_j$, we won't compare $a_j$ and $a_i$ again in
-the quick sort algorithm, and we never compare $a_i$ onto itself. That's why we set the upper
-bound of $i$ to $n-1$; and lower bound of $j$ to $i+1$.
-
-Substitute the probability, it yields:
+If we compare $a_i$ and $a_j$, we won't compare $a_j$ and $a_i$ again, and we never compare $a_i$ with itself. The upper bound of $i$ is $n-1$, and the lower bound of $j$ is $i+1$. Substitute the probability:
 
 \be
 \begin{array}{rl}
@@ -626,7 +336,7 @@ C(n) & = \displaystyle \sum_{i=1}^{n-1}\sum_{j = i+1}^{n} \frac{2}{j - i + 1} \\
 \end{array}
 \ee
 
-Using the harmonic series \cite{wiki-harmonic}
+Use the result of harmonic series\cite{wiki-harmonic}.
 
 \[
 H_n = 1 + \frac{1}{2} + \frac{1}{3} + .... = \ln n + \gamma + \epsilon_n
@@ -636,19 +346,13 @@ H_n = 1 + \frac{1}{2} + \frac{1}{3} + .... = \ln n + \gamma + \epsilon_n
 C(n) = \sum_{i=1}^{n-1} O(\lg n) = O(n \lg n)
 \ee
 
-The other method to prove the average performance is to use the recursive fact that
-when sorting list of length $n$, the partition splits the list into two
-sub lists with length $i$ and $n-i-1$. The partition process itself takes $cn$
-time because it examine every element with the pivot. So we have the following
-equation.
+The other method uses the recursion. Let the length of the sequence be $n$, we partition it into two parts of length $i$ and $n-i-1$. The partition takes $cn$ time because it compares every element with the pivot. The total time is:
 
 \be
 T(n) = T(i) + T(n-i-1) + c n
 \ee
 
-Where $T(n)$ is the total time when perform quick sort on list of length $n$.
-Since $i$ is equally like to be any of $0, 1, ..., n-1$, taking math expectation to
-the equation gives:
+Where $T(n)$ is the time to sort $n$ elements. $i$ equally distributes across $0, 1, ..., n-1$. Taking math expectation:
 
 \be
 \renewcommand*{\arraystretch}{1.5}
@@ -656,38 +360,37 @@ the equation gives:
 T(n) & = E(T(i)) + E(T(n-i-1)) + c n \\
      & = \displaystyle \frac{1}{n} \sum_{i=0}^{n-1}T(i) + \frac{1}{n} \sum_{i=0}^{n-1}T(n-i-1) + cn \\
      & = \displaystyle \frac{1}{n} \sum_{i=0}^{n-1}T(i) + \frac{1}{n} \sum_{j=0}^{n-1}T(j) + cn \\
-     & = \displaystyle \frac{2}{n} \sum_{i=0}^{b-1}T(i) + cn
+     & = \displaystyle \frac{2}{n} \sum_{i=0}^{n-1}T(i) + cn
 \end{array}
 \ee
 
-Multiply by $n$ to both sides, the equation changes to:
+Multiply $n$ to both sides:
 
 \be
 n T(n) = 2 \sum_{i=0}^{n-1} T(i) + c n^2
 \label{eq:ntn}
 \ee
 
-Substitute $n$ to $n-1$ gives another equation:
+Substitute $n$ to $n-1$:
 
 \be
 (n-1) T(n-1) = 2 \sum_{i=0}^{n-2} T(i) + c (n-1)^2
 \label{eq:n1tn1}
 \ee
 
-Subtract equation (\ref{eq:ntn}) and (\ref{eq:n1tn1}) can eliminate all the $T(i)$ for $0 \leq i < n-1$.
+Take (\cref{eq:ntn}) - (\cref{eq:n1tn1}), cancel all $T(i)$ for $0 \leq i < n-1$.
 
 \be
 n T(n) = (n + 1) T(n-1) + 2cn - c
 \ee
 
-As we can drop the constant time $c$ in computing performance. The equation can be one more step changed like
-below.
+Drop the constant $c$, we obtain:
 
 \be
 \frac{T(n)}{n+1} = \frac{T(n-1)}{n} + \frac{2c}{n+1}
 \ee
 
-Next we assign $n$ to $n-1$, $n-2$, ..., which gives us $n-1$ equations.
+Assign $n$ to $n-1$, $n-2$, ..., to give $n-1$ equations.
 
 \[
 \frac{T(n-1)}{n} = \frac{T(n-2)}{n-1} + \frac{2c}{n}
@@ -705,235 +408,142 @@ Next we assign $n$ to $n-1$, $n-2$, ..., which gives us $n-1$ equations.
 \frac{T(2)}{3} = \frac{T(1)}{2} + \frac{2c}{3}
 \]
 
-Sum all them up, and eliminate the same components in both sides, we can deduce to a function of $n$.
+Sum up and cancel the same components on both sides, we get a function of $n$.
 
 \be
 \frac{T(n)}{n+1} = \frac{T(1)}{2} + 2c \sum_{k=3}^{n+1} \frac{1}{k}
 \ee
 
-Using the harmonic series mentioned above, the final result is:
+Use the result of the harmonic series:
 
 \be
 O(\frac{T(n)}{n+1}) = O(\frac{T(1)}{2} + 2c \ln n + \gamma + \epsilon_n) = O(\lg n)
 \ee
 
-Thus
+Therefore:
 
 \be
 O(T(n)) = O(n \lg n)
 \ee
 
-\begin{Exercise}
-\begin{itemize}
-\item Why Lomuto's methods performs poor when there are many duplicated elements?
-\end{itemize}
-\end{Exercise}
+\subsection{Improvement}
+\index{Quick sort!Improvement} \index{Quick sort!Ternary partition}
 
-% ================================================================
-% Minor Improvement for quick sort
-% ================================================================
-
-\section{Engineering Improvement}
-\index{Quick Sort!Engineering improvement}
-
-Quick sort performs well in most cases as mentioned in previous section. However, there
-does exist the worst cases which downgrade the performance to quadratic. If the data is randomly
-prepared, such case is rare, however, there are some particular sequences which lead to
-the worst case and these kinds of sequences are very common in practice.
-
-In this section, some engineering practices are introduces which either help to avoid poor performance
-in handling some special input data with improved partition algorithm, or try to uniform
-the possibilities among cases.
-
-\subsection{Engineering solution to duplicated elements}
-\index{Quick Sort!Handle duplicated elements}
-As presented in the exercise of above section, N. Lomuto's partition method isn't good at handling
-sequence with many duplicated elements. Consider a sequence with $n$ equal elements like: $\{x, x, ..., x\}$.
-There are actually two methods to sort it.
+The \textproc{Partition} procedure doesn't perform well when there are many duplicated elements. Consider the extreme case that all $n$ elements are equal $[x, x, ..., x]$:
 
 \begin{enumerate}
-\item The normal basic quick sort: That we select an arbitrary element, which is $x$ as the pivot, partition
-it to two sub sequences, one is $\{x, x, ..., x \}$, which contains $n-1$ elements, the other is empty.
-then recursively sort the first one; this is obviously quadratic $O(n^2)$ solution.
-\item The other way is to only pick those elements strictly smaller than $x$, and strictly greater than $x$.
-Such partition results two empty sub sequences, and $n$ elements equal to the pivot.
-Next we recursively sort the sub sequences contains the smaller and the bigger elements, since both of them are empty, the recursive call returns immediately;
-The only thing left is to concatenate the sort results in front of and after the list of elements which are equal to the
-pivot.
+\item From the quick sort definition: pick any element as the pivot, hence $p = x$, partition into two sub-sequences. One is $[x, x, ..., x]$ of length $n - 1$, the other is empty. Next recursively sort the $n-1$ elements, the total time decays to $O(n^2)$.
+\item Modify the partition with $< x$ and $> x$. The result are two empty sub-sequences, and $n$ elements equal to $x$. The recursion on empty sequence terminates immediately. The result is $[\ ] \doubleplus [x, x, ..., x] \doubleplus [\ ]$. The performance is $O(n)$.
 \end{enumerate}
 
-The latter one performs in $O(n)$ time if all elements are equal. This indicates an important improvement
-for partition. That instead of binary partition (split to two sub lists and a pivot), ternary partition (split
-to three sub lists) handles duplicated elements better.
-
-We can define the ternary quick sort as the following.
+We improve from {\em binary} partition to {\em ternary} partition to handle the duplicated elements:
 
 \be
-sort(L) = \left \{
-  \begin{array}
-  {r@{\quad:\quad}l}
-  \phi & L = \phi \\
-  sort(S) \cup sort(E) \cup sort(G) & otherwise
-  \end{array}
-\right.
-\ee
-
-Where $S, E, G$ are sub lists contains all elements which are less than, equal to, and greater than the pivot
-respectively.
-
-\[
-\begin{array}{l}
-S = \{ x | x \in L, x < l_1 \} \\
-E = \{ x | x \in L, x = l_1 \} \\
-G = \{ x | x \in L, l_1 < x \}
+\begin{array}{rcl}
+sort\ [\ ] & = & [\ ] \\
+sort\ (x \cons xs) & = & sort\ S \doubleplus sort\ E \doubleplus sort\ G
 \end{array}
-\]
+\ee
 
-The basic ternary quick sort can be implemented in Haskell as the following example code.
-
-\lstset{language=Haskell}
-\begin{lstlisting}
-sort [] = []
-sort (x:xs) = sort [a | a<-xs, a<x] ++
-              x:[b | b<-xs, b==x] ++ sort [c | c<-xs, c>x]
-\end{lstlisting}
-
-Note that the comparison between elements must support abstract `less-than' and
-`equal-to' operations. The basic version of ternary sort takes linear $O(n)$ time to
-concatenate the three sub lists. It can be improved by using the standard
-techniques of accumulator.
-
-Suppose function $sort'(L, A)$ is the accumulated ternary quick sort definition, that $L$ is the sequence
-to be sorted, and the accumulator $A$ contains the intermediate sorted result so far.
-We initialize the sorting with an empty accumulator: $sort(L) = sort'(L, \phi)$.
-
-It's easy to give the trivial edge cases like below.
+Where:
 
 \[
-sort'(L, A) = \left \{
-  \begin{array}
-  {r@{\quad:\quad}l}
-  A & L = \phi \\
-  ... & otherwise
-  \end{array}
-\right.
+\begin{cases}
+S = [ y \gets xs, y < x ] \\
+E = [ y \gets xs, y = x ] \\
+G = [ y \gets xs, y > x ] \\
+\end{cases}
 \]
 
-For the recursive case, as the ternary partition splits to three sub lists $S, E, G$, only $S$ and $G$
-need recursive sort, $E$ contains all elements equal to the pivot, which is in correct order thus
-needn't to be sorted any more. The idea is to sort $G$ with accumulator $A$, then concatenate it behind
-$E$, then use this result as the new accumulator, and start to sort $S$:
+we use an accumulator to improve the list concatenation: $qsort = sort\ [\ ]$, where:
 
 \be
-sort'(L, A) = \left \{
-  \begin{array}
-  {r@{\quad:\quad}l}
-  A & L = \phi \\
-  sort(S, E \cup sort(G, A)) & otherwise
-  \end{array}
-\right.
+\begin{array}{rcl}
+sort\ A\ [\ ] & = & A \\
+sort\ A\ (x \cons xs) & = & sort\ (E \doubleplus sort\ A\ G)\ S \\
+\end{array}
 \ee
 
-The partition can also be realized with accumulators. It is similar to what has been developed for the
-basic version of quick sort. Note that we can't just pass only one predication for pivot comparison.
-It actually needs two, one for less-than, the other for equality testing. For the sake of brevity,
-we pass the pivot element instead.
+The sub-list $E$ contains elements of the same value, hence sorted. We first sort $G$ with the accumulator $A$, then prepend $E$ as the new accumulator, and use it to sort $S$. We also improve the partition with accumulator:
 
 \be
-partition(p, L, S, E, G) = \left \{
-  \begin{array}
-  {r@{\quad:\quad}l}
-  (S, E, G) & L = \phi \\
-  partition(p, L', \{l_1\} \cup S, E, G) & l_1 < p \\
-  partition(p, L', S, \{l_1\} \cup E, G) & l_1 = p \\
-  partition(p, L', S, E, \{ l_1 \} \cup G) & p < l_1
-  \end{array}
-\right.
+\begin{array}{rcl}
+part\ S\ E\ G\ x\ [\ ] & = & (S, E, G) \\
+part\ S\ E\ G\ x\ (y \cons ys) & = & \begin{cases}
+  y < x: & (y \cons S, E, G) \\
+  y = x: & (S, y \cons E, G) \\
+  y > x: & (S, E, y \cons G) \\
+  \end{cases} \\
+\end{array}
 \ee
 
-Where $l_1$ is the first element in $L$ if $L$ isn't empty, and $L'$ contains all rest elements except for $l_1$.
-Below Haskell program implements this algorithm. It starts the recursive sorting immediately in the edge
-case of parition.
+Richard Bird gives another improvement\cite{fp-pearls}: collect the recursive sort results with a list and concatenate it finally:
 
-\lstset{language=Haskell}
-\begin{lstlisting}
-sort xs = sort' xs []
+\begin{Haskell}
+sort :: (Ord a) => [a] -> [a]
+sort = concat . (pass [])
 
-sort' []     r = r
-sort' (x:xs) r = part xs [] [x] [] r where
-    part [] as bs cs r = sort' as (bs ++ sort' cs r)
-    part (x':xs') as bs cs r | x' <  x = part xs' (x':as) bs cs r
-                             | x' == x = part xs' as (x':bs) cs r
-                             | x' >  x = part xs' as bs (x':cs) r
-\end{lstlisting}
-
-Richard Bird developed another version in \cite{fp-pearls}, that instead of concatenating the
-recursively sorted results, it uses a list of sorted sub lists, and performs concatenation
-finally.
-
-\lstset{language=Haskell}
-\begin{lstlisting}
-sort xs = concat $ pass xs []
-
-pass [] xss = xss
-pass (x:xs) xss = step xs [] [x] [] xss where
-    step [] as bs cs xss = pass as (bs:pass cs xss)
+pass xss [] = xss
+pass xss (x:xs) = step xs [] [x] [] xss where
+    step [] as bs cs xss = pass (bs : pass xss cs) as
     step (x':xs') as bs cs xss | x' <  x = step xs' (x':as) bs cs xss
                                | x' == x = step xs' as (x':bs) cs xss
                                | x' >  x = step xs' as bs (x':cs) xss
-\end{lstlisting} %$
+\end{Haskell}
 
-\subsubsection{2-way partition}
 \index{Quick Sort!2-way partition}
-The cases with many duplicated elements can also be handled imperatively. Robert Sedgewick presented a partition
-method \cite{qsort-impl}, \cite{pearls}
-which holds two pointers. One moves from left to right, the other moves from right to left. The two pointers
-are initialized as the left and right boundaries of the array.
-
-When start partition, the left most element is selected as the pivot. Then the left pointer $i$
-keeps advancing to right until it meets any element which is not less than the pivot; On the other hand\footnote{We don't use `then' because it's quite OK to perform the two scans in parallel.}, The right pointer $j$ repeatedly scans to
-left until it meets any element which is not greater than the pivot.
-
-At this time, all elements before the left pointer $i$ are strictly less than the pivot, while all
-elements after the right pointer $j$ are greater than the pivot. $i$ points to an element which is
- either greater than or equal to the pivot; while $j$ points to an element which is either less than or
-equal to the pivot, the situation at this stage is illustrated in figure \ref{fig:partition-2-way} (a).
-
-In order to partition all elements less than or equal to the pivot to the left, and the others to the right,
-we can exchange the two elements pointed by $i$, and $j$. After that the scan can be resumed. We repeat this process until either $i$ meets $j$, or they overlap.
-
-At any time point during partition. There is invariant that all elements before $i$ (including the one
-pointed by $i$) are not greater than
-the pivot; while all elements after $j$ (including the one pointed by $j$) are not less than the pivot.
-The elements between $i$ and $j$ haven't been examined yet. This invariant is shown in figure \ref{fig:partition-2-way} (b).
+Robert Sedgewick develops the two-way partition method\cite{qsort-impl}\cite{Bentley}. Use two pointers $i, j$ to the left and right boundaries. Pick the first element as the pivot $p$. Advance $i$ to right till meet an element $\geq p$; while (in parallel) move $j$ to left till meet an element $\leq p$. At this time, all elements on the left to $i$ are less than the pivot ($< p$), while those on the right to $j$ are greater than the pivot ($> p$). $i$ points to an element that is $\geq p$, and $j$ points to an element that is $\leq p$, as shown in \cref{fig:partition-2-way} (a). To move all elements $\leq p$ to the left, and the remaining to the right, we exchange $x[i] \leftrightarrow x[j]$, then continue scan. Repeat this till $i$ meets $j$. At any time, we keep the invariant: all elements one the left to $i$ (include $i$) are $\leq p$; while all on the right to $j$ (include $j$) are $\geq p$. The elements between $i$ and $j$ are yet to scan, as shown in \cref{fig:partition-2-way} (b).
 
 \begin{figure}[htbp]
    \centering
-   \subcaptionbox{When pointer $i$, and $j$ stop}{\includegraphics[scale=0.5]{img/partition-2-way-inner}} \\
-   \subcaptionbox{Partition invariant}{\includegraphics[scale=0.5]{img/partition-2-way}} \\
-   \caption{Partition a range of array by using the left most element as the pivot.}
+   \subcaptionbox{When $i$ and $j$ stop}{
+      \begin{tikzpicture}[scale=0.8]
+      \draw (0, 0) rectangle (1, 1) node (xl) [pos=.5] {$A[l]$}
+            (1, 0) rectangle (5, 1) node (leq) [pos=.5] {... $< p$ ...}
+            (5, 0) rectangle (6, 1) node (xi) [pos=.5] {$A[i]$}
+            (6, 0) rectangle (8, 1) node (rest) [pos=.5] {... ? ...}
+            (8, 0) rectangle (9, 1) node (xj) [pos=.5] {$A[j]$}
+            (9, 0) rectangle (13, 1) node (ge) [pos=.5] {... $> p$ ...};
+      \draw (0, 2) node (pivot) {pivot $p$}
+            (5, 2) node (left) {$\geq p$}
+            (8, 2) node (right) {$\leq p$};
+      \draw[thick, ->] (pivot) edge (xl)
+                       (left) edge [bend right] (xi)
+                       (right) edge [bend right] (xj);
+      \end{tikzpicture}} \\
+   \subcaptionbox{Partition invariant}{
+      \begin{tikzpicture}[scale=0.8]
+      \draw (0, 0) rectangle (1, 1) node (xl) [pos=.5] {$A[l]$}
+            (1, 0) rectangle (5, 1) node (leq) [pos=.5] {... $\leq p$ ...}
+            (5, 0) rectangle (7, 1) node (rest) [pos=.5] {... ? ...}
+            (7, 0) rectangle (11, 1) node (ge) [pos=.5] {... $\geq p$ ...};
+      \fill [black] (5, 0) rectangle (5.1, 1) node (ibar) [pos=.5] {}
+                    (7, 0) rectangle (7.1, 1) node (jbar) [pos=.5] {};
+      \draw (0, 2) node (pivot) {pivot $p$}
+            (5, 2) node (i) {$i$}
+            (7, 2) node (j) {$j$};
+      \draw[thick, ->] (pivot) edge (xl)
+                       (i) edge [bend right] (ibar)
+                       (j) edge [bend right] (jbar);
+      \end{tikzpicture}} \\
+   \caption{2-way scan}
    \label{fig:partition-2-way}
 \end{figure}
 
-After the left pointer $i$ meets the right pointer $j$, or they overlap each other, we need one extra exchanging
-to move the pivot located at the first position to the correct place which is pointed by $j$. Next, the
-elements between the lower bound and $j$ as well as the sub slice between $i$ and the upper bound of the array
-are recursively sorted.
-
-This algorithm can be described as the following.
+When $i$ meets $j$, we need an additional exchange: swap the pivot $p$ to position $j$. Then recursive sort the sub-arrays $A[l ... j)$ and $A[i ... u)$.
 
 \begin{algorithmic}[1]
-\Procedure{Sort}{$A, l, u$} \Comment{sort range $[l, u)$}
-  \If{$u - l > 1$} \Comment{More than 1 element for non-trivial case}
+\Procedure{Sort}{$A, l, u$} \Comment{Sort range $[l, u)$}
+  \If{$u - l > 1$} \Comment{At least 2 elements}
     \State $i \gets l$, $j \gets u$
     \State $pivot \gets A[l]$
     \Loop
       \Repeat
         \State $i \gets i + 1$
-      \Until{$A[i] \geq pivot$} \Comment{Need handle error case that $i \geq u$ in fact.}
+      \Until{$A[i] \geq pivot$} \Comment{Ignore $i \geq u$}
       \Repeat
         \State $j \gets j - 1$
-      \Until{$A[j] \leq pivot$} \Comment{Need handle error case that $j < l$ in fact.}
+      \Until{$A[j] \leq pivot$} \Comment{Ignore $j < l$}
       \If{$j < i$}
         \State break
       \EndIf
@@ -946,88 +556,71 @@ This algorithm can be described as the following.
 \EndProcedure
 \end{algorithmic}
 
-Consider the extreme case that all elements are equal, this in-place quick sort will partition
-the list to two equal length sub lists although it takes $\frac{n}{2}$ unnecessary swaps.
-As the partition is balanced, the overall performance is $O(n \lg n)$, which avoid downgrading
-to quadratic. The following ANSI C example program implements this algorithm.
-
-\lstset{language=C}
-\begin{lstlisting}
-void qsort(Key* xs, int l, int u) {
-    int i, j, pivot;
-    if (l < u - 1) {
-        pivot = i = l; j = u;
-        while (1) {
-            while (i < u && xs[++i] < xs[pivot]);
-            while (j >=l && xs[pivot] < xs[--j]);
-            if (j < i) break;
-            swap(xs[i], xs[j]);
-        }
-        swap(xs[pivot], xs[j]);
-        qsort(xs, l, j);
-        qsort(xs, i, u);
-    }
-}
-\end{lstlisting}
-
-Comparing this algorithm with the basic version based on N. Lumoto's partition method, we can find
-that it swaps fewer elements, because it skips those have already in proper sides of the pivot.
-
-\subsubsection{3-way partition}
 \index{Quick Sort!3-way partition}
-It's obviously that, we should avoid those unnecessary swapping for the duplicated elements. What's more,
-the algorithm can be developed with the idea of ternary sort (as known as 3-way partition in some
-materials), that all the elements which are strictly less than the pivot are put to the left sub slice,
-while those are greater than the pivot are put to the right. The middle part holds all the elements
-which are equal to the pivot. With such ternary partition, we need only recursively sort the ones
-which differ from the pivot. Thus in the above extreme case, there aren't any elements need further
-sorting. So the overall performance is linear $O(n)$.
-
-The difficulty is how to do the 3-way partition. Jon Bentley and Douglas McIlroy developed a solution
-which keeps those elements equal to the pivot at the left most and right most sides as shown in
-figure \ref{fig:partition-3-way} (a) \cite{3-way-part} \cite{opt-qs}.
+For the extreme case that all elements are equal, the array is partitioned into two same parts with $\dfrac{n}{2}$ swaps. Because of the balanced partition, the performance is $O(n \lg n)$. It takes less swaps than the one pass scan method, since it skips the elements on the right side of the pivot. We can combine the 2-way scan and the ternary partition. Only recursively sort the elements different with the pivot. Jon Bentley and Douglas McIlroy develop a method as shown in \cref{fig:partition-3-way} (a), that store the elements equal to the pivot on both sides\cite{3-way-part}\cite{opt-qs}.
 
 \begin{figure}[htbp]
    \centering
-   \subcaptionbox{Invariant of 3-way partition}{\includegraphics[scale=0.5]{img/partition-3-way}} \\
-   \subcaptionbox{Swapping the equal parts to the middle}{\includegraphics[scale=0.5]{img/partition-3-way-end}} \\
-   \caption{3-way partition.}
+   \subcaptionbox{Ternary partition invariant.}{
+      \begin{tikzpicture}[scale=0.8]
+      \draw (0, 0) rectangle (1, 1) node (xl) [pos=.5] {$A[l]$}
+            (1, 0) rectangle (3, 1) node [pos=.5] {... $=$ ...}
+            (3, 0) rectangle (5, 1) node [pos=.5] {... $<$ ...}
+            (5, 0) rectangle (7, 1) node [pos=.5] {... ? ...}
+            (7, 0) rectangle (9, 1) node [pos=.5] {... $>$ ...}
+            (9, 0) rectangle (11, 1) node [pos=.5] {... $=$ ...};
+      \fill [black] (3, 0) rectangle (3.1, 1) node (pbar) [pos=.5] {}
+                    (5, 0) rectangle (5.1, 1) node (ibar) [pos=.5] {}
+                    (7, 0) rectangle (7.1, 1) node (jbar) [pos=.5] {}
+                    (9, 0) rectangle (9.1, 1) node (qbar) [pos=.5] {};
+      \draw (0, 2) node (pivot) {pivot}
+            (3, 2) node (p) {$p$}
+            (5, 2) node (i) {$i$}
+            (7, 2) node (j) {$j$}
+            (9, 2) node (q) {$q$};
+      \draw[thick, ->] (pivot) edge (xl)
+                       (p) edge [bend right] (pbar)
+                       (i) edge [bend right] (ibar)
+                       (j) edge [bend left] (jbar)
+                       (q) edge [bend left] (qbar);
+      \end{tikzpicture}} \\
+   \subcaptionbox{Swap the elements $= p$ to the middle.}{\hspace{0.1\textwidth}
+      \begin{tikzpicture}[scale=0.8]
+      \draw (0, 0) rectangle (2, 1) node [pos=.5] {... $<$ ...}
+            (2, 0) rectangle (4, 1) node [pos=.5] {... $=$ ...}
+            (4, 0) rectangle (6, 1) node [pos=.5] {... $>$ ...};
+      \fill [black] (2, 0) rectangle (2.1, 1) node (ibar) [pos=.5] {}
+                    (4, 0) rectangle (4.1, 1) node (jbar) [pos=.5] {};
+      \draw (2, 2) node (i) {$i$}
+            (4, 2) node (j) {$j$};
+      \draw[thick, ->] (i) edge [bend right] (ibar)
+                       (j) edge [bend left] (jbar);
+      \end{tikzpicture}
+      \hspace{0.1\textwidth}}
+   \caption{Ternary partition}
    \label{fig:partition-3-way}
 \end{figure}
 
-The majority part of scan process is as same as the one developed by Robert Sedgewick, that
-$i$ and $j$ keep advancing toward each other until they meet any element which is greater then or equal
-to the pivot for $i$, or less than or equal to the pivot for $j$ respectively.
-At this time, if $i$ and $j$ don't meet each other or overlap, they are not only
-exchanged, but also examined if the elements pointed by them are identical to the pivot.
-Then necessary exchanging happens between $i$ and $p$, as well as $j$ and $q$.
-
-By the end of the partition process, the elements equal to the pivot need to be swapped to the middle
-part from the left and right ends. The number of such extra exchanging operations are proportion to the
-number of duplicated elements. It's zero operation if elements are unique which there is no overhead
-in the case. The final partition result is shown in figure \ref{fig:partition-3-way} (b). After that
-we only need recursively sort the `less-than' and `greater-than' sub slices.
-
-This algorithm can be given by modifying the 2-way partition as below.
+We scan from two sides, pause when $i$ reaches an element $\geq$ the pivot, and $j$ reaches one $\leq$ the pivot. If $i$ doesn't meet or pass $j$, we exchange $A[i] \leftrightarrow A[j]$, then check if $A[i]$ or $A[j]$ equals to the pivot. If yes, we exchange $A[i] \leftrightarrow A[p]$ or $A[j] \leftrightarrow A[q]$ respectively. Finally, we swap all the elements equal to the pivot to the middle. This step does nothing if all elements are distinct. The partition result is shown as \cref{fig:partition-3-way} (b). We next only recursively sort the elements not equal to the pivot.
 
 \begin{algorithmic}[1]
 \Procedure{Sort}{$A, l, u$}
   \If{$u - l > 1$}
     \State $i \gets l$, $j \gets u$
-    \State $p \gets l$, $q \gets u$ \Comment{points to the boundaries for equal elements}
+    \State $p \gets l$, $q \gets u$ \Comment{point to the boundaries of duplicated elements}
     \State $pivot \gets A[l]$
     \Loop
       \Repeat
         \State $i \gets i + 1$
-      \Until{$A[i] \geq pivot$} \Comment{Skip the error handling for $i \geq u$}
+      \Until{$A[i] \geq pivot$} \Comment{Ignore $i \geq u$ case}
       \Repeat
         \State $j \gets j - 1$
-      \Until{$A[j] \leq pivot$} \Comment{Skip the error handling for $j < l$}
+      \Until{$A[j] \leq pivot$} \Comment{Ignore $j < l$ case}
       \If{$j \leq i$}
-        \State break \Comment{Note the difference form the above algorithm}
+        \State break
       \EndIf
       \State \textproc{Exchange} $A[i] \leftrightarrow A[j]$
-      \If{$A[i] = pivot$} \Comment{Handle the equal elements}
+      \If{$A[i] = pivot$} \Comment{duplicated element}
         \State $p \gets p + 1$
         \State \textproc{Exchange} $A[p] \leftrightarrow A[i]$
       \EndIf
@@ -1036,10 +629,10 @@ This algorithm can be given by modifying the 2-way partition as below.
         \State \textproc{Exchange} $A[q] \leftrightarrow A[j]$
       \EndIf
     \EndLoop
-    \If{$i = j \land A[i] = pivot$} \Comment{A special case}
+    \If{$i = j$ and $A[i] = pivot$}
       \State $j \gets j - 1$, $i \gets i + 1$
     \EndIf
-    \For{$k$ from $l$ to $p$} \Comment{Swap the equal elements to the middle part}
+    \For{$k$ from $l$ to $p$} \Comment{Swap the duplicated elements to the middle}
       \State \textproc{Exchange} $A[k] \leftrightarrow A[j]$
       \State $j \gets j - 1$
     \EndFor
@@ -1053,63 +646,30 @@ This algorithm can be given by modifying the 2-way partition as below.
 \EndProcedure
 \end{algorithmic}
 
-This algorithm can be translated to the following ANSI C example program.
-
-\lstset{language=C}
-\begin{lstlisting}
-void qsort2(Key* xs, int l, int u) {
-    int i, j, k, p, q, pivot;
-    if (l < u - 1) {
-        i = p = l; j = q = u; pivot = xs[l];
-        while (1) {
-            while (i < u && xs[++i] < pivot);
-            while (j >= l && pivot < xs[--j]);
-            if (j <= i) break;
-            swap(xs[i], xs[j]);
-            if (xs[i] == pivot) { ++p; swap(xs[p], xs[i]); }
-            if (xs[j] == pivot) { --q; swap(xs[q], xs[j]); }
-        }
-        if (i == j && xs[i] == pivot) { --j, ++i; }
-        for (k = l; k <= p; ++k, --j) swap(xs[k], xs[j]);
-        for (k = u-1; k >= q; --k, ++i) swap(xs[k], xs[i]);
-        qsort2(xs, l, j + 1);
-        qsort2(xs, i, u);
-    }
-}
-\end{lstlisting}
-
-It can be seen that the the algorithm turns to be a bit complex when it evolves to 3-way partition.
-There are some tricky edge cases should be handled with caution. Actually, we just need a ternary
-partition algorithm. This remind us the N. Lumoto's method, which is straightforward enough
-to be a start point.
-
-The idea is to change the invariant a bit. We still select the first element as the pivot,
-as shown in figure \ref{fig:partition-3-way-lumoto},
-at any time, the left most section contains elements which are strictly less than the pivot;
-the next section contains the elements equal to the pivot; the right most section holds all the
-elements which are strictly greater than the pivot. The boundaries of three sections are marked
-as $i$, $k$, and $j$ respectively.
-The rest part, which is between $k$ and $j$ are elements haven't been scanned yet.
-
-At the beginning of this algorithm, the `less-than' section is empty; the `equal-to' section
-contains only one element, which is the pivot; so that $i$ is initialized to the lower bound
-of the array, and $k$ points to the element next to $i$. The `greater-than' section is also
-initialized as empty, thus $j$ is set to the upper bound.
+It becomes complex when combine the 2-way scan and the ternary partition. Alternatively, we change the one pass scan to the ternary partition directly. Pick the first element as the pivot, as shown in \cref{fig:partition-3-way-lomuto}. At any time, the left part contains elements $< p$; the next part contains those $= p$; and the right part contains those $> p$. The boundaries are $i, k, j$. Elements between $[k, j)$ are yet to be partitioned. We scan from left to right. When start, the part $< p$ is empty; the part $= p$ has an element; $i$ points to the lower boundary, $k$ points to the next. The part $> p$ is empty too, $j$ points to the upper boundary.
 
 \begin{figure}[htbp]
    \centering
-   \includegraphics[scale=0.5]{img/partition-3-way-lumoto}
-   \caption{3-way partition based on N. Lumoto's method.}
-   \label{fig:partition-3-way-lumoto}
+      \begin{tikzpicture}[scale=0.8]
+      \draw (0, 0) rectangle (2, 1) node [pos=.5] {... $< p$ ...}
+            (2, 0) rectangle (4, 1) node [pos=.5] {... $= p$ ...}
+            (4, 0) rectangle (6, 1) node [pos=.5] {... ? ...}
+            (6, 0) rectangle (8, 1) node [pos=.5] {... $> p$ ...};
+      \fill [black] (2, 0) rectangle (2.1, 1) node (ibar) [pos=.5] {}
+                    (4, 0) rectangle (4.1, 1) node (kbar) [pos=.5] {}
+                    (6, 0) rectangle (6.1, 1) node (jbar) [pos=.5] {};
+      \draw (2, 2) node (i) {$i$}
+            (4, 2) node (k) {$k$}
+            (6, 2) node (j) {$j$};
+      \draw[thick, ->] (i) edge [bend right] (ibar)
+                       (k) edge [bend right] (kbar)
+                       (j) edge [bend left] (jbar);
+      \end{tikzpicture}
+   \caption{1 way scan ternary partition}
+   \label{fig:partition-3-way-lomuto}
 \end{figure}
 
-When the partition process starts, the element pointed by $k$ is examined. If it's equal to
-the pivot, $k$ just advances to the next one; If it's greater than the pivot, we swap it with
-the last element in the unknown area, so that the length of `greater-than' section increases
-by one. It's boundary $j$ moves to the left. Since we don't know if the elements swapped to $k$
-is still greater than the pivot, it should be examined again repeatedly. Otherwise, if the
-element is less than the pivot, we can exchange it with the first one in the `equal-to' section
-to resume the invariant. The partition algorithm stops when $k$ meets $j$.
+Iterate on $k$, if $A[k] = p$, then move $k$ to the next; if $A[k] > p$, then exchange $A[k] \leftrightarrow A[j-1]$, the range of elements that $> p$ increases by one. Its boundary $j$ moves to left a step. Because we don't know if the element moved to $k$ is still $> p$, we need compare again and repeat. Otherwise if $A[k] < p$, we exchange $A[k] \leftrightarrow A[i]$, where $A[i]$ is the first element that $= p$. The partition terminates when $k$ meets $j$.
 
 \begin{algorithmic}[1]
 \Procedure{Sort}{$A, l, u$}
@@ -1133,85 +693,34 @@ to resume the invariant. The partition algorithm stops when $k$ meets $j$.
 \EndProcedure
 \end{algorithmic}
 
-Compare this one with the previous 3-way partition quick sort algorithm, it's more
-simple at the cost of more swapping operations. Below ANSI C program implements this
-algorithm.
+This implementation is less complex but need more swaps than the version of ternary partition through 2-way scan.
 
-\lstset{language=C}
-\begin{lstlisting}
-void qsort(Key* xs, int l, int u) {
-    int i, j, k; Key pivot;
-    if (l < u - 1) {
-        i = l; j = u; pivot = xs[l];
-        for (k = l + 1; k < j; ++k) {
-            while (pivot < xs[k]) { --j; swap(xs[j], xs[k]); }
-            if (xs[k] < pivot) { swap(xs[i], xs[k]); ++i; }
-        }
-        qsort(xs, l, i);
-        qsort(xs, j, u);
-    }
-}
-\end{lstlisting}
+\subsubsection{Challenging cases}
 
-\begin{Exercise}
-\begin{itemize}
-\item All the quick sort imperative algorithms given in this section use the first element as the pivot,
-another method is to choose the
-last one as the pivot. Realize the quick sort algorithms, including the basic version, Sedgewick version, and
-ternary (3-way partition) version by using this approach.
-\end{itemize}
-\end{Exercise}
-
-\section{Engineering solution to the worst case}
-Although the ternary quick sort (3-way partition) solves the issue for duplicated elements, it can't handle
-some typical worst cases. For example if many of the elements in the sequence are ordered, no matter it's
-in ascending or descending order, the partition result will be two unbalanced sub sequences, one with few elements,
-the other contains all the rest.
-
-Consider the two extreme cases, $\{ x_1 < x_2 < ... < x_n\}$ and $\{ y_1 > y_2 > ... > y_n\}$. The partition
-results are shown in figure \ref{fig:worst-cases-1}.
+Although ternary partition handles duplicated elements well, there are other challenging cases. For example, when most elements are ordered (ascending or descending), the partition is unbalanced. \Cref{fig:worst-cases-1} gives two cases: $[x_1 < x_2 < ... < x_n]$ and $[y_1 > y_2 > ... > y_n]$. It's easy to give more, for example: $[x_m, x_{m-1}, ..., x_2, x_1, x_{m+1}, x_{m+2}, ... x_n]$, where $[ x_1 < x_2 < ... < x_n]$, and $[x_n, x_1, x_{n-1}, x_2, ... ]$ as shown in \cref{fig:worst-cases-2}.
 
 \begin{figure}[htbp]
    \centering
-   \subcaptionbox{The partition tree for $\{x_1 < x_2 < ... < x_n\}$, There aren't any elements less than or equal to the pivot (the first element) in every partition.}{\hspace{.3\textwidth} \includegraphics[scale=0.5]{img/unbalanced} \hspace{.3\textwidth}} \\
-   \subcaptionbox{The partition tree for $\{y_1 > y_2 > ... > y_n\}$, There aren't any elements greater than or equal to the pivot (the first element) in every partition.}{\includegraphics[scale=0.5]{img/unbalanced-2}} \\
-   \caption{The two worst cases.}
+   \subcaptionbox{Partition tree of $[x_1 < x_2 < ... < x_n]$, the sub-trees of $\leq p$ are empty.}{\hspace{.3\textwidth} \includegraphics[scale=0.5]{img/unbalanced} \hspace{.3\textwidth}} \\
+   \subcaptionbox{Partition tree of $[y_1 > y_2 > ... > y_n]$, the sub-trees of $\geq p$ are empty.}{\hspace{.3\textwidth} \includegraphics[scale=0.5]{img/unbalanced-2} \hspace{.3\textwidth}} \\
+   \caption{The challenging cases - 1.}
    \label{fig:worst-cases-1}
 \end{figure}
 
-It's easy to give some more worst cases, for example, $\{ x_m, x_{m-1}, ..., x_2, x_1, x_{m+1}, x_{m+2}, ... x_n\}$
-where $\{ x_1 < x_2 < ... < x_n \}$;
-Another one is $\{x_n, x_1, x_{n-1}, x_2, ... \}$. Their partition result trees are shown
-in figure \ref{fig:worst-cases-2}.
-
 \begin{figure}[htbp]
    \centering
-   \subcaptionbox{Except for the first partition, all the others are unbalanced.}{\includegraphics[scale=0.4]{img/unbalanced-3}} \\
+   \subcaptionbox{Unbalanced partitions except for the first time.}{\includegraphics[scale=0.5]{img/unbalanced-3}} \\
    \subcaptionbox{A zig-zag partition tree.}{\includegraphics[scale=0.5]{img/unbalanced-zigzag}} \\
-   \caption{Another two worst cases.}
+   \caption{The challenging cases - 2.}
    \label{fig:worst-cases-2}
 \end{figure}
 
-Observing that the bad partition happens easily when blindly choose the first element as the pivot,
-there is a popular work around suggested by Robert Sedgwick in \cite{qsort-impl}. Instead of
-selecting the fixed position in the sequence, a small sampling helps to find a pivot which
-has lower possibility to cause a bad partition. One option is to examine the first element, the
-middle, and the last one, then choose the median of these three element. In the worst case,
-it can ensure that there is at least one element in the shorter partitioned sub list.
-
-Note that there is one tricky in real-world implementation. Since the index is typically represented
-in limited length words, it may cause overflow when calculating the middle index by
-the naive expression \texttt{(l + u) / 2}. In order to avoid this issue, it can be accessed
-as \texttt{l + (u - l) / 2}. There are two methods to find the median, one needs at most three
-comparisons \cite{3-way-part}; the other is to move the minimum value to the first location, the maximum value
-to the last location, and the median value to the meddle location by swapping. After that
-we can select the middle as the pivot.
-Below algorithm illustrated the second idea before calling the partition procedure.
+In these challenging cases, the partition is unbalanced when choose the first element as the pivot. Robert Sedgwick improves the pivot selection\cite{qsort-impl}: Instead pick a fixed position, sample several elements to avoid bad pivot. We sample the first, the middle, and the last, pick the median as the pivot. We can either compare every two (total 3 times)\cite{3-way-part}, or swap the least one to head, swap the greatest one to end, and move the median to the middle.
 
 \begin{algorithmic}[1]
 \Procedure{Sort}{$A, l, u$}
   \If{$u - l > 1$}
-    \State $m \gets \lfloor \frac{l + u}{2} \rfloor$ \Comment{Need handle overflow error in practice}
+    \State $m \gets \lfloor \dfrac{l + u}{2} \rfloor$ \Comment{or $l + \dfrac{u - l}{2}$ to void overflow}
     \If{$A[m] < A[l]$} \Comment{Ensure $A[l] \leq A[m]$}
       \State \textproc{Exchange} $A[l] \leftrightarrow A[m]$
     \EndIf
@@ -1229,31 +738,7 @@ Below algorithm illustrated the second idea before calling the partition procedu
 \EndProcedure
 \end{algorithmic}
 
-It's obviously that this algorithm performs well in the 4 special worst cases given above.
-The imperative implementation of median-of-three is left as exercise to the reader.
-
-However, in purely functional settings, it's expensive to randomly access the middle and the last
-element. We can't directly translate the imperative median selection algorithm. The idea of
-taking a small sampling and then finding the median element as pivot can be realized alternatively
-by taking the first 3. For example, in the following Haskell program.
-
-\lstset{language=Haskell}
-\begin{lstlisting}
-qsort [] = []
-qsort [x] = [x]
-qsort [x, y] = [min x y, max x y]
-qsort (x:y:z:rest) = qsort (filter (< m) (s:rest)) ++ [m] ++ qsort (filter (>= m) (l:rest)) where
-    xs = [x, y, z]
-    [s, m, l] = [minimum xs, median xs, maximum xs]
-\end{lstlisting}
-
-Unfortunately, none of the above 4 worst cases can be well handled by this program, this is because
-the sampling is not good. We need telescope, but not microscope to profile the whole list to be
-partitioned. We'll see the functional way to solve the partition problem later.
-
-Except for the median-of-three, there is another popular engineering practice to get good partition
-result. instead of always taking the first element or the last one as the pivot. One alternative is
-to randomly select one. For example as the following modification.
+This implementation handles the above four challenging cases well, known as the `median of three'. Alternatively, we can randomly pick the pivot:
 
 \begin{algorithmic}[1]
 \Procedure{Sort}{$A, l, u$}
@@ -1266,26 +751,9 @@ to randomly select one. For example as the following modification.
 \EndProcedure
 \end{algorithmic}
 
-The function \textproc{Random}($l, u$) returns a random integer $i$ between $l$ and $u$, that
-$l \leq i < u$. The element at this position is exchanged with the first one, so that it is
-selected as the pivot for the further partition. This algorithm is called {\em random quick sort} \cite{CLRS}.
+Where \textproc{Random}($l, u$) returns integer $l \leq i < u$ randomly. We swap $A[i]$ with the first element as the pivot. This method is called {\em random quick sort} \cite{CLRS}. Theoretically, neither `median of three' nor random quick sort can avoid the worst case completely. If the sequence is random, it's same to choose any one as the pivot. Nonetheless, these improvements are widely used in engineering practice.
 
-Theoretically, neither median-of-three nor random quick sort can avoid the worst case completely.
-If the sequence to be sorted is randomly distributed, no matter choosing the first one as the
-pivot, or the any other arbitrary one are equally in effect. Considering the underlying data
-structure of the sequence is singly linked-list in functional setting, it's expensive to
-strictly apply the idea of random quick sort in purely functional approach.
-
-Even with this bad news, the engineering improvement still makes sense in real world programming.
-
-\section{Other engineering practice}
-\index{Quick Sort!Insertion sort fall-back}
-There is some other engineering practice which doesn't focus on solving the bad partition issue.
-Robert Sedgewick observed that when the list to be sorted is short, the overhead introduced by
-quick sort is relative expense, on the other hand, the insertion sort performs better in such
-case \cite{pearls}, \cite{3-way-part}. Sedgewick, Bentley and McIlroy tried different
-threshold, as known as `Cut-Off', that when
-there are lesson than `Cut-Off' elements, the sort algorithm falls back to insertion sort.
+There are other improvements besides partition. Sedgewick find quick sort has overhead when the list is short, while insert sort performs better\cite{Bentley}\cite{3-way-part}. Sedgewick, Bentley and McIlroy evaluate varies thresholds, as `cut-off'. When the elements are less than the `cut-off', then switch to insert sort.
 
 \begin{algorithmic}[1]
 \Procedure{Sort}{$A, l, u$}
@@ -1297,224 +765,110 @@ there are lesson than `Cut-Off' elements, the sort algorithm falls back to inser
 \EndProcedure
 \end{algorithmic}
 
-The implementation of this improvement is left as exercise to the reader.
+\subsection{quick sort and tree sort}
 
-\begin{Exercise}
-\begin{itemize}
-\item Can you figure out more quick sort worst cases besides the four given in this section?
-\item Implement median-of-three method in your favorite imperative programming language.
-\item Implement random quick sort in your favorite imperative programming language.
-\item Implement the algorithm which falls back to insertion sort when the length of list is
-small in both imperative and functional approach.
-\end{itemize}
-\end{Exercise}
-
-\section{Side words}
-It's sometimes called `true quick sort' if the implementation equipped with most of
-the engineering practice we introduced, including insertion sort fall-back with cut-off,
-in-place exchanging, choose the pivot by median-of-three method, 3-way-partition.
-
-The purely functional one, which express the idea of quick sort perfect can't
-take all of them. Thus someone think the functional quick sort is essentially
-tree sort.
-
-Actually, quick sort does have close relationship with tree sort. Richard Bird
-shows how to derive quick sort from binary tree sort by deforestation \cite{algo-fp}.
-
-Consider a binary search tree creation algorithm called $unfold$. Which turns a
-list of elements into a binary search tree.
+The `true quick sort' is the combination of multiple engineering improvements, e.g., falls back to insert sort for small sequence, in-place swaps, choose the pivot as the `median of three', 2-way scan, and ternary partition. Some people think the basic recursive definition is essentially tree sort. Richard Bird derives quick sort from binary tree sort by deforestation\cite{algo-fp}. Define \textit{unfold} that converts a list to binary search tree:
 
 \be
-unfold(L) =  \left \{
-  \begin{array}
-  {r@{\quad:\quad}l}
-  \phi & L = \phi \\
-  tree(T_l, l_1, T_r) & otherwise
-  \end{array}
-\right.
-\ee
-
-Where
-
-\be
-\begin{array}{l}
-T_l = unfold( \{ a | a \in L', a \leq l_1\} ) \\
-T_r = unfold( \{ a | a \in L', l_1 < a \} )
+\begin{array}{rcl}
+\textit{unfold}\ [\ ] & = & \nil \\
+\textit{unfold}\ (x \cons xs) & = & (\textit{unfold}\ [a \gets xs, a \leq x], x, \textit{unfold}\ [a \gets xs, a > x]) \\
 \end{array}
 \ee
 
-The interesting point is that, this algorithm creates tree in a different
-way as we introduced in the chapter of binary search tree. If the list to be unfold
-is empty, the result is obviously an empty tree. This is the trivial edge case;
-Otherwise, the algorithm set the first element $l_1$ in the list as the key of the
-node, and recursively creates its left and right children. Where the elements
-used to form the left child are those which are less than or equal to the
-key in $L'$, while the rest elements which are greater than the key are used to form
-the right child.
-
-Remind the algorithm which turns a binary search tree to a list by in-order
-traversing:
+Compare with the binary tree insert (see chapter 2), \textit{unfold} creates the tree differently. If the list is empty, the tree is empty; otherwise, use the first element $x$ as the key, then recursively build the left, and right sub-trees. Where the left sub-tree has the elements $\leq x$; and the right has the elements $> x$. Define in-order traverse to convert a binary search tree to ordered list:
 
 \be
-toList(T) = \left \{
-  \begin{array}
-  {r@{\quad:\quad}l}
-  \phi & T = \phi \\
-  toList(left(T)) \cup \{ key(T) \} \cup toList(right(T)) & otherwise
-  \end{array}
-\right.
+\begin{array}{rcl}
+\textit{toList}\ \nil & = & [\ ] \\
+\textit{toList}\ (l, k, r) & = & \textit{toList}\ l \doubleplus [k] \doubleplus \textit{toList}\ r \\
+\end{array}
 \ee
 
-We can define quick sort algorithm by composing these two functions.
+Then define quick sort as:
 
 \be
-quickSort = toList \cdot unfold
+\textit{sort} = \textit{toList} \circ \textit{unfold}
 \ee
 
-The binary search tree built in the first step of applying $unfold$ is the intermediate
-result. This
-result is consumed by $toList$ and dropped after the second step. It's quite possible to
-eliminate this intermediate result, which leads to the basic version of quick sort.
-
-The elimination of the intermediate binary search tree is called {\em deforestation}.
-This concept is based on Burstle-Darlington's work \cite{slpj}.
-
-% ================================================================
-% Merge Sort
-% ================================================================
+We first build the binary search tree through \textit{unfold}, then pass it to \textit{toList} to generate the list, and discard the tree. When eliminate the intermediate tree (through {\em deforestation} by Burstle-Darlington's work\cite{slpj-book-1987}), we obtain the quick sort.
 
 \section{Merge sort}
 \index{Merge Sort}
-Although quick sort performs perfectly in average cases, it can't avoid the worst case no matter what
-engineering practice is applied. Merge sort, on the other kind, ensure the performance is bound to
-$O(n \lg n)$ in all the cases. It's particularly useful in theoretical algorithm design and analysis.
-Another feature is that merge sort is friendly for linked-space settings, which is suitable for
-sorting nonconsecutive stored sequences. Some functional programming and dynamic programming environments
-adopt merge sort as the standard library sorting solution, such as Haskel, Python and Java (later than
-Java 7).
 
-In this section, we'll first brief the intuitive idea of merge sort, provide a basic version.
-After that, some variants of merge sort will be given including nature merge sort, and bottom-up
-merge sort.
-
-\subsection{Basic version}
-\index{Merge Sort!Basic version}
-Same as quick sort, the essential idea behind merge sort is also divide and conquer. Different
-from quick sort, merge sort enforces the divide to be strictly balanced, that it always splits the
-sequence to be sorted at the middle point. After that, it recursively sort the sub sequences
-and merge the sorted two sequences to the final result. The algorithm can be described as the
-following.
-
-In order to sort a sequence $L$,
-\begin{itemize}
-\item Trivial edge case: If the sequence to be sorted is empty, the result is obvious empty;
-\item Otherwise, split the sequence at the middle position, recursively sort the two sub sequences
-and merge the result.
-\end{itemize}
-
-The basic merge sort algorithm can be formalized with the following equation.
+Quick sort performs well in most cases. However, it can't avoid the worst cases completely. Merge sort guarantees $O(n \lg n)$ performance in all cases, supports both array and list. Many programming environments provide merge sort as the standard tool\footnote{For example in the standard library of Haskell, Python, and Java.}. Merge sort takes divide and conquer approach. It always splits the sequence in half and half, recursively sorts and merges them.
 
 \be
-sort(L) = \left \{
-  \begin{array}
-  {r@{\quad:\quad}l}
-  \phi & L = \phi \\
-  merge(sort(L_1), sort(L_2)) & otherwise, (L_1, L_2) = splitAt(\lfloor \frac{|L|}{2} \rfloor, L)
-  \end{array}
-\right.
+\begin{array}{rcl}
+sort\ [\ ] & = & [\ ] \\
+sort\ [x] & = & [x] \\
+sort\ xs & = & merge\ (sort\ as)\ (sort\ bs), \text{where}: (as, bs) = \textit{halve}\ xs
+\end{array}
 \ee
 
-\subsubsection{Merge}
-\index{Merge Sort!Merge}
-There are two `black-boxes' in the above merge sort definition, one is the $splitAt$ function,
-which splits a list at a given position; the other is the $merge$ function, which can
-merge two sorted lists into one.
-
-As presented in the appendix of this book, it's trivial to realize $splitAt$
-in imperative settings by using random access. However, in functional settings, it's typically
-realized as a linear algorithm:
+Where \textit{halve} splits the sequence. For array, we can cut at the middle: $\textit{splitAt}\ \lfloor \dfrac{|xs|}{2} \rfloor\ xs$. However, it takes linear time to move to the middle point of a list (see \cref{eq:split-at}):
 
 \be
-splitAt(n, L) =  \left \{
-  \begin{array}
-  {r@{\quad:\quad}l}
-  (\phi, L) & n = 0 \\
-  (\{l_1\} \cup A, B) & otherwise, (A, B) = splitAt(n - 1, L')
-  \end{array}
-\right.
+\textit{splitAt}\ n\ xs = \textit{shift}\ n\ [\ ]\ xs
 \ee
 
-Where $l_1$ is the first element of $L$, and $L'$ represents the rest elements except of $l_1$ if $L$
-isn't empty.
+Where:
 
-The idea of merge can be illustrated as in figure \ref{fig:merge}. Consider two lines of kids.
-The kids have already stood in order of their heights. that the shortest one stands at the
-first, then a taller one, the tallest one stands at the end of the line.
+\be
+\begin{array}{rcl}
+\textit{shift}\ 0\ as\ bs & = & (as, bs) \\
+\textit{shift}\ n\ as\ (b \cons bs) & = & \textit{shift}\ (n - 1)\ (b \cons as)\ bs
+\end{array}
+\ee
+
+Because \textit{halve} needn't keep the relative order among elements, we can simplify it with odd-even split. There are same number of elements in odd and even positions, or they only differ by one. Define $\textit{halve} = \textit{split}\ [\ ]\ [\ ]$, where:
+
+\be
+\begin{array}{rcl}
+\textit{split}\ as\ bs\ [\ ] & = & (as, bs) \\
+\textit{split}\ as\ bs\ [x] & = & (x \cons as, bs) \\
+\textit{split}\ as\ bs\ (x \cons y \cons xs) & = & \textit{split}\ (x \cons as)\ (y \cons bs)\ xs \\
+\end{array}
+\ee
+
+We can further simplify it with folding. As in below example, we add $x$ to $as$ every time, then swap $as \leftrightarrow bs$:
+
+\begin{Haskell}
+halve = foldr f ([], []) where
+  f x (as, bs) = (bs, x:as)
+\end{Haskell}
+
+\index{Merge Sort!Merge} \label{sec:merge-sort-merge}
+As in \cref{fig:merge}, consider two groups of kids, each is already ordered from short to tall. They need pass a gate, one kid per time. We arrange the first kid from each group to compare, the shorter one pass. Repeat this till either group complete pass the gate, then the remaining kids go one by one.
 
 \begin{figure}[htbp]
  \centering
- \includegraphics[scale=0.3]{img/merge}
- \caption{Two lines of kids pass a door.}
+ \includegraphics[scale=0.5]{img/merge2w}
+ \caption{Merge}
  \label{fig:merge}
 \end{figure}
 
-Now let's ask the kids to pass a door one by one, every time there can be at most one kid
-pass the door. The kids must pass this door in the order of their height. The one can't
-pass the door before all the kids who are shorter than him/her.
-
-Since the two lines of kids have already been `sorted', the solution is to ask the first
-two kids, one from each line, compare their height, and let the shorter kid pass the door;
-Then they repeat this step until one line is empty, after that, all the rest kids can
-pass the door one by one.
-
-This idea can be formalized in the following equation.
-
 \be
-merge(A, B) = \left \{
-  \begin{array}
-  {r@{\quad:\quad}l}
-  A & B = \phi \\
-  B & A = \phi \\
-  \{a_1\} \cup merge(A', B) & a_1 \leq b_1 \\
-  \{b_1\} \cup merge(A, B') & otherwise
-  \end{array}
-\right.
+\begin{array}{rcl}
+\textit{merge}\ [\ ]\ bs & = & bs \\
+\textit{merge}\ as\ [\ ] & = & as \\
+\textit{merge}\ (a \cons as)\ (b \cons bs) & = & \begin{cases}
+  a < b: & a : \textit{merge}\ as\ (b \cons bs) \\
+  \text{otherwise}: & b : \textit{merge}\ (a \cons as)\ bs
+  \end{cases}
+\end{array}
+\label{eq:merge-sort-merge}
 \ee
 
-Where $a_1$ and $b_1$ are the first elements in list $A$ and $B$; $A'$ and $B'$ are the
-rest elements except for the first ones respectively. The first two cases are trivial
-edge cases. That merge one sorted list with an empty list results the same sorted list;
-Otherwise, if both lists are non-empty, we take the first elements from the two lists,
-compare them, and use the minimum as the first one of the result, then recursively
-merge the rest.
-
-With $merge$ defined, the basic version of merge sort can be implemented like the following
-Haskell example code.
-
-\lstset{language=Haskell}
-\begin{lstlisting}
-msort [] = []
-msort [x] = [x]
-msort xs = merge (msort as) (msort bs) where
-  (as, bs) = splitAt (length xs `div` 2) xs
-
-merge xs [] = xs
-merge [] ys = ys
-merge (x:xs) (y:ys) | x <= y = x : merge xs (y:ys)
-                    | x >  y = y : merge (x:xs) ys
-\end{lstlisting}
-
-Note that, the implementation differs from the algorithm definition that it treats the singleton
-list as trivial edge case as well.
-
-Merge sort can also be realized imperatively. The basic version can be developed as the below algorithm.
+For array, we directly cut at the middle, recursively sort two halves, then merge:
 
 \begin{algorithmic}[1]
 \Procedure{Sort}{$A$}
-  \If{$|A| > 1$}
-    \State $m \gets \lfloor \frac{|A|}{2} \rfloor$
+  \State $n \gets |A|$
+  \If{$n > 1$}
+    \State $m \gets \lfloor \dfrac{n}{2} \rfloor$
     \State $X \gets$ \Call{Copy-Array}{$A[1...m]$}
-    \State $Y \gets$ \Call{Copy-Array}{$A[m+1...|A|]$}
+    \State $Y \gets$ \Call{Copy-Array}{$A[m+1...n]$}
     \State \Call{Sort}{$X$}
     \State \Call{Sort}{$Y$}
     \State \Call{Merge}{$A, X, Y$}
@@ -1522,26 +876,13 @@ Merge sort can also be realized imperatively. The basic version can be developed
 \EndProcedure
 \end{algorithmic}
 
-When the array to be sorted contains at least two elements, the non-trivial sorting process starts.
-It first copy the first half to a new created array $X$, and the second half to a second new array $Y$.
-Recursively sort them; and finally merge the sorted result back to $A$.
-
-This version uses the same amount of extra spaces of $A$. This is because the \textproc{Merge} algorithm
-isn't in-place at the moment. We'll introduce the imperative in-place merge sort in later section.
-
-The merge process almost does the same thing as the functional definition. There is a verbose version
-and a simplified version by using sentinel.
-
-The verbose merge algorithm continuously checks the element from the two input arrays, picks the smaller one
-and puts it back to the result array $A$, it then advances along the arrays respectively until either
-one input array is exhausted. After that, the algorithm appends the rest of the elements in the other
-input array to $A$.
+We allocated additional space of the same size as $A$ because \textproc{Merge} is not in-pace. We repeatedly compare elements from $X$ and $Y$, pick the less one to $A$. When either sub-array finishes, then add all the remaining to $A$.
 
 \begin{algorithmic}[1]
 \Procedure{Merge}{$A, X, Y$}
   \State $i \gets 1, j\gets 1, k\gets 1$
   \State $m \gets |X|, n \gets |Y|$
-  \While{$i \leq m \land j \leq n$}
+  \While{$i \leq m$ and $j \leq n$}
     \If{$X[i] < Y[j]$}
       \State $A[k] \gets X[i]$
       \State $i \gets i + 1$
@@ -1564,94 +905,14 @@ input array to $A$.
 \EndProcedure
 \end{algorithmic}
 
-Although this algorithm is a bit verbose, it can be short in some programming environment with enough tools
-to manipulate array. The following Python program is an example.
-
-\lstset{language=Python}
-\begin{lstlisting}
-def msort(xs):
-    n = len(xs)
-    if n > 1:
-        ys = [x for x in xs[:n/2]]
-        zs = [x for x in xs[n/2:]]
-        ys = msort(ys)
-        zs = msort(zs)
-        xs = merge(xs, ys, zs)
-    return xs
-
-def merge(xs, ys, zs):
-    i = 0
-    while ys != [] and zs != []:
-        xs[i] = ys.pop(0) if ys[0] < zs[0] else zs.pop(0)
-        i = i + 1
-    xs[i:] = ys if ys !=[] else zs
-    return xs
-\end{lstlisting}
-
-\subsubsection{Performance}
-\index{Merge Sort!Performance analysis}
-Before dive into the improvement of this basic version, let's analyze the performance of merge sort.
-The algorithm contains two steps, divide step, and merge step. In divide step, the sequence to be
-sorted is always divided into two sub sequences with the same length. If we draw a similar partition tree
-as what we did for quick sort, it can be found this tree is a perfectly balanced binary tree as shown in
-figure \ref{fig:qsort-best}. Thus the height of this tree is $O(\lg n)$. It means the recursion depth
-of merge sort is bound to $O(\lg n)$. Merge happens in every level. It's intuitive to analyze the
-merge algorithm, that it compare elements from two input sequences in pairs, after one sequence is fully examined
-the rest one is copied one by one to the result, thus it's a linear algorithm proportion to the length of
-the sequence. Based on this facts, denote $T(n)$ the time for sorting the sequence with length $n$,
-we can write the recursive time cost as below.
-
-\be
-\renewcommand*{\arraystretch}{2}
-\begin{array}{rl}
-T(n) & = \displaystyle T(\frac{n}{2}) + T(\frac{n}{2}) + c n \\
-     & = \displaystyle 2 T(\frac{n}{2}) + c n
-\end{array}
-\ee
-
-It states that the cost consists of three parts: merge sort the first half takes $T(\frac{n}{2})$,
-merge sort the second half takes also $T(\frac{n}{2})$, merge the two results takes $c n$, where $c$
-is some constant. Solve this equation gives the result as $O(n \lg n)$.
-
-Note that, this performance doesn't vary in all cases, as merge sort always uniformly divides the input.
-
-Another significant performance indicator is space occupation. However, it varies a lot in different
-merge sort implementation. The detail space bounds analysis will be explained in every detailed variants
-later.
-
-For the basic imperative merge sort, observe that it demands same amount of spaces as the input array
-in every recursion, copies the original elements to them for recursive sort, and these spaces can
-be released after this level of recursion. So the peak space requirement happens when the recursion
-enters to the deepest level, which is $O(n \lg n)$.
-
-The functional merge sort consume much less than this amount, because the underlying data structure
-of the sequence is linked-list. Thus it needn't extra spaces for merge\footnote{The complex effects
-caused by lazy evaluation is ignored here, please refer to \cite{algo-fp} for detail}.
-The only spaces requirement is for book-keeping the stack for recursive calls. This can be
-seen in the later explanation of even-odd split algorithm.
-
-\subsubsection{Minor improvement}
-\index{Merge Sort!Work area allocation}
-We'll next improve the basic merge sort bit by bit for both the functional and imperative realizations.
-The first observation is that the imperative merge algorithm is a bit verbose. \cite{CLRS} presents
-an elegant simplification by using positive $\infty$ as the sentinel. That we append $\infty$ as
-the last element to the both ordered arrays for merging\footnote{For sorting in monotonic non-increasing order,
-$-\infty$ can be used instead}. Thus we needn't test which array is not exhausted. Figure \ref{fig:merge-with-sentinel}
-illustrates this idea.
-
-\begin{figure}[htbp]
- \centering
- \includegraphics[scale=0.8]{img/merge-with-sentinel}
- \caption{Merge with $\infty$ as sentinels.}
- \label{fig:merge-with-sentinel}
-\end{figure}
+To simplify merge, we adjoin $\infty$ to $X$ and $Y$\footnote{$-\infty$ for descending order}.
 
 \begin{algorithmic}[1]
 \Procedure{Merge}{$A, X, Y$}
   \State \Call{Append}{$X, \infty$}
   \State \Call{Append}{$Y, \infty$}
-  \State $i \gets 1, j\gets 1$
-  \For{$k \gets$ from 1 to $|A|$}
+  \State $i \gets 1, j\gets 1, n \gets |A|$
+  \For{$k \gets$ from 1 to $n$}
     \If{$X[i] < Y[j]$}
       \State $A[k] \gets X[i]$
       \State $i \gets i + 1$
@@ -1663,68 +924,42 @@ illustrates this idea.
 \EndProcedure
 \end{algorithmic}
 
-The following ANSI C program imlements this idea. It embeds the merge inside. \texttt{INF} is defined
-as a big constant number with the same type of \texttt{Key}. Where the type can either be defined elsewhere
-or we can abstract the type information by passing the comparator as parameter. We skip these
-implementation and language details here.
+\subsection{Performance}
+\index{Merge Sort!Performance}
 
-\lstset{language=C}
-\begin{lstlisting}
-void msort(Key* xs, int l, int u) {
-    int i, j, m;
-    Key *as, *bs;
-    if (u - l > 1) {
-        m = l + (u - l) / 2;  /* avoid int overflow */
-        msort(xs, l, m);
-        msort(xs, m, u);
-        as = (Key*) malloc(sizeof(Key) * (m - l + 1));
-        bs = (Key*) malloc(sizeof(Key) * (u - m + 1));
-        memcpy((void*)as, (void*)(xs + l), sizeof(Key) * (m - l));
-        memcpy((void*)bs, (void*)(xs + m), sizeof(Key) * (u - m));
-        as[m - l] = bs[u - m] = INF;
-        for (i = j = 0; l < u; ++l)
-            xs[l] = as[i] < bs[j] ? as[i++] : bs[j++];
-        free(as);
-        free(bs);
-    }
-}
-\end{lstlisting}
+Merge sort takes two steps: partition and merge. It always halves the sequence. The binary partition tree is balanced as shown in \cref{fig:qsort-best}. Its height is $O(\lg n)$, so as the recursion depth. The merge happens at all levels, it compares elements one by one from each sorted sub-sequence, hence takes linear time. For sequence of length $n$, let $T(n)$ be the merge sort time, we have below recursive breakdown:
 
-Running this program takes much more time than the quick sort. Besides the major reason we'll explain later,
-one problem is that this version frequently allocates and releases memories for merging. While memory
-allocation is one of the well known bottle-neck in real world as mentioned by Bentley in \cite{pearls}.
-One solution to address this issue is to allocate another array with the same size to the original one
-as the working area. The recursive sort for the first and second halves needn't allocate any more
-extra spaces, but use the working area when merging. Finally, the algorithm copies
-the merged result back.
+\be
+T(n) = T(\dfrac{n}{2}) + T(\dfrac{n}{2}) + c n = 2 T(\dfrac{n}{2}) + c n
+\ee
 
-This idea can be expressed as the following modified algorithm.
+The time consists of three parts: sort the first and second halves, each takes $T(\dfrac{n}{2})$ time; and merge in $c n$ time, where $c$ is a constant. Solving this equation gives $T(n) = O(n \lg n)$. For space, varies implementation differ a lot. The basic merge sort allocates the space of the same size as the array in each recursion, copies elements and sorts, then release the space. It consumes the largest space of $O(n \lg n)$ when reaches to the deepest recursion.
+
+\index{Merge Sort!Work area}
+It's expensive to allocate/release space repeatedly\cite{Bentley}. We can pre-allocate a work area of the same size as $A$. Reuse it during recursion, and release it finally.
 
 \begin{algorithmic}[1]
 \Procedure{Sort}{A}
-  \State $B \gets $ \Call{Create-Array}{$|A|$}
-  \State \Call{Sort'}{$A, B, 1, |A|$}
+  \State $n \gets |A|$
+  \State \textproc{Sort$'$}$(A$, \Call{Create-Array}{$n$}, $1, n)$
 \EndProcedure
 \Statex
-\Procedure{Sort'}{$A, B, l, u$}
+\Procedure{Sort$'$}{$A, B, l, u$}
   \If{$u - l > 0$}
-    \State $m \gets \lfloor \frac{l + u}{2} \rfloor$
-    \State \Call{Sort'}{$A, B, l, m$}
-    \State \Call{Sort'}{$A, B, m + 1, u$}
-    \State \Call{Merge'}{$A, B, l, m, u$}
+    \State $m \gets \lfloor \dfrac{l + u}{2} \rfloor$
+    \State \Call{Sort$'$}{$A, B, l, m$}
+    \State \Call{Sort$'$}{$A, B, m + 1, u$}
+    \State \Call{Merge$'$}{$A, B, l, m, u$}
   \EndIf
 \EndProcedure
 \end{algorithmic}
 
-This algorithm duplicates another array, and pass it along with the original array to be sorted
-to \textproc{Sort'} algorithm. In real implementation, this working area should be released
-either manually, or by some automatic tool such as GC (Garbage collection).
-The modified algorithm \textproc{Merge'} also accepts a working area as parameter.
+We need update merge with the passed-in work area:
 
 \begin{algorithmic}[1]
-\Procedure{Merge'}{$A, B, l, m, u$}
+\Procedure{Merge$'$}{$A, B, l, m, u$}
   \State $i \gets l, j \gets m + 1, k \gets l$
-  \While{$i \leq m \land j \leq u$}
+  \While{$i \leq m$ and $j \leq u$}
     \If{$A[i] < A[j]$}
       \State $B[k] \gets A[i]$
       \State $i \gets i + 1$
@@ -1744,109 +979,30 @@ The modified algorithm \textproc{Merge'} also accepts a working area as paramete
     \State $k \gets k + 1$
     \State $j \gets j + 1$
   \EndWhile
-  \For{$i \gets$ from $l$ to $u$} \Comment{Copy back}
+  \For{$i \gets$ from $l$ to $u$} \Comment{copy back}
     \State $A[i] \gets B[i]$
   \EndFor
 \EndProcedure
 \end{algorithmic}
 
-By using this minor improvement, the space requirement reduced to $O(n)$ from $O(n \lg n)$.
-The following ANSI C program implements this minor improvement. For illustration purpose,
-we manually copy the merged result back to the original array in a loop. This can also
-be realized by using standard library provided tool, such as \texttt{memcpy}.
+This implementation reduces the space from $O(n \lg n)$ to $O(n)$, improves performance 20\% to 25\% for 100K numeric elements.
 
-\lstset{language=C}
-\begin{lstlisting}
-void merge(Key* xs, Key* ys, int l, int m, int u) {
-    int i, j, k;
-    i = k = l; j = m;
-    while (i < m && j < u)
-        ys[k++] = xs[i] < xs[j] ? xs[i++] : xs[j++];
-    while (i < m)
-        ys[k++] = xs[i++];
-    while (j < u)
-        ys[k++] = xs[j++];
-    for(; l < u; ++l)
-        xs[l] = ys[l];
-}
-
-void msort(Key* xs, Key* ys, int l, int u) {
-    int m;
-    if (u - l > 1) {
-        m = l + (u - l) / 2;
-        msort(xs, ys, l, m);
-        msort(xs, ys, m, u);
-        merge(xs, ys, l, m, u);
-    }
-}
-
-void sort(Key* xs, int l, int u) {
-    Key* ys = (Key*) malloc(sizeof(Key) * (u - l));
-    kmsort(xs, ys, l, u);
-    free(ys);
-}
-\end{lstlisting}
-
-This new version runs faster than the previous one. In my test machine, it speeds up about 20\% to 25\% when sorting
-100,000 randomly generated numbers.
-
-The basic functional merge sort can also be fine tuned. Observe that, it splits the list at the middle point. However,
-as the underlying data structure to represent list is singly linked-list, random access at a given position is
-a linear operation (refer to appendix A for detail). Alternatively, one can split the list in an even-odd manner.
-That all the elements in even position are collected in one sub list, while all the odd elements are collected
-in another. As for any list, there are either same amount of elements in even and odd positions, or they
-differ by one. So this divide strategy always leads to well splitting, thus the performance can be ensured
-to be $O(n \lg n)$ in all cases.
-
-The even-odd splitting algorithm can be defined as below.
-
-\be
-split(L) = \left \{
-  \begin{array}
-  {r@{\quad:\quad}l}
-  (\phi, \phi) & L = \phi \\
-  (\{ l_1 \}, \phi) & |L| = 1 \\
-  (\{ l_1 \} \cup A, \{ l_2 \} \cup B) & otherwise, (A, B) = split(L'')
-  \end{array}
-\right.
-\ee
-
-When the list is empty, the split result are two empty lists; If there is only one element in the list, we put this
-single element, which is at position 1, to the odd sub list, the even sub list is empty; Otherwise, it means
-there are at least two elements in the list, We pick the first one to the odd sub list, the second one to the
-even sub list, and recursively split the rest elements.
-
-All the other functions are kept same, the modified Haskell program is given as the following.
-
-\lstset{language=Haskell}
-\begin{lstlisting}
-split [] = ([], [])
-split [x] = ([x], [])
-split (x:y:xs) = (x:xs', y:ys') where (xs', ys') = split xs
-\end{lstlisting}
-
-\section{In-place merge sort}
+\subsection{In-place merge sort}
 \index{Merge Sort!In-place merge sort}
-One drawback for the imperative merge sort is that it requires extra spaces for merging, the basic version without
-any optimization needs $O(n \lg n)$ in peak time, and the one by allocating a working area needs $O(n)$.
 
-It's nature for people to seek the in-place version merge sort, which can reuse the original array without allocating
-any extra spaces. In this section, we'll introduce some solutions to realize imperative in-place merge sort.
-
-\subsection{Naive in-place merge}
-\index{Merge Sort!Naive in-place merge}
-The first idea is straightforward. As illustrated in figure \ref{fig:merge-in-place-naive}, sub list $A$, and $B$
-are sorted, when performs in-place merge, the invariant ensures that all elements before $i$ are merged, so that
-they are in non-decreasing order; every time we compare the $i$-th and the $j$-th elements. If the $i$-th is less
-than the $j$-th, the marker $i$ just advances one step to the next. This is the easy case. Otherwise, it
-means that the $j$-th element is the next merge result, which should be put in front of $i$. In order
-to achieve this, all elements between $i$ and $j$, including the $i$-th should be shift to the end by one cell.
-We repeat this process till all the elements in $A$ and $B$ are put to the correct positions.
+To avoid additional space, consider how to reuse the array as the work area. As shown in \cref{fig:merge-in-place-naive}, sub-array $X$ and $Y$ are sorted. When merge in-place, the part before $l$ are merged and ordered. If $A[l] < A[m]$, move $l$ to right a step; otherwise ($A[l] \geq A[m]$), move $A[m]$ to the merged part before $l$. We need shift all elements in range $[l, m)$\footnote{range $[a, b)$ includes $a$, but excludes $b$.} to right a step.
 
 \begin{figure}[htbp]
  \centering
- \includegraphics[scale=0.8]{img/merge-in-place-naive}
- \caption{Naive in-place merge}
+      \begin{tikzpicture}[scale=0.8]
+      \draw (0, 0) rectangle (3, 1) node [pos=.5] {merged}
+            (3, 0) rectangle (4, 1) node [pos=.5] {$A[l]$}
+            (4, 0) rectangle (8, 1) node (subA) [pos=.5] {... sorted $X$...}
+            (8, 0) rectangle (9, 1) node (xsj) [pos=.5] {$A[m]$}
+            (9, 0) rectangle (13, 1) node [pos=.5] {... sorted $Y$...};
+      \draw[thick, ->] (subA) edge [bend right=45] node [below] {if $A[l] \geq A[m]$, then shift $X$} (xsj);
+      \end{tikzpicture}
+ \caption{In-place shift and merge}
  \label{fig:merge-in-place-naive}
 \end{figure}
 
@@ -1866,63 +1022,33 @@ We repeat this process till all the elements in $A$ and $B$ are put to the corre
 \EndProcedure
 \end{algorithmic}
 
-However, this naive solution downgrades merge sort overall performance to quadratic $O(n^2)$! This is because
-that array shifting is a linear operation. It is proportion to the length of elements in
-the first sorted sub array which haven't been compared so far.
-
-The following ANSI C program based on this algorithm runs very slow, that it takes about 12 times slower than
-the previous version when sorting 10,000 random numbers.
-
-\lstset{language=C}
-\begin{lstlisting}
-void naive_merge(Key* xs, int l, int m, int u) {
-    int i; Key y;
-    for(; l < m && m < u; ++l)
-        if (!(xs[l] < xs[m])) {
-            y = xs[m++];
-            for (i = m - 1; i > l; --i) /* shift */
-                xs[i] = xs[i-1];
-            xs[l] = y;
-        }
-}
-
-void msort3(Key* xs, int l, int u) {
-    int m;
-    if (u - l > 1) {
-        m = l + (u - l) / 2;
-        msort3(xs, l, m);
-        msort3(xs, m, u);
-        naive_merge(xs, l, m, u);
-    }
-}
-\end{lstlisting}
-
-\subsection{in-place working area}
-\index{Merge Sort!In-place working area}
-In order to implement the in-place merge sort in $O(n \lg n)$ time, when sorting a sub array, the rest part of
-the array must be reused as working area for merging. As the elements stored in the working area, will be sorted
-later, they can't be overwritten. We can modify the previous algorithm, which duplicates extra spaces for merging,
-a bit to achieve this. The idea is that, every time when we compare the first elements in the two sorted sub
-arrays, if we want to put the less element to the target position in the working area, we in-turn exchange what
-sored in the working area with this element. Thus after merging, the two sub arrays store what the working area
-previously contains. This idea can be illustrated in figure \ref{fig:merge-workarea}.
+\index{Merge Sort!Work area}
+However, it downgrades to $O(n^2)$ time because array shift takes linear time ($O(|X|$). When sort sub-array, we want to reuse the remaining part as the work area, and must avoid overwriting any elements. We compare elements from sorted sub-array $X$ and $Y$, pick the less one and store it in the work area. However, we need exchange the element out to free up the cell. After merge, $X$ and $Y$ together store the content of the original work area, as shown in \cref{fig:merge-workarea}.
 
 \begin{figure}[htbp]
  \centering
- \includegraphics[scale=0.8]{img/merge-workarea}
- \caption{Merge without overwriting working area.}
+      \begin{tikzpicture}[scale=0.8]
+      \draw (0, 2) rectangle (3, 3) node [pos=.5] {... reuse ...}
+            (3, 2) rectangle (4, 3) node (ai) [pos=.5] {$X[i]$}
+            (4, 2) rectangle (5, 3) node [pos=.5] {...}
+            (7, 2) rectangle (10, 3) node [pos=.5] {... reuse ...}
+            (10, 2) rectangle (11, 3) node (bj) [pos=.5] {$Y[j]$}
+            (11, 2) rectangle (12, 3) node [pos=.5] {...}
+            (0, 0) rectangle (3, 1) node [pos=.5] {... merged ...}
+            (3, 0) rectangle (4, 1) node (ck) [pos=.5] {$Z[k]$}
+            (4, 0) rectangle (5, 1) node [pos=.5] {...};
+      \draw[thick, <->] (ai) edge [bend left] node [above] {compare} (bj)
+                        (ai) edge node [right] {if $X[i] < Y[j]$ then exchange $X[i] \leftrightarrow Z[k]$} (ck);
+      \end{tikzpicture}
+ \caption{Merge and swap}
  \label{fig:merge-workarea}
 \end{figure}
 
-In our algorithm, both the two sorted sub arrays, and the working area for merging are parts of the
-original array to be sorted. we need supply the following arguments when merging: the start points and end
-points of the sorted sub arrays, which can be represented as ranges; and the start point of the working
-area. The following algorithm for example, uses $[a, b)$ to indicate the range include $a$,
-exclude $b$. It merges sorted range $[i, m)$ and range $[j, n)$ to the working area starts from $k$.
+The sorted $X$, $Y$, and the work area $Z$ are all sub-arrays. We pass the start, end positions of $X$ and $Y$ as ranges $[i, m)$, $[j, n)$. The work area starts from $k$.
 
 \begin{algorithmic}[1]
 \Procedure{Merge}{$A, [i, m), [j, n), k$}
-  \While{$i < m \land j < n$}
+  \While{$i < m$ and $j < n$}
     \If{$A[i] < A[j]$}
       \State \textproc{Exchange} $A[k] \leftrightarrow A[i]$
       \State $i \gets i + 1$
@@ -1945,114 +1071,58 @@ exclude $b$. It merges sorted range $[i, m)$ and range $[j, n)$ to the working a
 \EndProcedure
 \end{algorithmic}
 
-Note that, the following two constraints must be satisfied when merging:
-
-\begin{enumerate}
-\item The working area should be within the bounds of the array. In other words, it should be big
-enough to hold elements exchanged in without causing any out-of-bound error;
-\item The working area can be overlapped with either of the two sorted arrays, however, it should
-be ensured that there are not any unmerged elements being overwritten;
-\end{enumerate}
-
-This algorithm can be implemented in ANSI C as the following example.
-
-\lstset{language=C}
-\begin{lstlisting}
-void wmerge(Key* xs, int i, int m, int j, int n, int w) {
-    while (i < m && j < n)
-        swap(xs, w++, xs[i] < xs[j] ? i++ : j++);
-    while (i < m)
-        swap(xs, w++, i++);
-    while (j < n)
-        swap(xs, w++, j++);
-}
-\end{lstlisting}
-
-With this merging algorithm defined, it's easy to imagine a solution, which can sort
-half of the array; The next question is, how to deal with the rest of the unsorted part
-stored in the working area as shown in figure \ref{fig:merge-in-place-start}?
+The work area has two properties: 1) It has sufficient size to hold the elements swapped in; 2) It can overlap with either sorted sub-arrays, but must not overwrite any unmerged elements. One idea is to use half array as the work area to sort the other half, as shown in \cref{fig:merge-in-place-start}.
 
 \begin{figure}[htbp]
  \centering
- \includegraphics[scale=0.8]{img/merge-in-place-start}
- \caption{Half of the array is sorted.}
+      \begin{tikzpicture}[scale=0.8]
+      \draw (0, 0) rectangle (3, 1) node [pos=.5] {... unsorted ...}
+            (3, 0) rectangle (6, 1) node [pos=.5] {... sorted ...};
+      \end{tikzpicture} \\
+ \caption{Merge and sort half array}
  \label{fig:merge-in-place-start}
 \end{figure}
 
-One intuitive idea is to recursively sort another half of the working area, thus there are
-only $\frac{1}{4}$ elements haven't been sorted yet. Which is shown in figure \ref{fig:merge-in-place-quater}.
-The key point at this stage is that we must merge the sorted $\frac{1}{4}$ elements $B$
-with the sorted $\frac{1}{2}$ elements $A$ sooner or later.
+We next sort further half of the work area (remaining $\dfrac{1}{4}$), as shown in \cref{fig:merge-in-place-quater}. We must merge $X$ ($\dfrac{1}{2}$ array) and $Y$ ($\dfrac{1}{4}$ array) later sometime. However, the work area can only hold $\dfrac{1}{4}$ array, insufficient for the size of $X + Y$.
 
 \begin{figure}[htbp]
  \centering
- \includegraphics[scale=0.8]{img/merge-in-place-quater}
- \caption{$A$ and $B$ must be merged at sometime.}
+ \includegraphics[scale=0.8]{img/workarea-1}
+ \caption{Work area can't support merge $X$ and $Y$.}
  \label{fig:merge-in-place-quater}
 \end{figure}
 
-Is the working area left, which only holds $\frac{1}{4}$ elements, big enough for merging
-$A$ and $B$? Unfortunately, it isn't in the settings shown in figure \ref{fig:merge-in-place-quater}.
-
-However, the second constraint mentioned before gives us a hint, that we can exploit
-it by arranging the working area to overlap with either sub array if we can ensure
-the unmerged elements won't be overwritten under some well designed merging schema.
-
-Actually, instead of making the second half of the working area be sorted, we can make the first
-half be sorted, and put the working area between the two sorted arrays as shown in figure
-\ref{fig:merge-in-place-setup} (a).
-This setup effects arranging the working area to overlap with the sub array $A$. This idea
-is proposed in \cite{msort-in-place}.
+The second property gives a way out: arrange the work area overlapped with either sub-array, and only override the merged part. We first sort the second 1/2 of the work area, as the result, swap $Y$ to the first 1/2, the new work area is between $X$ and $Y$, as shown in the upper of \cref{fig:merge-in-place-setup}. The work area is overlapped with $X$\cite{msort-in-place}. Consider two extremes:
 
 \begin{figure}[htbp]
  \centering
- \subcaptionbox{}{\includegraphics[scale=0.8]{img/merge-in-place-setup}} \\
- \subcaptionbox{}{\includegraphics[scale=0.8]{img/merge-in-place-merged-quater}}
- \caption{Merge $A$ and $B$ with the working area.}
+ \includegraphics[scale=0.8]{img/workarea-2}
+ \caption{Merge $X$ and $Y$ with the work area.}
  \label{fig:merge-in-place-setup}
 \end{figure}
 
-Let's consider two extreme cases:
-
 \begin{enumerate}
-\item All the elements in $B$ are less than any element in $A$. In this case, the merge algorithm
-finally moves the whole contents of $B$ to the working area; the cells of $B$ holds what previously
-stored in the working area; As the size of area is as same as $B$, it's OK to exchange their contents;
-\item All the elements in $A$ are less than any element in $B$. In this case, the merge algorithm
-continuously exchanges elements between $A$ and the working area. After all the previous $\frac{1}{4}$
-cells in the working area are filled with elements from $A$, the algorithm starts to overwrite the
-first half of $A$. Fortunately, the contents being overwritten are not those unmerged elements.
-The working area is in effect advances toward the end of the array, and finally moves to the right
-side; From this time point, the merge algorithm starts exchanging contents in $B$ with the working area.
-The result is that the working area moves to the left most side which is shown in figure \ref{fig:merge-in-place-setup} (b).
+\item $y < x$, for all $y$ in $Y$, $x$ in $X$. After merge, contents of $Y$ and the work area are swapped (the size of $Y$ equals to the work area);
+\item $x < y$, for all $y$ in $Y$, $x$ in $X$. During merge, we repeatedly swap content of $X$ and the work area. After half of $X$ is swapped, we start overriding $X$. Fortunately, we only override the merged content. The right boundary of work area keep extending to the 3/4 of the array. After that, we start swapping the content of $Y$ and the work area. Finally, the work area moves to the left side of the array, as shown in the bottom of \cref{fig:merge-in-place-setup}.
 \end{enumerate}
 
-We can repeat this step, that always sort the second half of the unsorted part, and exchange
-the sorted sub array to the first half as working area. Thus we keep reducing the working area
-from $\frac{1}{2}$ of the array, $\frac{1}{4}$
-of the array, $\frac{1}{8}$ of the array, ... The scale of the merge problem keeps reducing.
-When there is only one element left in the working area, we needn't sort it any more since
-the singleton array is sorted by nature. Merging a singleton array to the other is equivalent
-to insert the element. In practice, the algorithm can finalize the last few
-elements by switching to insertion sort.
-
-The whole algorithm can be described as the following.
+The other cases are between the above two extremes. The work area finally moves to the first 1/4 of the array. Repeat this, we always sort the second 1/2 of the work area, swap the result to the first 1/2, and keep the work area in the middle. We halve the work area every time $\dfrac{1}{2}, \dfrac{1}{4}, \dfrac{1}{8}, ...$ of the array, terminate when there is only one element left. Alternatively, we can fallback to insert sort for the last few elements.
 
 \begin{algorithmic}[1]
 \Procedure{Sort}{$A, l, u$}
   \If{$u - l > 0$}
-    \State $m \gets \lfloor \frac{l + u}{2} \rfloor$
+    \State $m \gets \lfloor \dfrac{l + u}{2} \rfloor$
     \State $w \gets l + u - m$
-    \State \Call{Sort'}{$A, l, m, w$} \Comment{The second half contains sorted elements}
+    \State \Call{Sort'}{$A, l, m, w$} \Comment{sort half}
     \While{$w - l > 1$}
       \State $u' \gets w$
-      \State $w \gets \lceil \frac{l + u'}{2} \rceil$ \Comment{Ensure the working area is big enough}
-      \State \Call{Sort'}{$A, w, u', l$} \Comment{The first half holds the sorted elements}
+      \State $w \gets \lceil \dfrac{l + u'}{2} \rceil$ \Comment{halve the work area}
+      \State \Call{Sort'}{$A, w, u', l$} \Comment{sort the remaining half}
       \State \Call{Merge}{$A, [l, l + u' - w], [u', u], w$}
     \EndWhile
-    \For{$i \gets w$ down-to $l$} \Comment{Switch to insertion sort}
+    \For{$i \gets w$ down-to $l$} \Comment{Switch to insert sort}
       \State $j \gets i$
-      \While{$j \leq u \land A[j] < A[j-1]$}
+      \While{$j \leq u$ and $A[j] < A[j-1]$}
         \State \textproc{Exchange} $A[j] \leftrightarrow A[j-1]$
         \State $j \gets j + 1$
       \EndWhile
@@ -2061,21 +1131,16 @@ The whole algorithm can be described as the following.
 \EndProcedure
 \end{algorithmic}
 
-Note that in order to satisfy the first constraint, we must ensure the working area is big enough to hold
-all exchanged in elements, that's way we round it by ceiling when sort the second half of the working area.
-Note that we actually pass the ranges including the end points to the algorithm \textproc{Merge}.
-
-Next, we develop a \text{Sort'} algorithm, which mutually recursive call \text{Sort} and exchange the result
-to the working area.
+We round up the work area to ensure sufficient size, then pass the range and work area to \textproc{Merge}. We next update \textproc{Sort'}, which calls \textproc{Sort} to swap the work area and the merged part.
 
 \begin{algorithmic}[1]
 \Procedure{Sort'}{$A, l, u, w$}
   \If{$u - l > 0$}
-    \State $m \gets \lfloor \frac{l + u}{2} \rfloor$
+    \State $m \gets \lfloor \dfrac{l + u}{2} \rfloor$
     \State \Call{Sort}{$A, l, m$}
     \State \Call{Sort}{$A, m+1, u$}
-    \State \Call{Merge}{$A, [l, m], [m+1, u], w$}
-  \Else \Comment{Exchange all elements to the working area}
+    \State \Call{Merge}{$A, [l, m), [m+1, u), w$}
+  \Else \Comment{Swap elements to the work area}
     \While{$l \leq u$}
       \State \textproc{Exchange} $A[l] \leftrightarrow A[w]$
       \State $l \gets l + 1$
@@ -2085,281 +1150,116 @@ to the working area.
 \EndProcedure
 \end{algorithmic}
 
-Different from the naive in-place sort, this algorithm doesn't shift the array during merging. The main
-algorithm reduces the unsorted part in sequence of $\dfrac{n}{2}, \dfrac{n}{4}, \dfrac{n}{8}, ...$, it takes $O(\lg n)$ steps to complete
-sorting. In every step, It recursively sorts half of the rest elements, and performs linear time merging.
-
-Denote the time cost of sorting $n$ elements as $T(n)$, we have the following equation.
+This implementation needn't shift sub-array, it keeps reducing the unordered part: $\dfrac{n}{2}, \dfrac{n}{4}, \dfrac{n}{8}, ...$, completes in $O(\lg n)$ steps. Every step sorts half of the remaining, then merge in linear time. Let the time to sort $n$ elements be $T(n)$, we have the following recursive result:
 
 \be
 T(n) = T(\frac{n}{2}) + c \frac{n}{2} + T(\frac{n}{4}) + c \frac{3n}{4} + T(\frac{n}{8}) + c \frac{7n}{8} + ...
 \label{eq:in-place-sort-time}
 \ee
 
-substitute $n$ with its half, we get another one:
+For half elements, the time is:
 
 \be
 T(\frac{n}{2}) = T(\frac{n}{4}) + c \frac{n}{4} + T(\frac{n}{8}) + c \frac{3n}{8} + T(\frac{n}{16}) + c \frac{7n}{16} + ...
 \label{eq:in-place-sort-time-half}
 \ee
 
-Substract (\ref{eq:in-place-sort-time}) and (\ref{eq:in-place-sort-time-half}) we have:
+Subtract \cref{eq:in-place-sort-time} and \cref{eq:in-place-sort-time-half}:
 
 \[
 T(n) - T(\frac{n}{2}) = T(\frac{n}{2}) + c n (\frac{1}{2} + \frac{1}{2} + ... )
 \]
 
-There are total $\lg n$ times $\dfrac{1}{2}$ added together, therefore, the recursive time can be expressed as:
+It adds $\dfrac{1}{2}$ with total $\lg n$ times, hence:
 
 \[
-T(n) = 2 T(\frac{1}{2}) + c n \lg n
+T(n) = 2 T(\frac{n}{2}) + \frac{c}{2} n \lg n
 \]
 
-Solving this equation by using telescope method, gets the result $O(n \lg^2 n)$.
+Apply telescope method, (or master theorem) gives the result $O(n \lg^2 n)$.
 
-The following ANSI C code completes the implementation by using the example \texttt{wmerge} program given
-above.
-
-\lstset{language=C}
-\begin{lstlisting}
-void imsort(Key* xs, int l, int u);
-
-void wsort(Key* xs, int l, int u, int w) {
-    int m;
-    if (u - l > 1) {
-        m = l + (u - l) / 2;
-        imsort(xs, l, m);
-        imsort(xs, m, u);
-        wmerge(xs, l, m, m, u, w);
-    }
-    else
-        while (l < u)
-            swap(xs, l++, w++);
-}
-
-void imsort(Key* xs, int l, int u) {
-    int m, n, w;
-    if (u - l > 1) {
-        m = l + (u - l) / 2;
-        w = l + u - m;
-        wsort(xs, l, m, w); /* the last half contains sorted elements */
-        while (w - l > 2) {
-            n = w;
-            w = l + (n - l + 1) / 2; /* ceiling */
-            wsort(xs, w, n, l);  /* the first half contains sorted elements */
-            wmerge(xs, l, l + n - w, n, u, w);
-        }
-        for (n = w; n > l; --n) /*switch to insertion sort*/
-            for (m = n; m < u && xs[m] < xs[m-1]; ++m)
-                swap(xs, m, m - 1);
-    }
-}
-\end{lstlisting}
-
-However, this program doesn't run faster than the version we developed in previous section, which doubles
-the array in advance as working area. In my machine, it is about 60\% slower when sorting 100,000 random
-numbers due to many swap operations.
-
-\subsection{In-place merge sort vs. linked-list merge sort}
-\index{Merge Sort!Linked-list merge sort}
-The in-place merge sort is still a live area for research. In order to save the extra spaces for merging,
-some overhead has be introduced, which increases the complexity of the merge sort algorithm. However, if
-the underlying data structure isn't array, but linked-list, merge can be achieved without any extra spaces
-as shown in the even-odd functional merge sort algorithm presented in previous section.
-
-In order to make it clearer, we can develop a purely imperative linked-list merge sort solution.
-The linked-list can be defined as a record type as shown in appendix A like below.
-
-\lstset{language=C}
-\begin{lstlisting}
-struct Node {
-    Key key;
-    struct Node* next;
-};
-\end{lstlisting}
-
-We can define an auxiliary function for node linking. Assume the list to be linked isn't empty, it
-can be implemented as the following.
-
-\lstset{language=C}
-\begin{lstlisting}
-struct Node* link(struct Node* x, struct Node* ys) {
-    x->next = ys;
-    return x;
-}
-\end{lstlisting}
-
-One method to realize the imperative even-odd splitting, is to initialize two empty sub lists.
-Then iterate the list to be split. Every time, we link the current node in front of the
-first sub list, then exchange the two sub lists. So that, the second sub list will be linked
-at the next time iteration. This idea can be illustrated as below.
-
-\begin{algorithmic}[1]
-\Function{Split}{$L$}
-  \State $(A, B) \gets (\phi, \phi)$
-  \While{$L \neq \phi$}
-    \State $p \gets L$
-    \State $L \gets $ \Call{Next}{$L$}
-    \State $A \gets $ \Call{Link}{$p, A$}
-    \State \textproc{Exchange} $A \leftrightarrow B$
-  \EndWhile
-  \State \Return $(A, B)$
-\EndFunction
-\end{algorithmic}
-
-The following example ANSI C program implements this splitting algorithm embedded.
-
-\lstset{language=C}
-\begin{lstlisting}
-struct Node* msort(struct Node* xs) {
-    struct Node *p, *as, *bs;
-    if (!xs || !xs->next) return xs;
-
-    as = bs = NULL;
-    while(xs) {
-        p = xs;
-        xs = xs->next;
-        as = link(p, as);
-        swap(as, bs);
-    }
-    as = msort(as);
-    bs = msort(bs);
-    return merge(as, bs);
-}
-\end{lstlisting}
-
-The only thing left is to develop the imperative merging algorithm for linked-list. The idea
-is quite similar to the array merging version. As long as neither of the sub lists is exhausted,
-we pick the less one, and append it to the result list. After that, it just need link the
-non-empty one to the tail the result, but not a looping for copying. It needs some carefulness
-to initialize the result list, as its head node is the less one among the two sub lists.
-One simple method is to use a dummy sentinel head, and drop it before returning. This implementation
-detail can be given as the following.
-
-\lstset{language=C}
-\begin{lstlisting}
-struct Node* merge(struct Node* as, struct Node* bs) {
-    struct Node s, *p;
-    p = &s;
-    while (as && bs) {
-        if (as->key < bs->key) {
-            link(p, as);
-            as = as->next;
-        }
-        else {
-            link(p, bs);
-            bs = bs->next;
-        }
-        p = p->next;
-    }
-    if (as)
-        link(p, as);
-    if (bs)
-        link(p, bs);
-    return s.next;
-}
-\end{lstlisting}
-
-\begin{Exercise}
-\begin{itemize}
-\item Proof the performance of in-place merge sort is bound to $O(n \lg n)$.
-\end{itemize}
-\end{Exercise}
-
-\section{Nature merge sort}
+\subsection{Nature merge sort}
 \index{Merge Sort!Nature merge sort}
-Knuth gives another way to interpret the idea of divide and conquer merge sort. It just likes
-burn a candle in both ends \cite{TAOCP}. This leads to the nature merge sort algorithm.
 
 \begin{figure}[htbp]
  \centering
- \includegraphics[scale=0.3]{img/burn-candle-2-ends}
- \caption{Burn a candle from both ends}
+ \includegraphics[scale=0.25]{img/burn-candle-2-ends}
+ \caption{Burn from both ends}
  \label{fig:burn-candle}
 \end{figure}
 
-For any given sequence, we can always find a non-decreasing sub sequence starts at any position.
-One particular case is that we can find such a sub sequence from the left-most position. The following
-table list some examples, the non-decreasing sub sequences are in bold font.
+Knuth gives another implementation, called {\em nature merge sort}. It likes burning a candle from both ends\cite{TAOCP}. For any sequence, one can always find an ordered segment from any position. Particularly, we can find such a segment from left end as shown in below table.
 
-\begin{tabular}{ | l |}
-\hline
-{\bf 15 } , 0, 4, 3, 5, 2, 7, 1, 12, 14, 13, 8, 9, 6, 10, 11 \\
-{\bf 8, 12, 14 }, 0, 1, 4, 11, 2, 3, 5, 9, 13, 10, 6, 15, 7 \\
-{\bf 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 } \\
-\hline
-\end{tabular}
+\btab{l}
+\underline{15}, 0, 4, 3, 5, 2, 7, 1, 12, 14, 13, 8, 9, 6, 10, 11 \\
+\underline{8, 12, 14}, 0, 1, 4, 11, 2, 3, 5, 9, 13, 10, 6, 15, 7 \\
+\underline{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 } \\
+\etab
 
-The first row in the table illustrates the worst case, that the second element is less than the first one,
-so the non-decreasing sub sequence is a singleton list, which only contains the first element;
-The last row shows the best case, the the sequence is ordered, and the non-decreasing list is the whole;
-The second row shows the average case.
-
-Symmetrically, we can always find a non-decreasing sub sequence from the end of the sequence
-to the left. This indicates us that we can merge the two non-decreasing sub sequences, one
-from the beginning, the other form the ending to a longer sorted sequence. The advantage of
-this idea is that, we utilize the nature ordered sub sequences, so that we needn't recursive
-sorting at all.
+The first row is the extreme case of a singleton segment; the third row is the other extreme that the segment extends to the right end, the whole sequence is ordered. Symmetrically, we can always find ordered segment from right end, then merge the two sorted segments, one from left, another from right. The advantage is to re-use the nature ordered sub-sequences for partition.
 
 \begin{figure}[htbp]
  \centering
- \includegraphics[scale=0.8]{img/nature-merge-sort}
+ \includegraphics[scale=0.7]{img/nature-merge-sort}
  \caption{Nature merge sort}
  \label{fig:nature-merge-sort}
 \end{figure}
 
-Figure \ref{fig:nature-merge-sort} illustrates this idea. We starts the algorithm by scanning
-from both ends, finding the longest non-decreasing sub sequences respectively. After that,
-these two sub sequences are merged to the working area. The merged result starts from beginning.
-Next we repeat this step, which goes on scanning toward the center of the original sequence.
-This time we merge the two ordered sub sequences to the right hand of the working area toward
-the left. Such setup is easy for the next round of scanning. When all the elements
-in the original sequence have been scanned and merged to the target, we switch to use the
-elements stored in the working area for sorting, and use the previous sequence as new working area.
-Such switching happens repeatedly in each round. Finally, we copy all elements from the
-working area to the original array if necessary.
+As shown in \cref{fig:nature-merge-sort}, scan from both ends, find the two longest ordered segments respectively. Then merge them to the left of the work area. Next, restart to scan from left and right to center. This time, merge the two segments from the right to left of the work area. We switch the merge direction right/left in-turns. After scanning all elements and merge them to the work area, swap the original array and the work area, then start a new round of bi-directional scan and merge. Terminate when the ordered segment extends to cover the whole array. This implementation processes the array from both directions based on nature ordering, called {\em nature two-way merge sort}. As shown in \cref{fig:nature-msort-invariant}, elements before $a$ and after $d$ are scanned. We span the ordered segment $[a, b)$ to right, meanwhile, span $[c, d)$ to left. For the work area, elements before $f$ and after $f$ are merged (consist of multiple sub-sequences). In odd rounds, we merge $[a, b)$ and $[c, d)$ from $f$ to right; in even rounds, merge from $r$ to left.
 
-The only question left is when this algorithm stops. The answer is that when we start
-a new round of scanning, and find that the longest non-decreasing sub list spans to the
-end, which means the whole list is ordered, the sorting is done.
-
-Because this kind of merge sort proceeds the target sequence in two ways, and uses the
-nature ordering of sub sequences, it's named {\em nature two-way merge sort}. In order
-to realize it, some carefulness must be paid. Figure \ref{fig:nature-msort-invariant}
-shows the invariant during the nature merge sort. At anytime, all elements before marker
-$a$ and after marker $d$ have been already scanned and merged. We are trying to
-span the non-decreasing sub sequence $[a, b)$ as long as possible, at the same time,
-we span the sub sequence from right to left to span $[c, d)$ as long as possible as well.
-The invariant for the working area is shown in the second row. All elements before
-$f$ and after $r$ have already been processed (Note that they may contain several
-ordered sub sequences). For the odd times (1, 3, 5, ...), we merge $[a, b)$ and $[c, d)$
-from $f$ toword right; while for the even times (2, 4, 6, ...), we merge the two
-sorted sub sequences after $r$ toward left.
-
+\captionsetup[subfigure]{labelformat=empty, margin=10pt}
 \begin{figure}[htbp]
  \centering
- \includegraphics[scale=0.8]{img/nature-msort-invariant}
- \caption{Invariant during nature merge sort}
+   \subcaptionbox{}{
+      \begin{tikzpicture}[scale=0.8]
+      \draw (0, 0) rectangle (3, 1) node [pos=.5] {... scanned ...}
+            (3, 0) rectangle (6, 1) node [pos=.5] {... span $[a, b)$ ...}
+            (6, 0) rectangle (8, 1) node [pos=.5] {... ? ...}
+            (8, 0) rectangle (11, 1) node [pos=.5] {... span $[c, d)$ ...}
+            (11, 0) rectangle (14, 1) node [pos=.5] {... scanned ...};
+      \fill [black] (3, 0) rectangle (3.1, 1) node (abar) [pos=.5] {}
+                    (6, 0) rectangle (6.1, 1) node (bbar) [pos=.5] {}
+                    (8, 0) rectangle (8.1, 1) node (cbar) [pos=.5] {}
+                    (11, 0) rectangle (11.1, 1) node (dbar) [pos=.5] {};
+      \draw (3, 2) node (a) {a}
+            (6, 2) node (b) {b}
+            (8, 2) node (c) {c}
+            (11, 2) node (d) {d};
+      \draw[thick, ->] (a) edge [bend right] (abar)
+                       (b) edge [bend right] (bbar)
+                       (c) edge [bend left] (cbar)
+                       (d) edge [bend left] (dbar);
+      \end{tikzpicture}} \\
+    \subcaptionbox{}{
+      \begin{tikzpicture}[scale=0.8]
+      \draw (0, 0) rectangle (3, 1) node [pos=.5] {... merged ...}
+            (3, 0) rectangle (8, 1) node [pos=.5] {... free cells ...}
+            (8, 0) rectangle (11, 1) node [pos=.5] {... merged ...};
+      \fill [black] (3, 0) rectangle (3.1, 1) node (fbar) [pos=.5] {}
+                    (8, 0) rectangle (8.1, 1) node (rbar) [pos=.5] {};
+      \draw (3, 2) node (f) {f}
+            (8, 2) node (r) {r};
+      \draw[thick, ->] (f) edge [bend right] (fbar)
+                       (r) edge [bend right] (rbar);
+      \end{tikzpicture}} \\
+ \caption{A status of nature merge sort}
  \label{fig:nature-msort-invariant}
 \end{figure}
+\captionsetup[subfigure]{labelformat=parens}
 
-For imperative realization, the sequence is represented by array. Before sorting starts,
-we duplicate the array to create a working area. The pointers $a, b$ are initialized to
-point the left most position, while $c, d$ point to the right most position. Pointer $f$
-starts by pointing to the front of the working area, and $r$ points to the rear
-position.
+When start, we allocate a work area of the same size as the array. $a$, $b$ point to the left side, $c$, $d$ point to the right side. $f$, $r$ point to the two sides of the work area respectively.
 
 \begin{algorithmic}[1]
 \Function{Sort}{$A$}
   \If{$|A| > 1$}
     \State $n \gets |A|$
-    \State $B \gets$ \Call{Create-Array}{$n$}  \Comment{Create the working area}
+    \State $B \gets$ \Call{Create-Array}{$n$}  \Comment{the work area}
     \Loop
       \State $[a, b) \gets [1, 1)$
       \State $[c, d) \gets [n+1, n+1)$
-      \State $f \gets 1, r \gets n$ \Comment{front and rear pointers to the working area}
-      \State $t \gets $ False \Comment{merge to front or rear}
-      \While{$b < c$} \Comment{There are still elements for scan}
+      \State $f \gets 1, r \gets n$ \Comment{front, rear of the work area}
+      \State $t \gets 1$            \Comment{even/odd round}
+      \While{$b < c$}               \Comment{elements yet to scan}
         \Repeat \Comment{Span $[a, b)$}
           \State $b \gets b + 1$
         \Until{$b \geq c \lor A[b] < A[b-1]$}
@@ -2372,31 +1272,30 @@ position.
           \State $c \gets b$
         \EndIf
 
-        \If{$b - a \geq n$} \Comment{Done if $[a, b)$ spans to the whole array}
+        \If{$b - a \geq n$} \Comment{Terminate if $[a, b)$ spans the whole array}
           \State \Return $A$
         \EndIf
 
-        \If{$t$} \Comment{merge to front}
+        \If{$t$ is odd} \Comment{merge to front}
           \State $f \gets$ \Call{Merge}{$A, [a, b), [c, d), B, f, 1$}
         \Else \Comment{merge to rear}
           \State $r \gets$ \Call{Merge}{$A, [a, b), [c, d), B, r, -1$}
         \EndIf
         \State $a \gets b, d \gets c$
-        \State $t \gets \lnot t$ \Comment{Switch the merge direction}
+        \State $t \gets t + 1$
       \EndWhile
-      \State \textproc{Exchange} $A \leftrightarrow B$ \Comment{Switch working area}
+      \State \textproc{Exchange} $A \leftrightarrow B$ \Comment{Switch work area}
     \EndLoop
   \EndIf
   \State \Return $A$
 \EndFunction
 \end{algorithmic}
 
-The merge algorithm is almost as same as before except that we need pass a parameter
-to indicate the direction for merging.
+We need pass the merge direction in:
 
 \begin{algorithmic}[1]
 \Function{Merge}{$A, [a, b), [c, d), B, w, \Delta$}
-  \While{$a < b \land c < d$}
+  \While{$a < b$ and $c < d$}
     \If{$A[a] < A[d-1]$}
       \State $B[w] \gets A[a]$
       \State $a \gets a + 1$
@@ -2420,200 +1319,57 @@ to indicate the direction for merging.
 \EndFunction
 \end{algorithmic}
 
-The following ANSI C program implements this two-way nature merge sort algorithm. Note that it
-doesn't release the allocated working area explicitly.
-
-\lstset{language=C}
-\begin{lstlisting}
-int merge(Key* xs, int a, int b, int c, int d, Key* ys, int k, int delta) {
-    for(; a < b && c < d; k += delta )
-        ys[k] = xs[a] < xs[d-1] ? xs[a++] : xs[--d];
-    for(; a < b; k += delta)
-        ys[k] = xs[a++];
-    for(; c < d; k += delta)
-        ys[k] = xs[--d];
-    return k;
-}
-
-Key* sort(Key* xs, Key* ys, int n) {
-    int a, b, c, d, f, r, t;
-    if(n < 2)
-        return xs;
-    for(;;) {
-        a = b = 0;
-        c = d = n;
-        f = 0;
-        r = n-1;
-        t = 1;
-        while(b < c) {
-            do {      /* span [a, b) as much as possible */
-                ++b;
-            } while( b < c && xs[b-1] <= xs[b] );
-            do{      /* span [c, d) as much as possible */
-                --c;
-            } while( b < c && xs[c] <= xs[c-1] );
-            if( c < b )
-                c = b;   /* eliminate overlap if any */
-            if( b - a >= n)
-                return xs;          /* sorted */
-            if( t )
-                f = merge(xs, a, b, c, d, ys, f, 1);
-            else
-                r = merge(xs, a, b, c, d, ys, r, -1);
-            a = b;
-            d = c;
-            t = !t;
-        }
-        swap(&xs, &ys);
-    }
-    return xs; /*can't be here*/
-}
-\end{lstlisting}
-
-The performance of nature merge sort depends on the actual ordering of the sub arrays. However, it in fact performs
-well even in the worst case. Suppose that we are unlucky when scanning the array, that the length of the non-decreasing
-sub arrays are always 1 during the first round scan. This leads to the result working area with merged ordered sub
-arrays of length 2. Suppose that we are unlucky again in the second round of scan, however, the previous results
-ensure that the non-decreasing sub arrays in this round are no shorter than 2, this time, the working area will
-be filled with merged ordered sub arrays of length 4, ... Repeat this we get the length of the non-decreasing sub arrays
-doubled in every round, so there are at most $O(\lg n)$ rounds, and in every round we scanned all the elements.
-The overall performance for this worst case is bound to $O(n \lg n)$. We'll go back to this interesting phenomena
-in the next section about bottom-up merge sort.
-
-In purely functional settings however, it's not sensible to scan list from both ends since the underlying data
-structure is singly linked-list. The nature merge sort can be realized in another approach.
-
-Observe that the list to be sorted is consist of several non-decreasing sub lists, that we can pick every two
-of such sub lists and merge them to a bigger one. We repeatedly pick and merge, so that the number of the
-non-decreasing sub lists halves continuously and finally there is only one such list, which is the sorted
-result. This idea can be formalized in the following equation.
+The performance does not depend on how ordered the elements are. In the `worst' case, the ordered sub-sequences are all singleton. After merge, the length of the new ordered sub-sequences are at least 2. Suppose we still encounter the `worst' case in the second round, the merged sub-sequences have length at least 4, ... every round doubles the sub-sequence length, hence we need at most $O(\lg n)$ rounds. Because we scan all elements every round, the total time is bound to $O(n \lg n)$. For list, we can't scan from tail back easily as array. A list consists multiple ordered sub-lists, we merge them in pairs. It halves the sub-lists every round, and finally builds the sorted result. Define this as (Curried form):
 
 \be
-sort(L) = sort'(group(L))
+sort = sort' \circ group
 \ee
 
-Where function $group(L)$ groups the elements in the list into non-decreasing sub lists. This function can be described like
-below, the first two are trivial edge cases.
-
-\begin{itemize}
-\item If the list is empty, the result is a list contains an empty list;
-\item If there is only one element in the list, the result is a list contains a singleton list;
-\item Otherwise, The first two elements are compared, if the first one is less than or equal to the second,
-it is linked in front of the first sub list of the recursive grouping result; or a singleton list contains
-the first element is set as the first sub list before the recursive result.
-\end{itemize}
+Where $group$ breaks the list into ordered sub-lists:
 
 \be
-group(L) =  \left \{
-  \begin{array}
-  {r@{\quad:\quad}l}
-  \{ L \} & |L| \leq 1 \\
-  \{ \{ l_1 \} \cup L_1, L_2, ... \} & l_1 \leq l_2, \{ L_1, L_2, ...\} = group(L') \\
-  \{ \{ l_1 \}, L_1, L_2, ... \} & otherwise
-  \end{array}
-\right.
+\begin{array}{rcl}
+\textit{group}\ [\ ] & = & [[\ ]] \\
+\textit{group}\ [x] & = & [[x]] \\
+\textit{group}\ (x \cons y \cons xs) & = & \begin{cases}
+  x < y: & (x \cons g) \cons gs, \text{where}\ (g \cons gs) = \textit{group}\ (y \cons xs) \\
+  \text{otherwise}: & [x] \cons g \cons gs \\
+\end{cases}
+\end{array}
 \ee
-
-It's quite possible to abstract the grouping criteria as a parameter to develop a generic grouping function,
-for instance, as the following Haskell code \footnote{There is a `groupBy' function provided in
-the Haskell standard library 'Data.List'. However, it doesn't fit here, because it accepts an equality
-testing function as parameter, which must satisfy the properties of reflexive, transitive, and
-symmetric. but what we use here, the less-than or equal to operation doesn't conform to symetric. Refer
-to appendix A of this book for detail.}.
-
-\lstset{language=Haskell}
-\begin{lstlisting}
-groupBy' :: (a->a->Bool) ->[a] ->[[a]]
-groupBy' _ [] = [[]]
-groupBy' _ [x] = [[x]]
-groupBy' f (x:xs@(x':_)) | f x x' = (x:ys):yss
-                         | otherwise = [x]:r
-  where
-    r@(ys:yss) = groupBy' f xs
-\end{lstlisting}
-
-Different from the $sort$ function, which sorts a list of elements, function $sort'$ accepts a list of
-sub lists which is the result of grouping.
 
 \be
-sort'(\mathbb{L}) = \left \{
-  \begin{array}
-  {r@{\quad:\quad}l}
-  \phi & \mathbb{L} = \phi \\
-  L_1 & \mathbb{L} = \{ L_1 \} \\
-  sort'(mergePairs(\mathbb{L})) & otherwise
-  \end{array}
-\right.
+\begin{array}{rcl}
+\textit{sort}'\ [\ ] & = & [\ ] \\
+\textit{sort}'\ [g] & = & g \\
+\textit{sort}'\ gs & = & \textit{sort}'\ (\textit{mergePairs}\ gs) \\
+\end{array}
 \ee
 
-The first two are the trivial edge cases. If the list to be sorted is empty, the result is obviously empty;
-If it contains only one sub list, then we are done. We need just extract this single sub list as result;
-For the recursive case, we call a function $mergePairs$ to merge every two sub lists, then recursively call
-$sort'$.
-
-The next undefined function is $mergePairs$, as the name indicates, it repeatedly merges pairs of non-decreasing
-sub lists into bigger ones.
+Where:
 
 \be
-mergePairs(L) = \left \{
-  \begin{array}
-  {r@{\quad:\quad}l}
-  L & |L| \leq 1 \\
-  \{ merge(L_1, L_2) \} \cup mergePairs(L'') & otherwise
-  \end{array}
-\right.
+\begin{array}{rcl}
+\textit{mergePairs}\ (g_1 \cons g_2 \cons gs) & = & merge\ g_1\ g_2 : \textit{mergePairs}\ gs \\
+\textit{mergePairs}\ gs & = & gs
+\end{array}
 \ee
 
-When there are less than two sub lists in the list, we are done; otherwise, we merge the first two sub lists $L_1$ and $L_2$,
-and recursively merge the rest of pairs in $L''$. The type of
-the result of $mergePairs$ is list of lists, however, it will be flattened by $sort'$ function finally.
-
-The $merge$ function is as same as before. The complete example Haskell program is given as below.
-
-\lstset{language=Haskell}
-\begin{lstlisting}
-mergesort = sort' . groupBy' (<=)
-
-sort' [] = []
-sort' [xs] = xs
-sort' xss = sort' (mergePairs xss) where
-  mergePairs (xs:ys:xss) = merge xs ys : mergePairs xss
-  mergePairs xss = xss
-\end{lstlisting}
-
-Alternatively, observing that we can first pick two sub lists, merge them to an intermediate result, then repeatedly
-pick next sub list, and merge to this ordered result we've gotten so far until all the rest sub lists are merged.
-This is a typical folding algorithm as introduced in appendix A.
-
-\be
-sort(L) = fold(merge, \phi, group(L))
-\ee
-
-Translate this version to Haskell yields the folding version.
-
-\lstset{language=Haskell}
-\begin{lstlisting}
-mergesort' = foldl merge [] . groupBy' (<=)
-\end{lstlisting}
-
-\begin{Exercise}
-\begin{itemize}
-  \item Is the nature merge sort algorithm realized by folding is equivalent with the one by using $mergePairs$ in terms
-of performance? If yes, prove it; If not, which one is faster?
-\end{itemize}
+\begin{Exercise}[label={ex:multi-merge}]
+\Question{One defines $\textit{sort}' = foldr\ merge\ [\ ]$. Is the performance same as the pairwise merge ($mergePairs$)? If yes, prove it; if not, which one is faster?}
 \end{Exercise}
 
-\section{Bottom-up merge sort}
-\index{Merge Sort!Bottom-up merge sort}
-The worst case analysis for nature merge sort raises an interesting topic, instead of realizing merge sort in
-top-down manner, we can develop a bottom-up version. The great advantage is that, we needn't do book keeping
-any more, so the algorithm is quite friendly for purely iterative implementation.
+\begin{Answer}[ref = {ex:multi-merge}]
+\Question{The pairwise merge is faster. This problem is essentially to merge $k$ ordered sequences. Assume the average length of the $k$ sequences is $n$ for simplification. When merge with fold, we first merge $s_1$ and the empty sequence $merge([\ ], s_1) = [\ ] \oplus s_1$, then merge $s_2$ to get $[\ ] \oplus s_1 \oplus s_2$, then merge $s_3$ to get $[\ ] \oplus s_1 \oplus s_2 \oplus s_3$, ..., the total complexity is $O(n + 2n + 3n + 4n + ... + kn) = O(n\dfrac{k(k+1)}{2}) = O(nk^2)$. While for pairwise merging, the first round is to merge $s_1 \oplus s_2$, $s_3 \oplus s_4$, ..., takes $O(kn)$ time in total; the next round is to merge $(s_1 \oplus s_2) \oplus (s_3 \oplus s_4)$, ..., taking $O(kn)$ time too. There are total $lg k$ rounds, hence the total complexity is $O(nk \lg k)$. Therefore the pairwise merge performs better.
 
-The idea of bottom-up merge sort is to turn the sequence to be sorted into $n$ small sub sequences each contains
-only one element. Then we merge every two of such small sub sequences, so that we get $\frac{n}{2}$ ordered
-sub sequences each with length 2; If $n$ is odd number, we left the last singleton sequence untouched.
-We repeatedly merge these pairs, and finally we get the sorted result. Knuth names this variant as
-`straight two-way merge sort' \cite{TAOCP}. The bottom-up merge sort is illustrated in figure \ref{fig:bottom-up-msort}
+We can also merge with a min-heap of size $k$. Store the minimum elements from each sequence in the heap, keep popping the overall minimum one, and replace it with the next element in that sequence. The complexity is $O(nk \lg k)$ too.
+}
+\end{Answer}
+
+\subsection{Bottom-up merge sort}
+\index{Merge Sort!Bottom-up merge sort}
+
+We can develop the bottom-up merge sort from the above performance analysis. First wrap all elements as $n$ singletons. Then merge them in pairs to obtain $\frac{n}{2}$ ordered sub-lists of length 2; If $n$ is odd, there remains a single list. Repeat this paired merge to sort all. Knuth calls it `straight two-way merge sort'\cite{TAOCP}, as shown in \cref{fig:bottom-up-msort}.
 
 \begin{figure}[htbp]
  \centering
@@ -2622,189 +1378,289 @@ We repeatedly merge these pairs, and finally we get the sorted result. Knuth nam
  \label{fig:bottom-up-msort}
 \end{figure}
 
-Different with the basic version and even-odd version, we needn't explicitly split the list to be sorted
-in every recursion. The whole list is split into $n$ singletons at the very beginning, and we merge these
-sub lists in the rest of the algorithm.
+We needn't partition the list. When start, convert $[x_1, x_2, ..., x_n]$ to $[[x_1], [x_2], ..., [x_n]]$, then apply paired merge:
 
 \be
-sort(L) = sort'(wraps(L))
+sort = sort' \circ map (x \mapsto [x])
 \ee
 
-\be
-wraps(L) = \left \{
-  \begin{array}
-  {r@{\quad:\quad}l}
-  \phi & L = \phi \\
-  \{ \{l_1\} \} \cup wraps(L') & otherwise
-  \end{array}
-\right.
-\ee
-
-Of course $wraps$ can be implemented by using mapping as introduced in appendix A.
-
-\be
-sort(L) = sort'(map(\lambda_x \cdot \{ x \}, L))
-\ee
-
-We reuse the function $sort'$ and $mergePairs$ which are defined in section of nature merge sort. They
-repeatedly merge pairs of sub lists until there is only one.
-
-Implement this version in Haskell gives the following example code.
-
-\lstset{language=Haskell}
-\begin{lstlisting}
-sort = sort' . map (\x->[x])
-\end{lstlisting}
-
-This version is based on what Okasaki presented in \cite{okasaki-book}. It is quite similar to the nature merge sort
-only differs in the way of grouping. Actually, it can be deduced as a special case (the worst case) of
-nature merge sort by the following equation.
-
-\be
-sort(L)= sort'(groupBy(\lambda_{x, y} \cdot False, L))
-\ee
-
-That instead of spanning the non-decreasing sub list as long as possible, the predicate always evaluates to false,
-so the sub list spans only one element.
-
-Similar with nature merge sort, bottom-up merge sort can also be defined by folding. The detailed implementation
-is left as exercise to the reader.
-
-Observing the bottom-up sort, we can find it's in tail-recursion call manner, thus it's quite easy
-to translate into purely iterative algorithm without any recursion.
+We reuse the \textit{mergePairs} defined for nature merge sort, terminates when consolidates to one list\cite{okasaki-book}. The bottom up sort is similar to the nature merge sort, different only in partition method. It can be deduced from nature merge sort as a special case (the `worst' case). Nature merge sort always spans the ordered sub-sequence as long as possible; while the bottom up merge sort only spans the length to 1. From the tail recursive implementation, we can eliminate the recursion and convert it to iterative loops.
 
 \begin{algorithmic}[1]
 \Function{Sort}{$A$}
-  \State $B \gets \phi$
-  \For{$\forall a \in A$}
-    \State $B \gets$ \Call{Append}{$\{ a \}$}
+  \State $n \gets |A|$
+  \State $B \gets $ \Call{Create-Array}{$n$}
+  \For{$i$ from 1 to $n$}
+    \State $B[i] = [A[i]]$
   \EndFor
-  \State $N \gets |B|$
-  \While{$N > 1$}
-    \For{$i \gets $ from $1$ to $\lfloor \frac{N}{2} \rfloor$}
+  \While{$n > 1$}
+    \For{$i \gets $ from $1$ to $\lfloor \dfrac{n}{2} \rfloor$}
       \State $B[i] \gets$ \Call{Merge}{$B[2i -1], B[2i]$}
     \EndFor
-    \If{\Call{Odd}{$N$}}
-      \State $B[\lceil \frac{N}{2} \rceil] \gets B[N]$
+    \If{\Call{Odd}{$n$}}
+      \State $B[\lceil \dfrac{n}{2} \rceil] \gets B[n]$
     \EndIf
-    \State $N \gets \lceil \frac{N}{2} \rceil$
+    \State $n \gets \lceil \dfrac{n}{2} \rceil$
   \EndWhile
-  \If{$B = \phi$}
-    \State \Return $\phi$
+  \If{$B = [\ ]$}
+    \State \Return $[\ ]$
   \EndIf
   \State \Return $B[1]$
 \EndFunction
 \end{algorithmic}
 
-The following example Python program implements the purely iterative bottom-up merge sort.
-
-\lstset{language=Python}
-\begin{lstlisting}
-def mergesort(xs):
-    ys = [[x] for x in xs]
-    while len(ys) > 1:
-        ys.append(merge(ys.pop(0), ys.pop(0)))
-    return [] if ys == [] else ys.pop()
-
-def merge(xs, ys):
-    zs = []
-    while xs != [] and ys !=[]:
-        zs.append(xs.pop(0) if xs[0] < ys[0] else ys.pop(0))
-    return zs + (xs if xs !=[] else ys)
-\end{lstlisting}
-
-The Python implementation combines multiple rounds of merging by consuming
-the pair of lists on the head, and appending the merged result to the tail. This greatly simply
-the logic of handling odd sub lists case as shown in the above pseudo code.
-
-\begin{Exercise}
-\begin{itemize}
-\item Implement the functional bottom-up merge sort by using folding.
-\item Implement the iterative bottom-up merge sort only with array indexing. Don't use any library
-supported tools, such as list, vector etc.
-\end{itemize}
+\begin{Exercise}[label={ex:pairwise-fold}]
+\Question{Define the generic pairwise fold $foldp$, and use it to implement the bottom-up merge sort.}
 \end{Exercise}
+
+\begin{Answer}[ref = {ex:pairwise-fold}]
+\Question{Define the generic pairwise fold $foldp$, and use it to implement the bottom-up merge sort.
+
+It's sufficient the binary combination function $f$ be associative, i.e., $f(f(x, y), z) = f(x, f(y, z))$. Let the unit of $f$ be $z$, define the pairwise fold as:
+
+\begin{Haskell}
+foldp f z [] = z
+foldp f z [x] = f x z
+foldp f z xs = foldp f z (pairs xs) where
+  pairs (x:y:ys) = (f x y) : pairs ys
+  pairs ys = ys
+\end{Haskell}
+
+For example, we can define $sum = foldp\ (+)\ 0$, and the bottom-up merge sort is defined as\footnote{\lstinline{(:[])} is equivalent to $x\ xs \mapsto [x] \cons xs$.}:
+\begin{Haskell}
+sort = foldp merge [] . map (:[])
+\end{Haskell}
+}
+\end{Answer}
 
 \section{Parallelism}
-\index{Parallel merge sort}
-\index{Parallel quick sort}
-We mentioned in the basic version of quick sort, that the two sub sequences can be sorted in
-parallel after the divide phase finished. This strategy is also applicable for merge sort.
-Actually, the parallel version quick sort and morege sort, do not only distribute
-the recursive sub sequences sorting into two parallel processes, but divide the sequences into
-$p$ sub sequences, where $p$ is the number of processors. Idealy, if we can achieve
-sorting in $T'$ time with parallelism, which satisifies $O(n \lg n) = p T'$. We say it
-is linear speed up, and the algorithm is parallel optimal.
+\index{Parallel merge sort} \index{Parallel quick sort}
 
-However, a straightforward parallel extension to the sequential quick sort algorithm
-which samples several pivots, divides $p$ sub sequences, and independently
-sorts them in parallel, isn't optimal. The bottleneck exists in the
-divide phase, which we can only achieve $O(n)$ time in average case.
+In quick sort implementation, we can parallel sorting the two sub-sequences after partition. Similarly, to parallel merge sort. Actually, we don't limit by two concurrent tasks, but divide into $p$ sub-sequences, where $p$ is the number of processors. Ideally, if we can achieve sorting in $T'$ time with parallelism, where $O(n \lg n) = p T'$, we say it's {\em linear speed up}, and the algorithm is parallel optimal. However, it is not parallel optimal by choosing $p - 1$ pivots, and partition the sequence into $p$ parts for quick sort. The bottleneck happens in the divide phase, that can only achieve in $O(n)$ time. While, the bottleneck is the merge phase for parallel merge sort. Both need specific design to speed up. Basically, the divide and conquer nature makes merge sort and quick sort relative easy for parallelism. Richard Cole developed parallel merge sort achieved $O(\lg n)$ performance with $n$ processors in 1986\cite{para-msort}. Parallelism is a big and complex topic out of the elementary scope\cite{para-msort}\cite{para-qsort}.
 
-The straightforward parallel extension to merge sort, on the other hand, block
-at the merge phase. Both parallel merge sort and quick sort in practice need
-good designs in order to achieve the optimal speed up. Actually, the divide and
-conquer nature makes merge sort and quick sort relative easy for parallelisim.
-Richard Cole found the $O(\lg n)$ parallel merge sort algorithm with $n$ processors
-in 1986 in \cite{para-msort}.
+\section{Summary}
 
-Parallelism is a big and complex
-topic which is out of the scope of this elementary book. Readers can refer to
-\cite{para-msort} and \cite{para-qsort} for details.
+This chapter gives two popular divide and conquer sort algorithms: quick sort and merge sort. Both achieve the best performance of $O(n \lg n)$ for comparison based sort. Sedgewick quotes quick sort as the greatest algorithm developed in the 20th century. Many programming environments provide sort tool based on it. Merge sort is a powerful tool when handling sequence of complex entities, or not persisted in array\footnote{In practice, most are kind of hybrid sort, for example, fallback to insert sort for small sequence.}. Quick sort performs well in most cases with fewer swaps than other methods. However, swap is not suitable for linked-list, while merge sort is. It costs constant space and the performance is guaranteed for all cases. Quick sort has advantage for vector storage like arrays, because it needn't extra work area and can sort in-place. This is a valuable feature particularly in embedded system where memory is limited. In-place merging is till an active research area.
 
-\section{Short summary}
-In this chapter, two popular divide and conquer sorting methods, quick sort and merge sort are introduced.
-Both of them meet the upper performance limit of the comparison based sorting algorithms $O(n \lg n)$.
-Sedgewick said that quick sort is the greatest algorithm invented in the 20th century. Almost
-all programming environments adopt quick sort as the default sorting tool. As time goes on,
-some environments, especially those manipulate abstract sequence which is dynamic and not based on
-pure array switch to merge sort as the general purpose sorting tool\footnote{Actually, most of
-them are kind of hybrid sort, balanced with insertion sort to achieve good performance when the
-sequence is short}.
+We can consider quick sort as the optimized tree sort. Similarly, we can also deduce merge sort from tree sort\cite{sort-deriving}. People categorize sort algorithms in different ways\cite{TAOCP}, for example, from the perspective of partition and merge\cite{algo-fp}. Quick sort is easy to merge, because all the elements in one sub-sequence are not greater than the other. Merge is equivalent to concatenation. While merge sort is easy to partition no matter cut at the middle, even-odd split, nature split, or bottom up split. It's difficult to achieve perfect partition in quick sort, we can't completely avoid the worst case no matter with median-of-three pivot, random quick sort, or ternary quick sort.
 
-The reason for this interesting phenomena can be partly explained by the treatment in this chapter.
-That quick sort performs perfectly in most cases, it needs fewer swapping than most other algorithms.
-However, the quick sort algorithm is based on swapping, in purely functional settings, swapping isn't
-the most efficient way due to the underlying data structure is singly linked-list, but not vectorized
-array. Merge sort, on the other hand, is friendly in such environment, as it costs constant spaces,
-and the performance can be ensured even in the worst case of quick sort, while the latter downgrade
-to quadratic time. However, merge sort doesn't performs as well as quick sort in purely imperative
-settings with arrays. It either needs extra spaces for merging, which is sometimes unreasonable, for
-example in embedded system with limited memory, or causes many overhead swaps by in-place workaround.
-In-place merging is till an active research area.
+As of this chapter, we've seen the elementary sort algorithms, including insert sort, tree sort, selection sort, heap sort, quick sort, and merge sort. Sort is an important domain in computer algorithm design. People are facing the `big data' challenge when I write this chapter. It becomes routine to sort hundreds of Gigabytes with limited resources and time.
 
-Although the title of this chapter is `quick sort vs. merge sort', it's not the case that one
-algorithm has nothing to do with the other. Quick sort can be viewed as the optimized version of
-tree sort as explained in this chapter. Similarly, merge sort can also be deduced from tree sort
-as shown in \cite{sort-deriving}.
-
-There are many ways to categorize sorting algorithms, such as in \cite{TAOCP}. One way is to
-from the point of view of easy/hard partition, and easy/hard merge \cite{algo-fp}.
-
-Quick sort, for example, is quite easy for merging, because all the elements in the sub
-sequence before the pivot are no greater than any one after the pivot. The merging for
-quick sort is actually trivial sequence concatenation.
-
-Merge sort, on the other hand, is more complex in merging than quick sort. However, it's
-quite easy to divide no matter what concrete divide method is taken:
-simple divide at the middle point, even-odd splitting, nature splitting, or bottom-up
-straight splitting. Compare to merge sort, it's more difficult for quick sort to
-achieve a perfect dividing. We show that in theory, the worst case can't be completely
-avoided, no matter what engineering practice is taken, median-of-three, random quick sort,
-3-way partition etc.
-
-We've shown some elementary sorting algorithms in this book till this chapter, including
-insertion sort, tree sort, selection sort, heap sort, quick sort and merge sort. Sorting
-is still a hot research area in computer science. At the time when this chapter is written,
-people are challenged by the buzz word `big data', that the traditional convenient method
-can't handle more and more huge data within reasonable time and resources.
-Sorting a sequence of hundreds of Gigabytes becomes a routine in some fields.
-
-\begin{Exercise}
-  \begin{itemize}
-    \item Design an algorithm to create binary search tree by using merge sort strategy.
-  \end{itemize}
+\begin{Exercise}[label={ex:bst-merge}]
+\Question{Build a binary search tree from a sequence using the idea of merge sort.}
 \end{Exercise}
+
+\begin{Answer}[ref={ex:bst-merge}]
+\Question{Build a binary search tree from a sequence using the idea of merge sort.
+
+\vspace{3mm}
+We can build the binary search tree either top-down or bottom-up. For top-down, halve the list to two, recursively build two trees respectively then merge; for bottom-up, wrap each element to a singleton leaf, then pair-wise merge trees repeatedly to the final result. Both approaches depend on the tree merge, let us define it\footnote{For the standalone problem of binary search tree merge, we can flatten the trees to two arrays (or lists through in-order traverse), then apply $merge$ (see \cref{eq:merge-sort-merge}), and rebuild the tree with the middle element as the root.}. If either tree is empty, the merge result is the other; otherwise, let the two trees be $(A, x, B)$ and $(C, y, D)$, if $x < y$, use $y$ to partition $B$ to two trees $B_y$ and $B^y$, where $B_y$ has all elements $\{b < y\}$, and $B_y$ has the rest $\{b \geq y\}$; use $x$ to partition $C$ to $C_x$ and $C^x$. We then form the merge result as:
+
+\[
+(A, x, B) \oplus (C, y, D) = ((A \oplus C_x, x, B_y \oplus C^x), y, D \oplus B^y)
+\]
+
+Where `$\oplus$' means tree merge. Symmetrically, when $x \geq y$, we partition $A$ and $D$. Below example program implements tree \textit{partition} and \textit{merge}. It uses \textit{foldp} defined in \cref{ex:pairwise-fold}.
+
+\begin{Haskell}
+toTree :: (Ord a) => [a] -> Tree a
+toTree = foldp merge Empty . map leaf
+
+partition x Empty = (Empty, Empty)
+partition x (Node a y b)
+  | x < y = let (a1, a2) = partition x a in (a1, Node a2 y b)
+  | otherwise = let (b1, b2) = partition x b in (Node a y b1, b2)
+
+merge Empty t = t
+merge t Empty = t
+merge (Node a x b) (Node c y d)
+  | x < y = let
+      (b1, b2) = partition y b
+      (c1, c2) = partition x c
+      in Node (Node (merge a c1) x (merge b1 c2)) y (merge d b2)
+  | otherwise = let
+      (a1, a2) = partition y a
+      (d1, d2) = partition x d
+      in Node (merge a1 c) y (Node (merge a2 d1) x (merge b d2))
+\end{Haskell}
+}
+\end{Answer}
+
+\section{Appendix: Example programs}
+
+In-place partition:
+
+\begin{lstlisting}[language = Bourbaki]
+Int partition([K] xs, Int l, Int u) {
+    for (Int pivot = l, Int r = l + 1; r < u; r = r + 1) {
+        if xs[pivot] >= xs[r] {
+            l = l + 1
+            swap(xs[l], xs[r])
+        }
+    }
+    swap(xs[pivot], xs[l])
+    return l + 1
+}
+
+Void sort([K] xs, Int l, Int u) {
+    if l < u {
+        Int m = partition(xs, l, u)
+        sort(xs, l, m - 1)
+        sort(xs, m, u)
+    }
+}
+\end{lstlisting}
+
+Bi-directional scan:
+
+\begin{lstlisting}[language = Bourbaki]
+Void sort([K] xs, Int l, Int u) {
+    if l < u - 1 {
+        Int pivot = l, Int i = l, Int j = u
+        loop {
+            while i < u and xs[i] < xs[pivot] {
+                i = i + 1
+            }
+            while j >=l and xs[pivot] < xs[j] {
+                j = j - 1
+            }
+            if j < i then break
+            swap(xs[i], xs[j])
+        }
+        swap(xs[pivot], xs[j])
+        sort(xs, l, j)
+        sort(xs, i, u)
+    }
+}
+\end{lstlisting}
+
+Merge sort:
+
+\begin{lstlisting}[language = Bourbaki]
+[K] sort([K] xs) {
+    Int n = length(xs)
+    if n > 1 {
+        var ys = sort(xs[0 ... n/2 - 1])
+        var zs = sort(xs[n/2 ...])
+        xs = merge(xs, ys, zs)
+    }
+    return xs
+}
+
+[K] merge([K] xs, [K] ys, [K] zs) {
+    Int i = 0
+    while ys != [] and zs != [] {
+        xs[i] = if ys[0] < zs[0] then pop(ys) else pop(zs)
+        i = i + 1
+    }
+    xs[i...] = if ys !=[] then ys else zs
+    return xs
+}
+\end{lstlisting}
+
+Merge sort with work area:
+
+\lstset{language=C}
+\begin{lstlisting}[language = Bourbaki]
+Void sort([K] xs) = msort(xs, copy(xs), 0, length(xs))
+
+Void msort([K] xs, [K] ys, Int l, Int u) {
+    if (u - l > 1) {
+        Int m = l + (u - l) / 2
+        msort(xs, ys, l, m)
+        msort(xs, ys, m, u)
+        merge(xs, ys, l, m, u)
+    }
+}
+
+Void merge([K] xs, [K] ys, Int l, Int m, Int u) {
+    Int i = l, Int k = l; Int j = m
+    while i < m and j < u {
+        ys[k++] = if xs[i] < xs[j] then xs[i++] else xs[j++]
+    }
+    while i < m {
+        ys[k++] = xs[i++]
+    }
+    while j < u {
+        ys[k++] = xs[j++]
+    }
+    while l < u {
+        xs[l] = ys[l]
+        l++
+    }
+}
+\end{lstlisting}
+
+In-place merge sort:
+
+\begin{lstlisting}[language = Bourbaki]
+Void merge([K] xs, (Int i, Int m), (Int j, Int n), Int w) {
+    while i < m and j < n {
+        swap(xs, w++, if xs[i] < xs[j] then i++ else j++)
+    }
+    while i < m {
+        swap(xs, w++, i++)
+    }
+    while j < n {
+        swap(xs, w++, j++)
+    }
+}
+
+Void wsort([K] xs, (Int l, Int u), Int w) {
+    if u - l > 1 {
+        Int m = l + (u - l) / 2
+        imsort(xs, l, m)
+        imsort(xs, m, u)
+        merge(xs, (l, m), (m, u), w)
+    }
+    else {
+        while l < u { swap(xs, l++, w++) }
+    }
+}
+
+Void imsort([K] xs, Int l, Int u) {
+    if u - l > 1 {
+        Int m = l + (u - l) / 2
+        Int w = l + u - m
+        wsort(xs, l, m, w)
+        while w - l > 2 {
+            Int n = w
+            w = l + (n - l + 1) / 2;
+            wsort(xs, w, n, l);
+            merge(xs, (l, l + n - w), (n, u), w);
+        }
+        for Int n = w; n > l; --n {
+            for Int m = n; m < u and xs[m] < xs[m-1]; m++ {
+                swap(xs, m, m - 1)
+            }
+        }
+    }
+}
+\end{lstlisting}
+
+Iterative bottom up merge sort:
+
+\begin{lstlisting}[language = Bourbaki]
+[K] sort([K] xs) {
+    var ys = [[x] | x in xs]
+    while length(ys) > 1 {
+        ys += merge(pop(ys), pop(ys))
+    }
+    return if ys == [] then [] else pop(ys)
+}
+
+[K] merge([K] xs, [K] ys) {
+    [K] zs = []
+    while xs != [] and ys !=[] {
+        zs += if xs[0] < ys[0] then pop(xs) else pop(ys)
+    }
+    return zs ++ (if xs !=[] then xs else ys)
+}
+\end{lstlisting}
+
+\ifx\wholebook\relax\else
+\section{Answers}
+\shipoutAnswer
 
 \begin{thebibliography}{99}
 
@@ -2818,7 +1674,7 @@ Thomas H. Cormen, Charles E. Leiserson, Ronald L. Rivest and Clifford Stein.
 \bibitem{qsort-impl}
 Robert Sedgewick. ``Implementing quick sort programs''. Communication of ACM. Volume 21, Number 10. 1978. pp.847 - 857.
 
-\bibitem{pearls}
+\bibitem{Bentley}
 Jon Bentley. ``Programming pearls, Second Edition''. Addison-Wesley Professional; 1999. ISBN-13: 978-0201657883
 
 \bibitem{3-way-part}
@@ -2846,7 +1702,7 @@ Chris Okasaki. ``Purely Functional Data Structures''. Cambridge university press
 Jos\`{e} Bacelar Almeida and Jorge Sousa Pinto. ``Deriving Sorting Algorithms''. Technical report, Data structures and Algorithms. 2008.
 
 \bibitem{para-msort}
-Cole, Richard (August 1988). ``Parallel merge sort''. SIAM J. Comput. 17 (4): 770¨C785. doi:10.1137/0217049. (August 1988)
+Cole, Richard (August 1988). ``Parallel merge sort''. SIAM J. Comput. 17 (4): 770-785. doi:10.1137/0217049. (August 1988)
 
 \bibitem{para-qsort}
 Powers, David M. W. ``Parallelized Quicksort and Radixsort with Optimal Speedup'', Proceedings of International Conference on Parallel Computing Technologies. Novosibirsk. 1991.
@@ -2865,8 +1721,5 @@ Wikipedia. ``Harmonic series (mathematics)''. \url{https://en.wikipedia.org/wiki
 
 \end{thebibliography}
 
-\ifx\wholebook\relax\else
-\end{document}
+\expandafter\enddocument
 \fi
-
-% LocalWords:  ZF Lumoto's Burstle Okasaki

@@ -61,15 +61,12 @@ def split(d, z, i):
         y.subtrees = x.subtrees[d : ]
         x.subtrees = x.subtrees[ : d]
 
-def insert(d, t, x):
-    """insert key x to tree t, where the degree is d"""
-    root = t
-    if full(d, root):
-        s = BTree()
-        s.subtrees = [root]
-        split(d, s, 0)
-        root = s
-    return insert_nonfull(d, root, x)
+def ordered_insert(lst, x):
+    i = len(lst)
+    lst.append(x)
+    while i > 0 and lst[i] < lst[i - 1]:
+        (lst[i - 1], lst[i]) = (lst[i], lst[i - 1])
+        i = i - 1
 
 def insert_nonfull(d, t, x):
     if is_leaf(t):
@@ -85,12 +82,32 @@ def insert_nonfull(d, t, x):
         insert_nonfull(d, t.subtrees[i], x)
     return t
 
-def ordered_insert(lst, x):
-    i = len(lst)
-    lst.append(x)
-    while i > 0 and lst[i] < lst[i - 1]:
-        (lst[i - 1], lst[i]) = (lst[i], lst[i - 1])
-        i = i - 1
+def insert(d, t, x, insert_nonfull_func = insert_nonfull):
+    """insert key x to tree t, where the degree is d"""
+    root = t
+    if full(d, root):
+        s = BTree()
+        s.subtrees = [root]
+        split(d, s, 0)
+        root = s
+    return insert_nonfull_func(d, root, x)
+
+def loop_insert_nonfull(d, t, x):
+    root = t
+    while not is_leaf(t):
+        i = len(t.keys)
+        while i > 0 and x < t.keys[i-1]:
+            i = i - 1
+        if full(d, t.subtrees[i]):
+            split(d, t, i)
+            if x > t.keys[i]:
+                i = i + 1
+        t = t.subtrees[i]
+    ordered_insert(t.keys, x)
+    return root
+
+def insert1(d, t, x):
+    return insert(d, t, x, loop_insert_nonfull)
 
 def delete(d, t, x):
     if t.keys == []:
@@ -174,6 +191,24 @@ def lookup(t, k):
             i = i + 1
         return lookup(t.subtrees[i], k)
 
+def binary_lookup(t, k):
+    if t.keys == []:
+        return None
+    l = 0
+    u = len(t.keys)
+    while l < u:
+        m = (l + u) // 2
+        if k == t.keys[m]:
+            return (t, m)
+        elif t.keys[m] < k:
+            l = m + 1
+        else:
+            u = m
+    if is_leaf(t):
+        return None
+    else:
+        return binary_lookup(t.subtrees[l], k)
+
 def fromlist(d, xs):
     t = BTree()
     for x in xs:
@@ -222,18 +257,31 @@ def prop_insert(xs):
     t = fromlist(d, xs)
     assert is_btree(d, t, 0), f"violate B-tree: d = {d}, t = {t}"
 
-def prop_lookup(xs):
+def prop_insert1(xs):
+    d = deg(xs)
+    t = BTree()
+    for x in xs:
+        t = insert1(d, t, x)
+    assert is_btree(d, t, 0), f"violate B-tree: d = {d}, t = {t}"
+
+def prop_lookup_with(xs, lookup_func):
     d = deg(xs)
     t = fromlist(d, xs)
     ys = sample(xs, min(5, len(xs))) + sample(range(100), 5)
     for y in ys:
-        r = lookup(t, y)
+        r = lookup_func(t, y)
         if y in xs:
             assert r, f"not found {y} in t = {t}"
             (tr, i) = r
             assert tr.keys[i] == y, f"y = {y}, tr = {tr}, i = {i}"
         else:
             assert (r is None), f"y = {y}, r = {r}"
+
+def prop_lookup(xs):
+    prop_lookup_with(xs, lookup)
+
+def prop_binary_lookup(xs):
+    prop_lookup_with(xs, binary_lookup)
 
 def prop_delete(xs):
     d = deg(xs)
@@ -257,5 +305,7 @@ def test(f):
 if __name__ == "__main__":
     test(prop_order)
     test(prop_insert)
+    test(prop_insert1)
     test(prop_lookup)
+    test(prop_binary_lookup)
     test(prop_delete)

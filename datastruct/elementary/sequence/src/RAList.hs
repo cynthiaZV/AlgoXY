@@ -20,7 +20,7 @@ module RAList where
 
 import Test.QuickCheck
 
--- Based on Chris Okasaki's ``Purely Functional Data structures'', 
+-- Based on Chris Okasaki's ``Purely Functional Data structures'',
 --   Chapter 9, Numeric representation.
 
 -- Binary tree representation
@@ -36,45 +36,34 @@ data Digit a = Zero
 -- The random access list is represented as a forest of binary trees.
 type RAList a = [Digit a]
 
--- Auxilary functions
-size :: Tree a -> Int
 size (Leaf _) = 1
 size (Node sz _ _) = sz
 
--- Precondition: rank t1 = rank t2
-link :: Tree a -> Tree a -> Tree a
 link t1 t2 = Node (size t1 + size t2) t1 t2
 
-cons :: a -> RAList a -> RAList a
-cons x ts = insertTree ts (Leaf x) 
+cons x = add (Leaf x) where
+  add t [] = [One t]
+  add t (Zero:ts) = One t : ts
+  add t (One t' :ts) = Zero : add (link t t') ts
 
-insertTree :: RAList a -> Tree a -> RAList a
-insertTree [] t = [One t]
-insertTree (Zero:ts) t = One t : ts
-insertTree (One t' :ts) t = Zero : insertTree ts (link t t')
+minus [One t] = (t, [])
+minus (One t:ts) = (t, Zero:ts)
+minus (Zero:ts) = (t1, One t2:ts') where
+    (Node _ t1 t2, ts') = minus ts
 
--- Assert the RAList isn't empty
-extractTree :: RAList a -> (Tree a, RAList a)
-extractTree [One t] = (t, [])
-extractTree (One t:ts) = (t, Zero:ts)
-extractTree (Zero:ts) = (t1, One t2:ts') where
-    (Node _ t1 t2, ts') = extractTree ts
+head' ts = x where (Leaf x, _) = minus ts
 
-head' :: RAList a -> a
-head' ts = x where (Leaf x, _) = extractTree ts
-
-tail' :: RAList a -> RAList a
-tail' ts = ts' where (_, ts') = extractTree ts
+tail' = snd . minus
 
 getAt :: RAList a -> Int -> a
 getAt (Zero:ts) i = getAt ts i
-getAt (One t:ts) i = if i < size t then lookupTree t i
+getAt (One t:ts) i = if i < size t then lookupTree i t
                      else getAt ts (i - size t)
-
-lookupTree :: Tree a -> Int -> a
-lookupTree (Leaf x) 0 = x
-lookupTree (Node sz t1 t2) i = if i < sz `div` 2 then lookupTree t1 i
-                               else lookupTree t2 (i - sz `div` 2)
+  where
+    lookupTree :: Int -> Tree a -> a
+    lookupTree 0 (Leaf x) = x
+    lookupTree i (Node sz t1 t2) = if i < sz `div` 2 then lookupTree i t1
+                                   else lookupTree (i - sz `div` 2) t2
 
 setAt :: RAList a -> Int -> a -> RAList a
 setAt (Zero:ts) i x = Zero:setAt ts i x
@@ -83,7 +72,7 @@ setAt (One t:ts) i x = if i < size t then One (updateTree t i x):ts
 
 updateTree :: Tree a -> Int -> a -> Tree a
 updateTree (Leaf _) 0 x = Leaf x
-updateTree (Node sz t1 t2) i x = 
+updateTree (Node sz t1 t2) i x =
     if i < sz `div` 2 then Node sz (updateTree t1 i x) t2
     else Node sz t1 (updateTree t2 (i - sz `div` 2) x)
 
@@ -116,6 +105,11 @@ prop_update xs i y = (0 <=i && i< length xs) ==> toList (setAt (fromList xs) i y
     xs' = as ++ [y] ++ bs
     (as, (_:bs)) = splitAt i xs
 
+testAll = do
+  quickCheck prop_cons
+  quickCheck prop_head
+  quickCheck prop_lookup
+  quickCheck prop_update
 
 -- Reference
 -- [1]. Chris Okasaki. ``Purely Functional Random-Access Lists''. Functional Programming Languages and Computer Architecutre, June 1995, pages 86-95.

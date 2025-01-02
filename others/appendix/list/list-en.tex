@@ -19,13 +19,13 @@
 
 \author{Xinyu~LIU
 \thanks{{\bfseries Xinyu LIU} \newline
-  Email: liuxinyu95@gmail.com \newline}
+  Email: liuxinyu99@hotmail.com \newline}
   }
 
 \maketitle
 \fi
 
-\markboth{List}{Elementary Algorithms}
+%\markboth{List}{Elementary Algorithms}
 
 \ifx\wholebook\relax
 \chapter{List}
@@ -35,19 +35,13 @@
 \section{Introduction}
 \label{introduction}
 
-List and array are the preliminary build blocks to create complex data structure. Both can hold multiple elements as a container. Array is trivially implemented as a range of consecutive cells indexed by a number. The number is called address or position. Array is typically bounded. Its size need be determined before using. While list increases on-demand to hold additional elements. One can traverse a list one by one from head to tail. Particularly in functional settings, the list related algorithms play critical roles to control the computation and logic structure\footnote{In low level, lambda calculus plays the most critical role as one of the computation model equivalent to Turing machine\cite{mittype}, \cite{unplugged}.}. Readers already familiar with map, filter, fold algorithms are safe to skip this chapter, and directly start from chapter 2.
+List and array are build blocks for other complex data structure. They both hold multiple elements as containers. Array has a range of consecutive cells indexed by a number (address). It is typically bounded with fixed size when declared; while list increases on-demand. One traverses a list of elements one by one from head to tail. list plays critical role to control the computation and logic flow particularly in functional settings\footnote{Modeled by lambda calculus at low level, which is equivalent to Turing machine\cite{mittype}, \cite{unplugged}.}. Readers who have already been familiar with map, filter, fold, and etc., are safe to skip this chapter, and directly start from chapter 2.
 
 \section{Definition}
 \index{List!definition}
 
-List, also known as singly linked-list is a data structure recursively defined as below:
+List, or singly linked-list, is a data structure recursively defined as: A {\em list} is either empty, denoted by $[\ ]$ or NIL; or contains an element (also called key) and is linked with a sub-{\em list} (called next). \Cref{fig:list-example} shows a list of nodes; every node links to the next or NIL (the last). We often define list with some compound structure\footnote{We assume the data stored in list have the same type. However, there is also heterogeneous list, e.g., the list in Lisp.}, for example:
 
-\begin{itemize}
-\item A {\em list} is either empty, denoted as $\nil$ or NIL;
-\item Or contains an element and liked with a {\em list}.
-\end{itemize}
-
-Figure \ref{fig:list-example} shows a list of nodes. Each node contains two part, an element called key, and a reference to the sub-list called next. The sub-list reference in the last node is empty, marked as `NIL'.
 
 \begin{figure}[htbp]
   \centering
@@ -62,269 +56,283 @@ Figure \ref{fig:list-example} shows a list of nodes. Each node contains two part
   \label{fig:list-example}
 \end{figure}
 
-Every node links to the next one or NIL. Linked-list is often defined through compound structure\footnote{In most cases, the data stored in list have the same type. However, there is also heterogeneous list, like the list in Lisp for example.}, for example:
-
 \lstset{frame=single}
 \begin{lstlisting}[language=Bourbaki]
-struct List<A> {
+data List<A> {
     A key
     List<A> next
 }
 \end{lstlisting}
 
 \index{List!empty} \index{List!empty testing}
-It needs more clarification for the empty list. Many traditional environments support {\em null} concept. There are two different ways to represent empty list. One is to use null (or NIL) directly; the other is to construct a list, but put nothing as \texttt{[]}. From implementation perspective, null need not allocate any memory, while \texttt{[]} does. In this book, we use $\varnothing$ to represent generic empty list, set, or container.
+Many programming environments support the NIL concept. There are two ways to represent the empty list: use NIL (or null, or $\nil$) directly, or create a list, but put nothing as $[\ ]$. From implementation perspective, NIL doesn't need any allocated memories, while $[\ ]$ does.
 
 \subsection{Access}
-\index{List!head} \index{List!tail}
-\index{List!Construction} \index{List!cons}
-Given a none empty list $L$, we need define two functions to access its first element, and the rest sub-list. They are often called $first(L), rest(L)$ or $head(L), tail(L)$\footnote{They are named as \texttt{car} and \texttt{cdr} in Lisp due to the design of machine registers\cite{SICP}.}. On the other hand, we can construct a list from an element $x$ and another list $xs$ (can be empty), denoted as $x : xs$. It is also called the \texttt{cons} operation. We have the following equations hold:
+\index{List!head} \index{List!tail} \index{List!Construction} \index{List!cons}
+Given a none empty list $X$, define two functions\footnote{We often write function $f(x)$ as $f\ x$, and $f(x, y, ..., z)$ as $f\ x\ y\ ...\ z$.} to access the first element and the rest sub-list. They are often named as \textit{first}\ $X$ and \textit{rest}\ $X$, or $head\ X$ and $tail\ X$\footnote{They are named as \texttt{car} and \texttt{cdr} in Lisp due to the design of machine registers\cite{SICP}.}. Conversely, we construct a list from an element $x$ and another list $xs$ (can be empty), as $x \cons xs$. It is called the \texttt{cons} operation.
 
 \be
 \begin{cases}
-head(x:xs) & = x \\
-tail(x:xs) & = xs
+head\ (x \cons xs) & = x \\
+tail\ (x \cons xs) & = xs
 \end{cases}
 \label{eq:list-head-tail}
 \ee
 
-For a none empty list $X$, we will also use $x_1$ for the first element, and use $X'$ for the rest sub-list. For example, when $X = [x_1, x_2, x_3, ...]$, then $X' = [x_2, x_3, ...]$.
+For a none empty list $X$, we often denote the first element as $x_1$, and the rest sub-list as $X'$. For example, when $X = [x_1, x_2, x_3, \dotsc]$, then $X' = [x_2, x_3, \dotsc]$.
 
-\begin{Exercise}
-\Question{For list of type $A$, suppose we can test if any two elements $x, y \in A$ are equal, define an algorithm to test if two lists are identical.}
+\begin{Exercise}[label={ex:list-eq}]
+\Question{For list of type $A$, suppose we can test if any two elements $x, y \in A$ are equal; define the algorithm to test if two lists are equal.}
 \end{Exercise}
+
+\begin{Answer}[ref={ex:list-eq}]
+\Question{For list of type $A$, suppose we can test if any two elements $x, y \in A$ are equal; define the algorithm to test if two lists are equal.
+
+\vspace{3mm}
+We use type constraint to assert comparing lists of the same type.
+\begin{Haskell}
+(==) :: [a] -> [a] -> Bool
+[] == [] = True
+(x:xs) == (y:ys) = x == y && (xs == ys)
+xs == ys = False
+\end{Haskell}
+}
+\end{Answer}
 
 \section{Basic operations}
 \index{List!length}
-From the definition, we can count the length recursively: for empty list, the length is zero, otherwise, it is the length of the sub-list plus one.
+We may count the length of a list recursively: the length of the empty list is 0 or it is 1 plus the length of the sub-list.
 
-\be
-\begin{array}{rcl}
-length(\nil) & = & 0 \\
-length(L) & = & 1 + length(L')
-\end{array}
-\ee
+\begin{lalign}
+  length\ [\ ] & = 0 \\
+  length\ (x \cons xs) & = 1 + length\ xs
+\end{lalign}
 
-In order to count the length, this algorithm traverses all the elements from head to end, hence it is bound to $O(n)$ time, where $n$ is the number of elements. To avoid repeatedly counting, we can also persist the length in a variable, and update it when mutate (add or delete) the list. Below is the iterative way to count length:
+As we traverse the list to count the length, the performance is bound to $O(n)$, where $n$ is the number of elements. Denote the length of the list $X$ by $|X|$ when the context is clear. To avoid repeatedly counting, we may persist the length in a variable and update it when mutate (add or delete). Below is the iterative length counting:
 
 \begin{algorithmic}[1]
-\Function{Length}{L}
+\Function{Length}{X}
   \State $n \gets 0$
-  \While{$L \neq $ NIL}
+  \While{$X \neq $ NIL}
     \State $n \gets n + 1$
-    \State $L \gets $ \Call{Next}{$L$}
+    \State $X \gets $ \Call{Next}{$X$}
   \EndWhile
   \State \Return $n$
 \EndFunction
 \end{algorithmic}
 
-We will also use notion $|L|$ for the length of list $L$ when the context is clear.
-
 \subsection{index}
 \index{List!index} \index{List!get at}
-Different from array, which supports random access an element at position $i$ in constant time, we need traverse the list $i$ steps to access the target element.
+Array supports random access at position $i$ in constant time, while we need traverse the list $i$ steps to access the target element.
 
 \be
-getAt(i,\ x:xs) = \begin{cases}
+getAt\ i\ (x \cons xs) = \begin{cases}
   i = 0: & x \\
-  i \neq 0: & getAt(i - 1, xs) \\
+  i \neq 0: & getAt\ (i - 1)\ xs
 \end{cases}
 \ee
 
-In order to get the $i$-th element from a none empty list:
-\begin{itemize}
-\item if $i$ is 0, the result is the first element;
-\item Otherwise, the result is the $(i-1)$-th element in the sub-list.
-\end{itemize}
-
-We intend to leave the empty list not handled. The behavior when pass $\nil$ is undefined. As such, the out of bound case also leads to undefined behavior. If $i > |L|$ exceeds the length, we end up the edge case to access the $(i-|L|)$-th element of the empty list. On the other hand, if $i < 0$, minus it by one makes it even farther away from 0. We finally end up with the same situation that the index is negative, while the list is empty.
-
-This algorithm is bound to $O(i)$ time as it advances the list $i$ steps. Below is the corresponding imperative implementation:
+We leave the empty list not handled. The behavior for $[\ ]$ is undefined. As such, the out of bound case also leads to the undefined behavior. If $i > |X|$, we end up the edge case to access the $(i-|X|)$ position of the empty list. On the other hand, if $i < 0$, after minus it by one, it's even farther away from 0, and finally ends up with some negative position of the empty list. $getAt$ is bound to $O(i)$ time as it advances the list $i$ steps. Below is the imperative implementation:
 
 \begin{algorithmic}[1]
-\Function{Get-At}{$i, L$}
+\Function{Get-At}{$i, X$}
   \While{$i \neq 0$}
-    \State $L \gets $ \Call{Next}{$L$}  \Comment{Raise error when $L$ = NIL}
+    \State $X \gets $ \Call{Next}{$X$}  \Comment{error when $X$ = NIL}
     \State $i \gets i - 1$
   \EndWhile
-  \State \Return \Call{First}{$L$}
+  \State \Return \Call{First}{$X$}
 \EndFunction
 \end{algorithmic}
 
-\begin{Exercise}
-\Question{In the iterative \textproc{Get-At}($i, L$) algorithm, what is the behavior when $L$ is empty? what is the behavior when $i$ is out of the bound or negative?}
+\begin{Exercise}[label={ex:list-get-at}]
+\Question{For the iterative \textproc{Get-At}($i, X$), what is the behavior when $X$ is empty? what if $i$ is out of bound?}
 \end{Exercise}
+
+\begin{Answer}[ref={ex:list-get-at}]
+\Question{For the iterative \textproc{Get-At}($i, X$), what is the behavior when $X$ is empty? what if $i$ is out of bound?
+
+The behavior is undefined. We can handle it with \texttt{Optional<T>}:
+\begin{Bourbaki}
+Optional<T> getAt(List<T> xs, Int i) {
+    while i != 0 and xs != null {
+        xs = xs.next
+        i--
+    }
+    return if xs != null then Optional.of(xs.key) else Optional.Nothing
+}
+\end{Bourbaki}
+}
+\end{Answer}
 
 \subsection{Last}
 \index{List!last} \index{List!init}
-There is a pair of symmetric operations to `first/rest'. They are called `last/init'. For a none empty list $X = [x_1, x_2, ..., x_n]$, function $last$ returns the last element $x_n$, while $init$ returns the sub-list of $[x_1, x_2, ..., x_{n-1}]$. Although they are symmetric pairs left to right, `last/init' need linear time, because we need traverse the whole list to tail.
 
-
-When access the last element of list $X$:
-\begin{itemize}
-\item If the $X$ contains only one element as $[x_1]$, then $x_1$ is the last one;
-\item Otherwise, the result is the last element of the sub-list $X'$.
-\end{itemize}
+There is a pair of symmetric operations to `first/rest', namely `last/init'. For a none empty list $X = [x_1, x_2, ..., x_n]$, function $last$ returns the tail element $x_n$, while $init$ returns the sub-list of $[x_1, x_2, ..., x_{n-1}]$. Although they are symmetric pairs left to right, `last/init' need traverse the list in linear time.
 
 \be
-\begin{array}{rcl}
-last([x]) & = & x \\
-last(x:xs) & = & last(xs) \\
+\begin{array}{cc}
+  \begin{array}{rcl}
+  last\ [x] & = & x \\
+  last\ (x \cons xs) & = & last\ xs \\
+  \end{array}
+&
+  \begin{array}{rcl}
+  init\ [x] & = & [\ ] \\
+  init\ (x \cons xs) & = & x : init\ xs \\
+  \end{array}
 \end{array}
 \label{eq:list-last}
 \ee
 
-Similarly, when extract the sub-list of $X$ contains all elements without the last one:
-
-\begin{itemize}
-\item If $X$ is a singleton $[x_1]$, the result is empty $[\ ]$;
-\item Otherwise, we recursively get the initial sub-list for $X'$, then prepend $x_1$ to it as the result.
-\end{itemize}
-
-\be
-\begin{array}{rcl}
-init([x]) & = & [\ ] \\
-init(x:xs) & = & x : init(xs) \\
-\end{array}
-\ee
-
-We leave the empty list not handled for both operations. The behavior is undefined if pass $\nil$ in. Below are the iterative implementation:
+Neither handles the empty list. The behavior is undefined with $[\ ]$. Below are the iterative implementation:
 
 \begin{algorithmic}[1]
-\Function{Last}{$L$}
+\Function{Last}{$X$}
   \State $x \gets $ NIL
-  \While{$L \neq$ NIL}
-    \State $x \gets $ \Call{First}{$L$}
-    \State $L \gets $ \Call{Rest}{$L$}
+  \While{$X \neq$ NIL}
+    \State $x \gets $ \Call{First}{$X$}
+    \State $X \gets $ \Call{Rest}{$X$}
   \EndWhile
   \State \Return $x$
 \EndFunction
 \Statex
-\Function{Init}{$L$}
-  \State $L' \gets $ NIL
-  \While{\Call{Rest}{$L$} $\neq$ NIL} \Comment{Raise error when $L$ is NIL}
-    \State $L' \gets$ \textproc{Cons}(\Call{First}{$L$}, $L'$)
-    \State $L \gets $ \Call{Rest}{$L$}
+\Function{Init}{$X$}
+  \State $X' \gets $ NIL
+  \While{\Call{Rest}{$X$} $\neq$ NIL} \Comment{Error when $X$ is NIL}
+    \State $X' \gets$ \textproc{Cons}(\Call{First}{$X$}, $X'$)
+    \State $X \gets $ \Call{Rest}{$X$}
   \EndWhile
-  \State \Return \Call{Reverse}{$L'$}
+  \State \Return \Call{Reverse}{$X'$}
 \EndFunction
 \end{algorithmic}
 
-As advancing towards the tail, this algorithm accumulates the `init' result through `cons'. However, such result is in the reversed order. We need apply reverse (defined in section \ref{sec:reverse}) again to return the correct result. There is a question to ask if we can use `append' instead of `cons' in the exercise.
+\textproc{Init} accumulates the result through \textproc{Cons}. However, the order is reversed. We need reverse (\cref{sec:reverse}) it back.
 
-\subsection{Reverse index}
-\index{List!Reverse index} \index{List!rindex}
-$last$ is a special case of reverse index. The generic case is to find the last $i$-th element of a given list. The naive implementation takes two rounds of traverse: Determine the length $n$ through the first round; then access the $(n - i - 1)$-th element through the second round:
+\subsection{Right index}
+\index{List!Right index} \index{List!rindex}
 
-\be
-  lastAt(i, L) = getAt(|L| - i - 1, L)
-\ee
+$last$ is a special case of right index. The generic case is to find the last $i$-th element (from right). The naive implementation traverses two rounds: count the length $n$ first, then access the $(n - i - 1)$-th element from left:
 
-There actually exists better solution. The idea is to keep two pointers $p_1, p_2$ with the distance $i$ between them. The equation $rest^i(p_2) = p_1$ holds, where $rest^i(p_2)$ means repleatedly apply $rest()$ function $i$ times. When succeed $p_2$ by $i$ steps gets $p_1$. We start by pointing $p_2$ to the list head, and advance both pointers in parallel till $p_1$ arrives at tail. At that time point, $p_2$ exactly points to the $i$-th element from right. Figure \ref{fig:list-rindex} shows this idea. As $p_1, p_2$ form a window, this method is also called `sliding window' solution.
+\[
+  lastAt\ i\ X = getAt\ (|X| - i - 1)\ L
+\]
+
+The better solution uses two pointers $p_1, p_2$ with the distance $i$, i.e., $rest^i(p_2) = p_1$, where $rest^i(p_2)$ means repeatedly apply $rest$ for $i$ times. When advance $p_2$ by $i$ steps, it meets $p_1$. $p_2$ starts from the head. Advance both pointers in parallel till $p_1$ arrives at tail. At this time point, $p_2$ exactly points to the $i$-th element from right. as shown in \cref{fig:list-rindex}. $p_1$ and $p_2$ form a sliding window of width $i$.
 
 \begin{figure}[htbp]
   \centering
-  \subcaptionbox{$p_2$ starts from the head, behind $p_1$ in $i$ steps.}{\includegraphics[scale=0.8]{img/list-rindex}} \\
-  \subcaptionbox{When $p_1$ reaches the tail, $p_2$ points to the $i$-th element from right.}{\includegraphics[scale=0.8]{img/list-rindex-2}}
-  \caption{Sliding window formed by two pointers}
+  \includegraphics[scale=0.6]{img/ptr-window}
+  \caption{Sliding window. (a) $p_2$ starts from the head, behind $p_1$ in $i$ steps; (b) When $p_1$ reaches the tail, $p_2$ points to the $i$-th element from right.}
   \label{fig:list-rindex}
 \end{figure}
 
 \begin{algorithmic}[1]
-\Function{Last-At}{$i, L$}
-  \State $p \gets L$
+\Function{Last-At}{$i, X$}
+  \State $p \gets X$
   \While{$i > 0$}
-    \State $L \gets $ \Call{Rest}{$L$} \Comment{Raise error if out of bound}
+    \State $X \gets $ \Call{Rest}{$X$} \Comment{Error if out of bound}
     \State $i \gets i - 1$
   \EndWhile
-  \While{\Call{Rest}{$L$} $\neq$ NIL}
-    \State $L \gets$ \Call{Rest}{$L$}
+  \While{\Call{Rest}{$X$} $\neq$ NIL}
+    \State $X \gets$ \Call{Rest}{$X$}
     \State $p \gets$ \Call{Rest}{$p$}
   \EndWhile
   \State \Return \Call{First}{$p$}
 \EndFunction
 \end{algorithmic}
 
-The functional implementation need special consideration as we cannot update pointers directly. Instead, we advance two lists $X = [x_1, x_2, ..., x_n]$ and $Y = [x_i, x_{i+1}, ..., x_n]$ simultaneously, where $Y$ is the sub-list without the first $i - 1$ elements.
-
-\begin{itemize}
-\item If $Y$ is a singleton list, i.e. $[x_n]$, then the last $i$-th element is the head of $X$;
-\item Otherwise, we drop the first element from both $X$ and $Y$, then recursively check $X'$ and $Y'$.
-\end{itemize}
+We can't alter the pointers in purely functional settings. Instead, we advance two lists $X = [x_1, x_2, ..., x_n]$ and $Y = [x_i, x_{i+1}, ..., x_n]$ simultaneously, where $Y$ is the sub-list without the first $i - 1$ elements.
 
 \be
-lastAt(i, X) = slide(X, drop(i, X))
+lastAt\ i\ X\ = slide\ X\ (drop\ i\ X)
 \ee
 
-where function $slide(X, Y)$ drops the heads for both lists:
+Where:
 
 \be
 \begin{array}{rcl}
-slide(x:xs,\ [y]) & = & x \\
-slide(x:xs,\ y:ys) & = & slide(xs, ys) \\
+slide\ (x \cons xs)\ [y] & = & x \\
+slide\ (x \cons xs)\ (y \cons ys) & = & slide\ xs\ ys \\
 \end{array}
 \ee
 
-Function $drop(m, X)$ discards the first $m$ elements from list $X$. It can be implemented by advancing $X$ by $m$ steps:
+Function $drop\ m\ X$ discards the first $m$ elements.
 
 \be
 \begin{array}{rcl}
-drop(0,\ X) & = & X \\
-drop(m,\ \nil) & = & \nil \\
-drop(m,\ x:xs) & = & drop(m - 1, xs) \\
+drop\ 0\ xs & = & xs \\
+drop\ m\ [\ ] & = & [\ ] \\
+drop\ m\ (x \cons xs) & = & drop\ (m - 1)\ xs \\
 \end{array}
 \ee
 
-\begin{Exercise}
-\Question{In the \textproc{Init} algorithm, can we use \textproc{Append}($L'$, \textproc{First}($L$)) instead of `cons'?}
-\Question{How to handle empty list or out of bound index error in \textproc{Last-At} algorithm?}
+\begin{Exercise}[label={ex:list-init-last}]
+\Question{In the \textproc{Init} algorithm, can we use \textproc{Append}($X'$, \textproc{First}($X$)) instead of \textproc{Cons}?}
+\Question{How to handle empty list or out of bound error in \textproc{Last-At}?}
 \end{Exercise}
+
+\begin{Answer}[ref={ex:list-init-last}]
+\Question{In the \textproc{Init} algorithm, can we use \textproc{Append}($X'$, \textproc{First}($X$)) instead of \textproc{Cons}?
+
+\textproc{Append} need traverse to the tail every time, hence degrades the performance from $O(n)$ to $O(n^2)$, where $n$ is the length.
+}
+
+\Question{How to handle empty list or out of bound error in \textproc{Last-At}?
+
+Use \texttt{Optional<T>}:
+\begin{Bourbaki}
+Optional<T> lastAt(List<T> xs, Int i) {
+    List<T> p = xs
+    while i != 0 and xs != null {
+        xs = xs.next
+        i--
+    }
+    if xs == null then return Optional.Nothing
+    while xs.next != null {
+        xs = xs.next
+        p = p.next
+    }
+    return Optional.of(p.key)
+}
+\end{Bourbaki}
+}
+\end{Answer}
 
 \subsection{Mutate}
 \index{List!mutate}
-Mutate operations include append, insert, update, and delete. Some functional environments actually implement mutate by creating a new list, while the original one is persisted for later reuse, or released at sometime (chapter 2 in \cite{okasaki-book}).
-
-\subsubsection{Append}
+Mutate includes append, insert, update, and delete. The functional environment actually implements mutate by creating a new list for the changed part, while keeps (persists) the original one for reuse, or release at sometime (chapter 2 in \cite{okasaki-book}). Append is the symmetric operation of $cons$, it appends element to the tail, while $cons$ adds from head. It is also known as `snoc' (reverse of `cons'). As it need traverse the list to the tail, the performance is $O(n)$, where $n$ is the length. To avoid repeatedly traverse, we can persist the tail reference, and update it for changes.
 \index{List!append}
-Append is the symmetric operation of $cons$, it adds element on the tail instead of head. Because of this, it is also called `snoc'. For linked-list, it means we need traverse to the tail, hence it takes $O(n)$ time, where $n$ is the length. To avoid repeatedly traverse, we can record the tail reference as a variable, and keep updating it upon changes.
 
 \be
 \begin{array}{rcl}
-append(\nil, x) & = & [x] \\
-append(y:ys, x) & = & y : append(ys, x) \\
+append\ [\ ]\  x & = & [x] \\
+append\ (y \cons ys)\ x & = & y : append\ ys\ x \\
 \end{array}
 \ee
 
-\begin{itemize}
-\item If append $x$ to the empty list, the result is $[x]$;
-\item Otherwise, we firstly recursive append $x$ to the rest sub-list, then prepend the original head to form the result.
-\end{itemize}
-
-The corresponding iterative implementation is as the following:
+Below is the corresponding iterative implementation\footnote{The parameter orders are also symmetric: $cons\ x\ xs$ and $append\ xs\ x$}:
 
 \begin{algorithmic}[1]
-\Function{Append}{$L, x$}
-  \If{$L = $ NIL}
+\Function{Append}{$X, x$}
+  \If{$X = $ NIL}
     \State \Return \Call{Cons}{$x$, NIL}
   \EndIf
-  \State $H \gets L$ \Comment{save the head}
-  \While{\Call{Rest}{$L$} $\neq$ NIL}
-    \State $L \gets$ \Call{Rest}{$L$}
+  \State $H \gets X$ \Comment{Copy of the head}
+  \While{\Call{Rest}{$X$} $\neq$ NIL}
+    \State $X \gets$ \Call{Rest}{$X$}
   \EndWhile
-  \State \Call{Rest}{$L$} $\gets$ \Call{Cons}{$x$, NIL}
+  \State \Call{Rest}{$X$} $\gets$ \Call{Cons}{$x$, NIL}
   \State \Return $H$
 \EndFunction
 \end{algorithmic}
 
-Update the \textproc{Rest} is typically implemented by setting the \texttt{next} reference field as shown in below example program.
+To update the \textproc{Rest}, it is typically implemented by updating the \texttt{next} reference, for example:
 
 \begin{lstlisting}[language=Bourbaki]
-List<A> append(List<A> xs, T x) {
-    if (xs == null) {
-        return cons(x, null)
-    }
-    List<A> head = xs
-    while (xs.next != null) {
+List<A> append(List<A> xs, A x) {
+    if xs == null then return cons(x, null)
+    var head = xs
+    while xs.next != null {
         xs = xs.next
     }
     xs.next = cons(x, null)
@@ -332,244 +340,292 @@ List<A> append(List<A> xs, T x) {
 }
 \end{lstlisting}
 
-\begin{Exercise}
-\Question{Add a `tail' field in list definition, optimize the append algorithm to constant time.}
-\Question{With the additional `tail' field, when need we update the tail variable? How does it affect the performance?}
-\end{Exercise}
-
-\subsubsection{Set value}
 \index{List!set at}
-Similar to $getAt$, we need advance to the target position, then change the element there. To define function $setAt(i, x, L)$:
-
-\begin{itemize}
-\item If $i = 0$, it means we are changing the first element, the result is $x : L'$;
-\item Otherwise, we need recursively set the value at position $i-1$ for the sub-list $L'$.
-\end{itemize}
+Similar to $getAt$, we need advance to the target position $i$ in $O(i)$ time to change the element.
 
 \be
 \begin{array}{rcl}
-setAt(0, x,\ y:ys) & = & x : ys \\
-setAt(i, x,\ y:ys) & = & y : setAt(i - 1, x, ys) \\
+setAt\ 0\ x\ (y \cons ys) & = & x : ys \\
+setAt\ i\ x\ (y \cons ys) & = & y : setAt\ (i - 1)\ x\ ys \\
 \end{array}
 \ee
 
-This algorithm is bound to $O(i)$ time, where $i$ is the position to update.
-
-\begin{Exercise}
+\begin{Exercise}[label={ex:list-append}]
+\Question{Add the `tail' reference, optimize the $append$ to constant time.}
+\Question{When need update the tail reference? How does it affect the performance?}
 \Question{Handle the empty list and out of bound error for $setAt$.}
 \end{Exercise}
 
+\begin{Answer}[ref={ex:list-append}]
+\Question{Add the `tail' reference, optimize the $append$ to constant time.
+
+We need wrap the linked-list with the head and tail variables:
+
+\begin{Bourbaki}
+data List<A> {
+    data Node<A> {
+        A key
+        Node<A> next
+    }
+
+    Node<A> head = null
+    Node<A> tail = null
+    Int length = 0
+}
+
+List<A> append(List<A> xs, A x) {
+    List.Node<A> tl = xs.tail
+    xs.tail = List.Node<A>(x, null)
+    if tl == null {
+        xs.head = xs.tail
+    } else {
+        tl.next = xs.tail
+    }
+    xs.length++
+    return xs
+}
+\end{Bourbaki}
+}
+\Question{When need update the tail reference? How does it affect the performance?
+
+We need update the tail reference when append to, delete from the tail, add to empty list, delete the element from a singleton list, and split the list. All operations are in constant time except for the splitting $as = bs \doubleplus cs$. We need linear time to reach the tail of $bs$.
+}
+\Question{Handle the empty list and out of bound error for $setAt$.
+
+$setAt\ 0\ x\ [\ ]$ means $x : [\ ]$. Let $|xs| = n$, we treat $setAt\ n\ x\ xs$ same as $xs \doubleplus [x]$. Other out of bound cases will raise exception.
+}
+\end{Answer}
+
 \subsubsection{insert}
 \index{List!insert} \index{List!insert at}
-There are two different cases about insertion. One is to insert an element at a given position: $insert(i, x, L)$. The algorithm is similar to $setAt$; The other is to insert an element to a sorted list, and keep the order still sorted.
-
-To insert $x$ at position $i$, we need firstly advance $i$ steps, then construct a new sub-list with $x$ as the head, then concatenate it to the first $i$ elements\footnote{$i$ starts from 0.}.
-
-\begin{itemize}
-\item If $i = 0$, it then turns to be a `cons' operation: $x : L$;
-\item Otherwise, we recursively insert $x$ to $L'$ at position $i-1$; then prepend the original head.
-\end{itemize}
+There are two different cases about insertion: (1) insert an element at a given position: $insert\ i\ x\ X$, similar to $setAt$; (2) insert an element to a sorted list, and maintain the ordering.
 
 \be
 \begin{array}{rcl}
-insert(0, x,\ L) & = & x : L \\
-insert(i, x,\ y:ys) & = & x : insert(i - 1, x, ys) \\
+insert\ 0\ x\ ys & = & x : ys \\
+insert\ i\ x\ (y \cons ys) & = & y : insert\ (i - 1)\ x\ ys \\
 \end{array}
 \ee
 
-When $i$ exceeds the list length, we can treat it as to append $x$. We leave this as an exercise. The following is the corresponding iterative implementation:
+When $i$ exceeds the length, treat it as append (the exercise of this section). Below is the iterative implementation:
 
 \begin{algorithmic}[1]
-\Function{Insert}{$i, x, L$}
+\Function{Insert}{$i, x, X$}
   \If{$i = 0$}
-    \State \Return \Call{Cons}{$x, L$}
+    \State \Return \Call{Cons}{$x, X$}
   \EndIf
-  \State $H \gets L$
-  \State $p \gets L$
-  \While{$i > 0$ and $L \neq$ NIL}
-    \State $p \gets L$
-    \State $L \gets $ \Call{Rest}{$L$}
+  \State $H \gets X$
+  \State $p \gets X$
+  \While{$i > 0$ and $X \neq$ NIL}
+    \State $p \gets X$
+    \State $X \gets $ \Call{Rest}{$X$}
     \State $i \gets i - 1$
   \EndWhile
-  \State \Call{Rest}{$p$} $\gets$ \Call{Cons}{$x, L$}
+  \State \Call{Rest}{$p$} $\gets$ \Call{Cons}{$x, X$}
   \State \Return $H$
 \EndFunction
 \end{algorithmic}
 
-If the list $L = [x_1, x_2, ..., x_n]$ is sorted, i.e. for any position $1 \leq i \leq j \leq n$, then $x_i \leq x_j$ holds. Here $\leq$ is abstract ordering. It can actually mean $\geq$ for descending order, or subset relationship etc. We can design the insert algorithm to maintain the sorted order. To insert element $x$ to a sorted list $L$:
-
-\begin{itemize}
-\item If either $L$ is empty or $x$ is not greater than the first element in $L$, we prepend $x$ to $L$ and returns $x : L$;
-\item Otherwise, we recursively insert $x$ to the sub-list $L'$.
-\end{itemize}
+Let the list $L = [x_1, x_2, ..., x_n]$ be sorted, i.e., for any position $1 \leq i \leq j \leq n$, then $x_i \leq x_j$. Where $\leq$ is abstract ordering. It can be $\geq$, subset between sets, and etc. We define $insert$ to maintain the ordering.
 
 \be
 \begin{array}{rcl}
-insert(x,\ \nil) & = & [x] \\
-insert(x,\ y : ys) & = & \begin{cases}
-  x \leq y : & x : y : ys \\
-  otherwise : & y : insert(x, ys) \\
+insert\ x\ [\ ] & = & [x] \\
+insert\ x\ (y \cons ys) & = & \begin{cases}
+  x \leq y : & x \cons y \cons ys \\
+  \text{otherwise} : & y : insert\ x\ ys \\
   \end{cases}
 \end{array}
 \label{eq:list-ordered-insert}
 \ee
 
-Since the algorithm need compare elements one by one, it is bound to $O(n)$ time, where $n$ is the length. Below is the corresponding iterative implementation:
+Since it need compare elements one by one, the performance is bound to $O(n)$ time, where $n$ is the length. Below is the iterative implementation:
 
 \begin{algorithmic}[1]
-\Function{Insert}{$x, L$}
-  \If{$L = $ NIL or $x <$ \Call{First}{$L$}}
-    \State \Return \Call{Cons}{$x, L$}
+\Function{Insert}{$x, X$}
+  \If{$X = $ NIL or $x <$ \Call{First}{$X$}}
+    \State \Return \Call{Cons}{$x, X$}
   \EndIf
-  \State $H \gets L$
-  \While{\Call{Rest}{$L$} $\neq $ NIL and \textproc{First}(\Call{Rest}{$L$}) $< x$}
-    \State $L \gets $ \Call{Rest}{$L$}
+  \State $H \gets X$
+  \While{\Call{Rest}{$X$} $\neq $ NIL and \textproc{First}(\Call{Rest}{$X$}) $< x$}
+    \State $X \gets $ \Call{Rest}{$X$}
   \EndWhile
-  \State \Call{Rest}{$L$} $\gets$ \textproc{Cons}($x$, \Call{Rest}{$L$})
+  \State \Call{Rest}{$X$} $\gets$ \textproc{Cons}($x$, \Call{Rest}{$X$})
   \State \Return $H$
 \EndFunction
 \end{algorithmic}
 
-\label{sec:isort}
-With this linear time ordered insertion defined, we can further develop the insertion-sort algorithm. The idea is to repeatedly insert elements to the empty list. Since each insert takes liner time, the overall sort is bound to $O(n^2)$.
+With $insert$, we can further define the insertion sort: repeatedly insert elements to the empty list. Since each insert takes liner time, the overall time is bound to $O(n^2)$.
 
 \be
 \begin{array}{rcl}
-sort(\nil) & = & \nil \\
-sort(x:xs) & = & insert(x, sort(xs)) \\
+sort\ [\ ] & = & [\ ] \\
+sort\ (x \cons xs) & = & insert\ x\ (sort\ xs) \\
 \end{array}
+\label{eq:isort}
 \ee
 
-This is a recursive algorithm. It firstly sorts the sub-list, then inserts the first element in it. We can eliminate the recursion to develop a iterative implementation. The idea is to scan the list, and one by one insert them:
+We can eliminate the recursion to implement the iterative sort. Scan the list, and insert elements one by one:
 
 \begin{algorithmic}[1]
-\Function{Sort}{$L$}
+\Function{Sort}{$X$}
   \State $S \gets$ NIL
-  \While{$L \neq$ NIL}
-    \State $S \gets$ \textproc{Insert}(\Call{First}{$L$}, $S$)
-    \State $L \gets$ \Call{Rest}{$L$}
+  \While{$X \neq$ NIL}
+    \State $S \gets$ \textproc{Insert}(\Call{First}{$X$}, $S$)
+    \State $X \gets$ \Call{Rest}{$X$}
   \EndWhile
   \State \Return $S$
 \EndFunction
 \end{algorithmic}
 
-At any time during the loop, the result is sorted. There is a major difference between the recursive and the iterative implementations. The recursive one processes the list from right, while the iterative one is from left. We'll introduce `tail-recursion' in section \ref{sec:tail-call} to eliminate this difference. Chapter 3 introduces insertion sort in detail, including performance analysis and optimization.
+At any time during loop, $S$ is sorted. The recursive implementation processes the list from right, while the iterative one is from left. We'll use `tail-recursion' in \cref{sec:tail-call} to eliminate this difference. Chapter 3 is about insertion sort in detail, including performance analysis and optimization.
 
-\begin{Exercise}
-\Question{Handle the out-of-bound case in insertion, and treat it as append.}
-\Question{Design the insertion algorithm for array. When insert at position $i$, all elements after $i$ need shift to the end by one.}
-\Question{Implement the insertion sort only with less than ($<$) defined.}
+\begin{Exercise}[label={ex:list-insert}]
+\Question{Handle the out-of-bound case when insert, treat it as append.}
+\Question{Implement insert for array. When insert at position $i$, all elements after $i$ need shift to the end.}
 \end{Exercise}
+
+\begin{Answer}[ref = {ex:list-insert}]
+\Question{Handle the out-of-bound case when insert, treat it as append.
+\begin{Haskell}
+insert n x [] = [x]
+insert n x (y:ys) | n <= 0 = x : y : ys
+                  | otherwise y : insert (n - 1) x ys
+\end{Haskell}
+}
+\Question{Implement insert for array. When insert at position $i$, all elements after $i$ need shift to the end.
+\begin{Bourbaki}
+[K] insert([K] xs, Int i, K x) {
+    append(xs, x)
+    for Int j = length(xs) - 1, j > i, j-- {
+        swap(xs[j], xs[j-1])
+    }
+    return xs
+}
+\end{Bourbaki}
+}
+\end{Answer}
 
 \subsubsection{delete}
 \index{List!delete} \index{List!delete at}
-Symmetric to insert, delete also has two cases. One is to delete the element at a position; the other is to look up, then delete the element of a given value. The first case is defined as $delAt(i, L)$, the second case is defined as $delete(x, L)$.
-
-To delete the element at position $i$, we need advance $i$ steps to the target position, then by pass the element, and link the rest sub-list.
-\begin{itemize}
-\item If $L$ is empty, then the result is empty too;
-\item If $i = 0$, we are deleting the head, the result is $L'$;
-\item Otherwise, recursively delete the $(i-1)$-th element from $L'$, then prepend the original head as the result.
-\end{itemize}
+Symmetric to insert, there are two cases for deletion: (1) delete the element at a position $delAt\ i\ X$; (2) look up then delete the element of a given value $delete\ x\ X$. To delete the element at position $i$, we advance $i$ steps, then by pass the element, and link the rest sub-list.
 
 \be
 \begin{array}{rcl}
-delAt(i,\ \nil) & = & \nil \\
-delAt(0,\ x:xs) & = & xs \\
-delAt(i,\ x:xs) & = & x : delAt(i - 1, xs) \\
+delAt\ i\ [\ ] & = & [\ ] \\
+delAt\ 0\ (x \cons xs) & = & xs \\
+delAt\ i\ (x \cons xs) & = & x : delAt\ (i - 1)\ xs \\
 \end{array}
 \ee
 
-This algorithm is bound to $O(i)$ as we need advance $i$ steps to perform deleting. Below is the iterative implementation:
+It is bound to $O(i)$ time. Below is the iterative implementation.
 
 \begin{algorithmic}[1]
-\Function{Del-At}{$i, L$}
-  \State $S \gets$ \Call{Cons}{$\perp, L$} \Comment{A sentinel node}
+\Function{Del-At}{$i, X$}
+  \State $S \gets$ \Call{Cons}{$\perp, X$} \Comment{Sentinel node}
   \State $p \gets S$
-  \While{$i > 0$ and $L \neq$ NIL}
+  \While{$i > 0$ and $X \neq$ NIL}
     \State $i \gets i - 1$
-    \State $p \gets L$
-    \State $L \gets $ \Call{Rest}{$L$}
+    \State $p \gets X$
+    \State $X \gets $ \Call{Rest}{$X$}
   \EndWhile
-  \If{$L \neq$ NIL}
-    \State \Call{Rest}{$p$} $\gets$ \Call{Rest}{$L$}
+  \If{$X \neq$ NIL}
+    \State \Call{Rest}{$p$} $\gets$ \Call{Rest}{$X$}
   \EndIf
   \State \Return \Call{Rest}{$S$}
 \EndFunction
 \end{algorithmic}
 
-To simplify the implementation, we introduce a sentinel node $S$, it contains a special value $\perp$, and its next reference points to $L$. With $S$, we are save to cut-off any node in $L$ even for the first one. Finally, we return the list after $S$ as the result, and $S$ itself can be discarded.
-
-For the `find and delete' case, there are two options. We can either find and delete the first occurrence of a value; or remove all the occurrences. The later is more generic, we leave it as an exercise. When delete $x$ from list $L$:
-
-\begin{itemize}
-\item If the list is empty, the result is $\nil$;
-\item Otherwise, we compare the head and $x$, if they are equal, then the result is $L'$;
-\item If the head does not equal to $x$, we keep the head, and recursively delete $x$ in $L'$.
-\end{itemize}
+To simplify the implementation, we introduce a sentinel node $S$, it contains a special value $\perp$, and points to $X$. With $S$, we are save to cut-off any node in $X$ even for the head. Finally, we return the list after $S$ as the result, and discard $S$. For `find and delete', there are two sub-cases: (1) find and delete the first occurrence of a value; (2) remove all the occurrences. The later is more generic (see the exercise).
 
 \be
 \begin{array}{rcl}
-delete(x,\ \nil) & = & \nil \\
-delete(x,\ y:ys) & = & \begin{cases}
+delete\ x\ [\ ] & = & [\ ] \\
+delete\ x\ (y \cons ys) & = & \begin{cases}
   x = y : & ys \\
-  x \neq y : & y : delete(x, ys) \\
+  x \neq y : & y : delete\ x\  ys \\
   \end{cases} \\
 \end{array}
 \label{eq:list-delete}
 \ee
 
-This algorithm is bound to $O(n)$ time, where $n$ is the length, as it need scan the list to find the target element. For the iterative implementation, we also introduce a sentinel node to simplify the logic:
+Because we scan the list to find the target element, the time is bound to $O(n)$, where $n$ is the length. We use a sentinel node to simplify the iterative implementation too:
 
 \begin{algorithmic}[1]
-\Function{Delete}{$x, L$}
-  \State $S \gets$ \Call{Cons}{$\perp, L$}
-  \State $p \gets$ L
-  \While{$L \neq$ NIL and \Call{First}{$L$} $\neq x$}
-    \State $p \gets L$
-    \State $L \gets$ \Call{Rest}{$L$}
+\Function{Delete}{$x, X$}
+  \State $S \gets$ \Call{Cons}{$\perp, X$}
+  \State $p \gets X$
+  \While{$X \neq$ NIL and \Call{First}{$X$} $\neq x$}
+    \State $p \gets X$
+    \State $X \gets$ \Call{Rest}{$X$}
   \EndWhile
-  \If{$L \neq$ NIL}
-    \State \Call{Rest}{$p$} $\gets$ \Call{Rest}{$L$}
+  \If{$X \neq$ NIL}
+    \State \Call{Rest}{$p$} $\gets$ \Call{Rest}{$X$}
   \EndIf
   \State \Return \Call{Rest}{$S$}
 \EndFunction
 \end{algorithmic}
 
-\begin{Exercise}
-\Question{Design the algorithm to find and delete all occurrences of a given value.}
-\Question{Design the delete algorithm for array, all elements after the delete position need shift to front by one.}
+\begin{Exercise}[label={ex:list-delete}]
+\Question{Implement the algorithm to find and delete all occurrences of a given value.}
+\Question{Design the delete algorithm for array, all elements after the delete position need shift to front.}
 \end{Exercise}
 
+\begin{Answer}[ref = {ex:list-delete}]
+\Question{Implement the algorithm to find and delete all occurrences of a given value.
+\begin{Haskell}
+delAll x [] = []
+delAll x (y:ys) | x == y = delAll x ys
+                | otherwise = y : delAll x ys
+\end{Haskell}
+Or use $foldr$:
+\begin{Haskell}
+delAll x = foldr f [] where
+  f y ys = if x == y then ys else y : ys
+\end{Haskell}
+}
+\Question{Design the delete algorithm for array, all elements after the delete position need shift to front.
+
+\begin{Bourbaki}
+[K] delAt(Int i, [K] xs) {
+    Int n = length(xs)
+    if 0 <= i < n {
+        while i < n - 1 {
+            xs[i] = xs[i + 1]
+            i++
+        }
+        popLast(xs)
+    }
+    return xs
+}
+\end{Bourbaki}
+}
+\end{Answer}
+
 \subsubsection{concatenate}
-\label{concat} \index{List!concat}
-Append is a special case for concatenation. Append only adds one element, while concatenation adds multiple ones. However, the performance would be quadratic if repeatedly appending as below:
+\index{List!concat}
+
+Append is a special case for concatenation. It adds only one element, while concatenation adds multiple. However, the performance would be quadratic if repeatedly append. Let $|xs| = n$, $|ys| = m$ be the lengths, we need advance to the tail of $xs$ for $m$ times, the performance is $O(n + (n + 1) + ... + (n + m)) = O(nm + m^2)$.
+
+\[
+\begin{array}{rcl}
+xs \doubleplus [\ ] & = & xs \\
+xs \doubleplus (y \cons ys) & = & append\ xs\ y \doubleplus ys \\
+\end{array}
+\]
+
+While the `cons' is fast (constant time), we can traverse to the tail of $xs$ only once, then link to $ys$.
 
 \be
 \begin{array}{rcl}
-X \doubleplus \nil & = & X \\
-X \doubleplus (y:ys) & = & append(X, y) \doubleplus ys \\
+[\ ] \doubleplus ys & = & ys \\
+xs \doubleplus [\ ] & = & xs \\
+(x \cons xs) \doubleplus ys & = & x : (xs \doubleplus ys) \\
 \end{array}
+\label{eq:concat}
 \ee
 
-In this implementation when concatenate $X$ and $Y$, each append operation traverses to the tail, and we do this for $|Y|$ times. the total time is bound to $O(|X| + (|X| + 1) + ... + (|X| + |Y|)) = O(|X||Y| + |Y|^2)$. Consider the link (cons) operation is fast (constant time), we can traverse to the tail of $X$ only once, then link $Y$ to the tail.
-
-\begin{itemize}
-\item If $X$ is empty, the result is $Y$;
-\item Otherwise, we concatenate the sub-list $X'$ with $Y$, then prepend the head as the result.
-\end{itemize}
-
-We can further improve it a bit: when $Y$ is empty, we needn't traverse, but directly return $X$:
-
-\be
-\begin{array}{rcl}
-\nil \doubleplus Y & = & Y \\
-X \doubleplus \nil & = & X \\
-(x:xs) \doubleplus Y & = & x : (xs \doubleplus Y) \\
-\end{array}
-\ee
-
-The modified algorithm only traverse list $X$, then link its tail to $Y$, hence it is bound $O(|X|)$ time. In imperative settings, concatenation can be realized in constant time with the additional tail variable. We leave its implementation as exercise. Below is the iterative implementation without using the tail variable:
+This improvement has the performance of $O(n)$. In imperative settings, we can implement concatenation in constant time with the tail reference variable (see exercise).
 
 \begin{algorithmic}[1]
 \Function{Concat}{$X, Y$}
@@ -590,96 +646,68 @@ The modified algorithm only traverse list $X$, then link its tail to $Y$, hence 
 
 \subsection{sum and product}
 \index{List!sum} \index{List!product}
-It is common to calculate the sum or product of a list of numbers. They have almost same structure. We will introduce how to abstract them to higher order computation in section \ref{sec:fold}.
-
-\subsubsection{Recursive sum and product}
-
-To calculate the sum of a list:
-
-\begin{itemize}
-\item If the list is empty, the result is zero;
-\item Otherwise, the result is the first element plus the sum of the rest.
-\end{itemize}
-
-\be
-\begin{array}{rcl}
-sum(\nil) & = & 0 \\
-sum(x:xs) & = & x + sum(xs) \\
-\end{array}
-\ee
-
-We can't merely replace $+$ to $\times$ to obtain product algorithm, because it always returns zero. We need define the product of the empty list as 1.
-
-\be
-\begin{array}{rcl}
-product(\nil) & = & 1 \\
-product(x:xs) & = & x \cdot product(xs) \\
-\end{array}
-\ee
-
-Both algorithms traverse the list, hence are bound to $O(n)$ time, where $n$ is the length.
-
-\subsubsection{Tail call recursion}
-\index{Tail call} \index{Tail recursion} \index{Tail recursive call}
-\label{sec:tail-call}
-Both sum and product algorithms calculate from right to left. We can change them to calculate the {\em accumulated} result from left to right. For sum, it accumulates from 0, then adds element one by one; while for product, it starts from 1, then repeatedly multiplying elements. The accumulate process can be defined as:
-
-\begin{itemize}
-\item If the list is empty, return the accumulated result;
-\item Otherwise, accumulate the first element to the result, then go on accumulating.
-\end{itemize}
-
-Below are the accumulated sum and product:
+Sum and product have the same structure. We will introduce how to abstract them to higher order computation in \cref{sec:fold}. For empty list, define the sum as 0, the product as 1.
 
 \be
 \begin{array}{cc}
-  \begin{array}{rl}
-  sum'(A,\ \nil) = & A \\
-  sum'(A,\ x:xs) = & sum(x + A, xs) \\
+  \begin{array}{rcl}
+  sum\ [\ ] & = & 0 \\
+  sum\ (x \cons xs) & = & x + sum\ xs \\
   \end{array}
   &
-  \begin{array}{rl}
-  prod'(A,\ \nil) = & A \\
-  prod'(A,\ x:xs) = & prod'(x \cdot A, xs) \\
+  \begin{array}{rcl}
+  product\ [\ ] & = & 1 \\
+  product (x \cons xs) & = & x \cdot product\ xs \\
+  \end{array}
+\end{array}
+\ee
+
+\index{Tail call} \index{Tail recursion} \index{Tail recursive call}
+\label{sec:tail-call}
+
+Both need traverse the list, hence the performance is $O(n)$. They compute from right to left. We can change to {\em accumulate} the result from left to right.
+
+\be
+\begin{array}{cc}
+  \begin{array}{rcl}
+  sum'\ a\ [\ ] & = & a \\
+  sum'\ a\ (x \cons xs) & = & sum\ (x + a)\ xs \\
+  \end{array}
+  &
+  \begin{array}{rcl}
+  prod'\ a\ [\ ] & = & a \\
+  prod'\ a\ (x \cons xs) & = & prod'\ (x \cdot a)\ xs \\
   \end{array} \\
 \end{array}
 \ee
 
-Given a list, we can call $sum'$ with 0, and $prod'$ with 1:
+Given a list, we call $sum'$ with 0, and $prod'$ with 1 to start accumulating:
 
 \be
-sum(X) = sum'(0, X)
+sum\ xs = sum'\ 0\ xs
 \quad \quad \quad
-product(X) = prod'(1, X)
+product\ xs = prod'\ 1\ xs
 \ee
 
-Or merely simplify it to Curried form:
+Or in Curried form:
 
 \[
-sum = sum'(0) \quad \quad \quad product = prod'(1)
+sum = sum'\ 0 \quad \quad \quad product = prod'\ 1
 \]
 
 \index{Curried Form} \index{Currying}
-Curried form was introduced by Schönfinkel (1889 - 1942) in 1924, then widely used by Haskell Curry from 1958. It is known as {\em Currying}\cite{slpj-book-1987}. For a function taking 2 parameters $f(x, y)$, when pass one argument $x$, it ends up to another function of $y$: $g(y) = f(x, y)$ or $g = f\ x$. We can further extend it to multiple variables, that $f(x, y, ..., z)$ can be Curried to a series of functions: $f, f\ x, f\ x\ y, ...$. No matter how many variables, we can treat them as a series of Curried function, each has only one parameter: $f(x, y, ..., z) = f(x)(y)...(z) = f\ x\ y\ ...\ z$.
+Curried form was introduced by Schönfinkel (1889 - 1942) in 1924, then widely used by Haskell Curry from 1958. It is known as {\em Currying}\cite{slpj-book-1987}. For a function taking 2 parameters $f(x, y)$, when fix $x$ with a value, it becomes a function of $y$: $g(\pmb{y}) = f(x, \pmb{y})$ or $g = f\ x$. For multiple variables of $f(x, y, ..., z)$, we convert it to a series of Curried functions: $f, f\ x, f\ x\ y, ...$, each takes one parameter: $f(x, y, ..., z) = f(x)(y)...(z) = f\ x\ y\ ...\ z$.
 
-The accumulated sum does not only calculate the result from left to right, it needn't book keeping any context, state, or intermediate result for recursion. All such states are either passed as argument (i.e. $A$), or can be dropped (the previous element in the list). Such recursive calls are often optimized as pure loops in practice. We call this kind of function as {\em tail recursion} (or `tail call'), and the optimization to eliminate recursion is called 'tail recursion optimization'\cite{wiki-tail-call}, because the recursion happens at the tail place in the function. The performance of tail call can be greatly improved after optimization, and we can avoid the issue of stack overflow in deep recursions.
-
-In section \ref{sec:isort} about insertion sort, we mentioned the recursive algorithm sorts elements form right. We can also optimize it to tail call:
+The accumulated implementation computes from left to right, needn't book keeping any context, state, or intermediate result for recursion. All states are either passed as argument (for example $a$), or dropped (for example the previous element). We can further optimize such recursive calls to loops. Because the recursion happens at the tail of the function, we call them {\em tail recursion} (or `tail call'), and the process to eliminate recursion as `tail recursion optimization'\cite{wiki-tail-call}. It greatly improves the performance and avoid stack overflow due to deep recursions. In \cref{eq:isort} about insertion sort, the recursive implementation sorts elements form right. We can also optimize it to tail call:
 
 \be
 \begin{array}{rcl}
-sort'(A,\ \nil) & = & A \\
-sort'(A,\ x:xs) & = & sort'(insert(x, A), xs) \\
+sort'\ a\ [\ ] & = & a \\
+sort'\ a\ (x \cons xs) & = & sort'\ (insert\ x\ a)\ xs \\
 \end{array}
 \ee
 
-And the sort is defined in Curried form with $\nil$ as the start value:
-
-\be
-sort = sort'(\nil)
-\ee
-
-As a typical tail call problem, let's consider how to compute $b^n$ effectively? (refer to problem 1.16 in \cite{SICP}.) A brute-force solution is to repeatedly multiplying $b$ for $n$ times from 1. This algorithm is bound to $O(n)$:
+We pass $[\ ]$ to start sorting (Curried form): $sort = sort'\ [\ ]$. As a typical tail call example, consider how to compute $b^n$ effectively? (problem 1.16 in \cite{SICP}.) A direct implementation repeatedly multiplies $b$ for $n$ times from 1, which is bound to $O(n)$ time:
 
 \begin{algorithmic}[1]
 \Function{Pow}{$b, n$}
@@ -691,252 +719,259 @@ As a typical tail call problem, let's consider how to compute $b^n$ effectively?
 \EndFunction
 \end{algorithmic}
 
-Actually, the solution can be greatly improved. When compute $b^8$, after the first 2 loops, we get $x = b^2$. At this stage, we
-needn't multiply $x$ with $b$ to get $b^3$, but directly compute $x^2$, which gives $b^4$. If do this again, we get $(b^4)^2 = b^8$. Thus we only need loop 3 times, but not 8 times.
-
-Based on this idea, if $n = 2^m$ for some none negative integer $m$, we can design below algorithm to compute $b^n$:
+When compute $b^8$, after the first 2 loops, we get $x = b^2$. At this stage, we needn't multiply $x$ with $b$ to get $b^3$, but directly compute $x^2$, which gives $b^4$. If do this again, we get $(b^4)^2 = b^8$. We only need loop 4 times, but not 8 times. If $n = 2^m$ for some integer $m \geq 0$, we can compute $b^n$ fast as below:
 
 \[
 \begin{array}{rcl}
 b^1 & = & b \\
-b^n & = & (b^{\frac{n}{2}})^2 \\
+b^n & = & (b^{\tfrac{n}{2}})^2 \\
 \end{array}
 \]
 
-We next extend this divide and conquer method for any none negative integer $n$:
-
-\begin{itemize}
-\item If $n = 0$, define $b^0 = 1$;
-\item If $n$ is even, we halve $n$, to compute $b^{\frac{n}{2}}$. Then square it;
-\item Otherwise $n$ is odd. Since $n-1$ is even, we recursively compute $b^{n-1}$, the multiply $b$ atop it.
-\end{itemize}
+We next extend this divide and conquer method to any integer $n \geq 0$: if $n = 0$, define $b^0 = 1$; if $n$ is even, we halve $n$ to compute $b^{\tfrac{n}{2}}$, then square it; if $n$ is odd, since $n-1$ is even, we recursively compute $b^{n-1}$, then multiply $b$:
 
 \be
 \begin{array}{rcl}
 b^0 & = & 1 \\
 b^n & = & \begin{cases}
-2 | n : & (b^{\frac{n}{2}})^2 \\
-otherwise : & b \cdot b^{n-1} \\
+2 | n : & (b^{\tfrac{n}{2}})^2 \\
+\text{otherwise}: & b \cdot b^{n-1} \\
 \end{cases}
 \end{array}
 \ee
 
-However, the 2nd clause blocks us to turn it tail recursive. Alternatively, we can square the base number, and halve the exponent.
+However, $(b^{\tfrac{n}{2}})^2$ is not tail recursive. Alternatively, we square the base number, and halve the exponent.
 
 \be
 \begin{array}{rcl}
 b^0 & = & 1 \\
 b^n & = & \begin{cases}
-2 | n : & (b^2)^{\frac{n}{2}} \\
-otherwise : & b \cdot b^{n-1} \\
+2 | n : & (b^2)^{\tfrac{n}{2}} \\
+\text{otherwise}: & b \cdot b^{n-1} \\
 \end{cases}
 \end{array}
 \ee
 
-With this change, we can develop a tail recursive algorithm to compute $b^n = pow(b, n, 1)$.
+With this change, we get a tail recursive function to compute $b^n = pow(b, n, 1)$.
 
 \be
 \begin{array}{rcl}
-pow(b, 0, A) & = & A \\
-pow(b, n, A) & = & \begin{cases}
-  2 | n : & pow(b^2, \dfrac{n}{2}, A) \\
-  otherwise: & pow(b, n - 1, b \cdot A) \\
+pow(b, 0, a) & = & a \\
+pow(b, n, a) & = & \begin{cases}
+  2 | n : & pow(b^2, \dfrac{n}{2}, a) \\
+  \text{otherwise}: & pow(b, n - 1, ab) \\
 \end{cases}
 \end{array}
 \ee
 
-Compare to the brute-force implementation, this one improves to $O(\lg n)$ time. Actually, we can improve it further. If represent $n$ in binary format $n = (a_ma_{m-1}...a_1a_0)_2$, we clearly know that the computation for $b^{2^i}$ is necessary if $a_i = 1$. This is quite similar to the idea of Binomial heap (\autoref{sec:binomial-heap}). We can multiplying all of them for bits of 1.
-
-For example, when compute $b^{11}$, as $11 = (1011)_2 = 2^3 + 2 +1$, thus $b^{11} = b^{2^3} \times b^2 \times b$. We get the result by these steps:
+This implementation is bound to $O(\lg n)$ time. Write $n$ in binary format $n = (a_ma_{m-1}...a_1a_0)_2$, we need compute $b^{2^i}$ if $a_i = 1$, similar to the Binomial heap (\cref{sec:binomial-heap}) algorithm. Multiply them together finally. For example, when compute $b^{11}$, as $11 = (1011)_2 = 2^3 + 2 +1$, gives $b^{11} = b^{2^3} \times b^2 \times b$. We follow these steps:
 
 \begin{enumerate}
-\item calculate $b^1$, which is $b$;
-\item Square to $b^2$ from the previous result;
-\item Square again to $b^{2^2}$ from step 2;
-\item Square to $b^{2^3}$ from step 3.
+\item compute $b^1$, which is $b$;
+\item Square to $b^2$;
+\item Square to $b^{2^2}$;
+\item Square to $b^{2^3}$.
 \end{enumerate}
 
-Finally, we multiply the result of step 1, 2, and 4 to get $b^{11}$. Summarize this idea, we improve the algorithm as below.
+Finally, multiply the result of step 1, 2, and 4 to get $b^{11}$.
 
 \be
 \begin{array}{rcl}
-pow(b, 0, A) & = & A \\
-pow(b, n, A) & = & \begin{cases}
-  2 | n : & pow(b^2, \dfrac{n}{2}, A) \\
-  otherwise: & pow(b^2, \lfloor \dfrac{n}{2} \rfloor, b \cdot A) \\
+pow(b, 0, a) & = & a \\
+pow(b, n, a) & = & \begin{cases}
+  2 | n : & pow(b^2, \dfrac{n}{2}, a) \\
+  \text{otherwise}: & pow(b^2, \lfloor \dfrac{n}{2} \rfloor, ab) \\
   \end{cases}
 \end{array}
 \ee
 
-This algorithm essentially shifts $n$ to right 1 bit each time (divide $n$ by 2). If the LSB (Least Significant Bit, the lowest) is 0, $n$ is even. It squares the base and keeps the accumulator $A$ unchanged; If the LSB is 1, $n$ is odd. It squares the base and accumulates it to $A$; When $n$ is zero, we exhaust all bits, $A$ is the final result. At any time, the updated base number $b'$, the shifted exponent number $n'$, and the accumulator $A$ satisfy the invariant $b^n = A \cdot (b')^{n'}$.
+This algorithm essentially shifts $n$ to right 1 bit a time (divide $n$ by 2). If the LSB (the least significant bit) is 0, $n$ is even, squares the base and keeps the accumulator $a$ unchanged. If the LSB is 1, $n$ is odd, squares the base and accumulates it to $a$. When $n$ becomes zero, we exhaust all bits, $a$ is the final result. At any time, the updated base $b'$, the shifted exponent $n'$, and the accumulator $a$ satisfy the invariant $b^n = a (b')^{n'}$.The previous implementation minus one for odd $n$, the improvement halves $n$ every time. It exactly runs $m$ rounds, where $m$ is the number of bits. We leave the imperative implementation as exercise.
 
-Compare to previous implementation, which minus by one for odd $n$, this algorithm halves $n$ every time. It exactly runs $m$ rounds, where $m$ is the number of bits. We leave the imperative implementation as exercise.
-
-Back to the sum and product. The iterative implementation applies plus and multiply while traversing:
+Back to the sum and product, the iterative implementation applies plus and multiply while traversing:
 
 \begin{algorithmic}[1]
-\Function{Sum}{$L$}
+\Function{Sum}{$X$}
   \State $s \gets 0$
-  \While{$L \neq$ NIL}
-    \State $s \gets s +$ \Call{First}{$L$}
-    \State $L \gets$ \Call{Rest}{$L$}
+  \While{$X \neq$ NIL}
+    \State $s \gets s +$ \Call{First}{$X$}
+    \State $X \gets$ \Call{Rest}{$X$}
   \EndWhile
   \State \Return $s$
 \EndFunction
 \Statex
-\Function{Product}{$L$}
+\Function{Product}{$X$}
   \State $p \gets 1$
-  \While{$L \neq$ NIL}
-    \State $p \gets p\ \cdot$ \Call{First}{$L$}
-    \State $L \gets$ \Call{Rest}{$L$}
+  \While{$X \neq$ NIL}
+    \State $p \gets p\ \cdot$ \Call{First}{$X$}
+    \State $X \gets$ \Call{Rest}{$X$}
   \EndWhile
   \State \Return $p$
 \EndFunction
 \end{algorithmic}
 
-One interesting usage of product is to calculate factorial of $n$ as: $n! = product([1..n])$.
+With product, we can define factorial of $n$ as: $n! = product\ [1..n]$.
 
 \subsection{maximum and minimum}
 \index{List!maximum} \index{List!minimum}
 
-For a list of comparable elements (we can define order for any two elements), there is the maximum and minimum. The algorithm structure of $max/min$ is same. For a none empty list:
-
-\begin{itemize}
-\item If there is only one element (a singleton) $[x_1]$, the result is $x_1$;
-\item Otherwise, we recursively find the min/max of the sub-list, then compare it with the first element to determine the result.
-\end{itemize}
+For a list of comparable elements (we can define order for any two elements), there is the maximum and minimum. $max/min$ share the same structure:
 
 \be
+\resizebox{\linewidth}{!}{\ensuremath{
+\begin{array}{cc}
   \begin{array}{rcl}
-  min([x]) & = & x \\
-  min(x:xs) & = & \begin{cases}
-    x < min(xs) : & x \\
-    otherwise: & min(xs) \\
+  \min\ [x] & = & x \\
+  \min\ (x \cons xs) & = & \begin{cases}
+    x < \min\ xs : & x \\
+    \text{otherwise}: & \min\ xs \\
   \end{cases}
   \end{array}
-\ee
-and
-\be
+&
   \begin{array}{rcl}
-  max([x]) & = & x \\
-  max(x:xs) & = & \begin{cases}
-    x > max(xs) : & x \\
-    otherwise: & max(xs) \\
+  \max\ [x] & = & x \\
+  \max\ (x \cons xs) & = & \begin{cases}
+    x > \max\ xs : & x \\
+    \text{otherwise}: & \max\ xs \\
   \end{cases}
   \end{array}
+\end{array}
+}}
 \ee
 
-Both process the list from right to left. We can modify them to tail recursive. It also brings us the `on-line' feature, that at any time, the accumulator is the min/max so far processed. Use $min$ for example:
+Both process the list from right. We can change them to tail recursive. It also makes the computation `on-line', that at any time, the accumulator is the min/max so far. Use $min$ for example:
 
 \be
 \begin{array}{rcl}
-min'(a,\ \nil) & = & a \\
-min'(a,\ x:xs) & = & \begin{cases}
-  x < a : & min'(x, xs) \\
-  otherwise : & min'(a, xs) \\
+\min'\ a\ [\ ] & = & a \\
+\min'\ a\ (x \cons xs) & = & \begin{cases}
+  x < a : & \min'\ x\ xs \\
+  \text{otherwise} : & \min'\ a\ xs \\
   \end{cases}
 \end{array}
 \ee
 
-Different from $sum'/prod'$, we can't pass a fixed starting value to the tail recursive $min'/max'$, unless we use $\pm \infty$ in below Curried form:
+Different from $sum'/prod'$, we can't pass a fixed starting value to $min'/max'$, unless $\pm \infty$ (Curried form):
 
 \[
-  min = min'(\infty) \quad \quad \quad max = max'(- \infty)
+  \textstyle \min = \min'\ \infty \quad \quad \quad \max = \max'\ -\infty
 \]
 
-Alternatively, we can pass the first element as the accumulator given min/max only takes none empty list:
+We can pass the first element given min/max only take none empty list:
 
 \be
-  min(x:xs) = min'(x,\ xs)
+  \textstyle
+  \min\ (x \cons xs) = \min'\ x\ xs
   \quad \quad \quad
-  max(x:xs) = max'(x,\ xs)
+  \max\ (x \cons xs) = \max'\ x\ xs
 \ee
 
-The optimized tail recursive algorithm can be further changed to purely iterative implementation. We give the \textproc{Min} example, and skip \textproc{Max}.
+We can optimize the tail recursive implementation with loops. Use the \textproc{Min} for example.
 
 \begin{algorithmic}[1]
-\Function{Min}{$L$}
-  \State $m \gets$ \Call{First}{$L$}
-  \State $L \gets$ \Call{Rest}{$L$}
-  \While{$L \neq$ NIL}
-    \If{\Call{First}{$L$} $< m$ }
-      \State $m \gets$ \Call{First}{$L$}
+\Function{Min}{$X$}
+  \State $m \gets$ \Call{First}{$X$}
+  \State $X \gets$ \Call{Rest}{$X$}
+  \While{$X \neq$ NIL}
+    \If{\Call{First}{$X$} $< m$ }
+      \State $m \gets$ \Call{First}{$X$}
     \EndIf
-    \State $L \gets$ \Call{Rest}{$L$}
+    \State $X \gets$ \Call{Rest}{$X$}
   \EndWhile
   \State \Return $m$
 \EndFunction
 \end{algorithmic}
 
-There is a way to realize the tail recursive algorithm without using accumulator explicitly. The idea is to re-use the first element as the accumulator. Every time, we compare the head with the next element; then drop the greater one for $min$, and drop the less one for $max$.
+Alternatively, we can re-use the first element as the accumulator. Every time, we compare the first two elements, and drop one. Below is the example for $min$.
 
 \be
 \begin{array}{rcl}
-min([x]) & = & x \\
-min(x_1:x_2:xs) & = & \begin{cases}
-  x_1 < x_2 : & min(x_1:xs) \\
-  otherwise: & min(x_2:xs) \\
+\min\ [x] & = & x \\
+\min\ (x_1 \cons x_2 \cons xs) & = & \begin{cases}
+  x_1 < x_2 : & \min\ (x_1 \cons xs) \\
+  \text{otherwise}: & \min\ (x_2 \cons xs) \\
   \end{cases}
 \end{array}
 \ee
 
-We skip the definition for $max$ as it is symmetric.
-
-\begin{Exercise}
-\Question{Change the $length$ to tail call.}
-\Question{Change the insertion sort to tail call.}
-\Question{Implement the $O(\lg n)$ algorithm to calculate $b^n$ by represent $n$ in binary.}
+\begin{Exercise}[label={ex:list-tail-recursive}]
+\Question{Change $length$ to tail recursive.}
+\Question{Compute $b^n$ through the binary format of $n$.}
 \end{Exercise}
+
+\begin{Answer}[ref = {ex:list-tail-recursive}]
+\Question{Change $length$ to tail recursive.
+\begin{Haskell}
+length  = len 0 where
+  len n [] = n
+  len n (x:xs) = len (n + 1) xs
+\end{Haskell}
+}
+\Question{Compute $b^n$ through the binary format of $n$.
+
+$b$ needn't necessarily be integer, it can be real, or any element in a set that defines the unit $e$ (e.g. 1) and binary operation (e.g. multiply). We call such set monoid in mathematics.
+
+\begin{Bourbaki}
+Monoid pow(Monoid b, Int n) {
+    Monoid a = Monoid.e
+    while n != 0 {
+        if n & 1 == 1 then a = a * b
+        b = b * b
+        n = n >> 1
+    return a
+}
+\end{Bourbaki}
+}
+\end{Answer}
 
 \section{Transform}
 \index{List!Transform}
-From algebraic perspective, there are two types of transform: one keeps the list structure, but only change the elements; the other alter the list structure, hence the result is not isomorphic to the original list. Particularly, we call the former {\em map}.
+
+In algebra, there are two types of transformation: one keeps the list structure, but only transforms the elements; the other alter the list structure, hence the result is not isomorphic. We call the former {\em map}.
 
 \subsection{map and for-each}
 \index{List!map}
-The first example is to convert a list of numbers to their represented strings, like to change [3, 1, 2, 4, 5] to [``three'', ``one'', ``two'', ``four'', ``five'']
+
+The first example converts a list of numbers to strings. Transform [3, 1, 2, 4, 5] to [``three'', ``one'', ``two'', ``four'', ``five'']
 
 \be
 \begin{array}{rcl}
-toStr(\nil) & = & \nil \\
-toStr(x:xs) & = & str(x) : toStr(xs) \\
+toStr\ [\ ] & = & [\ ] \\
+toStr\ (x \cons xs) & = & (str\ x) : toStr\ xs \\
 \end{array}
 \label{eq:tostr}
 \ee
 
-For the second example, consider a dictionary, which is a list of words grouped by initial letter. Like:
+For the second example, given a dictionary, which is a list of words grouped by their initials:
 
-\begin{verbatim}
+\begin{Verbatim}[fontsize=\footnotesize]
 [[a, an, another, ... ],
  [bat, bath, bool, bus, ...],
  ...,
  [zero, zoo, ...]]
-\end{verbatim}
+\end{Verbatim}
 
-Next we process a text ({\em Hamlet} for example), and augment each word with their number of occurrence, like:
+Next process a text ({\em Hamlet} for example), augment each word with the number of occurrences, like:
 
-\begin{verbatim}
+\begin{Verbatim}[fontsize=\footnotesize]
 [[(a, 1041), (an, 432), (another, 802), ... ],
  [(bat, 5), (bath, 34), (bool, 11), (bus, 0), ...],
  ...,
  [(zero 12), (zoo, 0), ...]]
-\end{verbatim}
+\end{Verbatim}
 
-Now for every initial letter, we want to figure out which word occurs most. How to write a program to do this work? The output is a list of words, that every one has the most occurrences in the group, something like \texttt{[a, but, can, ...]}. We need develop a program that transform \textbf{a list of groups of word-number pairs} into \textbf{a list of words}.
-
-First, we need define a function. It takes a list of word-number pairs, finds the word paired with the biggest number. Sort is overkill. What we need is a special max function $maxBy(cmp, L)$, where $cmp$ compares two elements abstractly.
+Now for every initial letter, which word occurs most? The answer is a list of words, that every one has the most occurrences in the group, like \texttt{[a, but, can, ...]}. We need a program that transforms \textbf{a list of groups of word-number pairs} into \textbf{a list of words}. First, define a function, which takes a list of word-number pairs, finds the word paired with the biggest number. Sort is overkill. We need a special max function $maxBy\ cmp\ xs$, where $cmp$ is the generic compare function.
 
 \be
 \begin{array}{rcl}
-maxBy(cmp,\ [x]) & = & x \\
-maxBy(cmp,\ x_1 : x_2 : xs) & = & \begin{cases}
-  cmp(x_1, x_2) : & maxBy(cmp, x_2 : xs) \\
-  otherwise : & maxBy(cmp, x_1 : xs) \\
+maxBy\ cmp\ [x] & = & x \\
+maxBy\ cmp\ (x_1 \cons x_2 \cons xs) & = & \begin{cases}
+  cmp\ x_1\ x_2 : & maxBy\ cmp\ (x_2 \cons xs) \\
+  \text{otherwise} : & maxBy\ cmp\ (x_1 \cons xs) \\
   \end{cases}
 \end{array}
 \ee
 
-For a pair $p = (a, b)$ we define two access functions:
+For a pair $p = (a, b)$ we define two functions:
 
 \be
 \begin{cases}
@@ -945,178 +980,148 @@ snd\ (a, b) = & b \\
 \end{cases}
 \ee
 
-Instead of embedded parenthesis $fst((a, b)) = a$, we omit one layer, and use a space. Generally, we treat $f\ x = f(x)$ when the context is clear. Then we can define a special compare function for word-count pairs:
+Then define a special compare function for word-count pairs:
 
 \be
-less(p_1, p_2) = snd(p_1) < snd(p_2)
+less\ p_1\ p_2 = snd\ p_1 < snd\ p_2
 \ee
 
-Then pass $less$ to $maxBy$ to finalize our definition (in Curried form):
-
-\be
-max'' = maxBy(less)
-\ee
-
-With $max''()$ defined, we can develop the solution to process the whole list.
+Then pass $less$ to $maxBy$ (in Curried form): $\max'' = maxBy\ less$. Finally, call $max''$ to process the list:
 
 \be
 \begin{array}{rcl}
-solve(\nil) & = & \nil \\
-solve(x:xs) & = & fst(max''(x)) : solve(xs) \\
+solve\ [\ ] & = & [\ ] \\
+solve\ (x \cons xs) & = & (fst\ (\max''\ x)) : solve\ xs \\
 \end{array}
 \label{eq:solve}
 \ee
 
-\subsubsection{Map}
 \index{List!map}
 
-The $solve()$ and $toStr()$ functions reveal the same structure, although they are developed for different problems. We can abstract this common structure as {\em map}:
+$solve$ and $toStr$ share the same structure. We abstract it as {\em map}:
 
 \be
 \begin{array}{rcl}
-map(f,\ \nil) & = & \nil \\
-map(f,\ x:xs) & = & f(x) : map(f, xs) \\
+map\ f\ [\ ] & = & [\ ] \\
+map\ f\ (x \cons xs) & = & (f\ x) : map\ f\ xs \\
 \end{array}
 \ee
 
-$map$ takes the function $f$ as argument, applies it to every element to form a new list. A function that computes with other functions is called {\em high-order} function. If the type of $f$ is $A \to B$, which means it sends an element of $A$ to the result of $B$, then the type of map is:
+$map$ takes a function $f$, applies it to every element to form a new list. A function that computes with other functions is called {\em high-order} function. Let the type of $f$ be $A \to B$. It sends an element of $A$ to the result of $B$, the type of map is:
 
 \be
 map :: (A \to B) \to [A] \to [B]
 \ee
 
-We read it as: map takes a function of $A \to B$, then convert a list $[A]$ to another list $[B]$. The two examples in previous section can be defined with map as (in Curried form):
+Read as: map takes a function of $A \to B$, converts a list $[A]$ to another list $[B]$. We can define the above two examples with map as below (in Curried form):
 
 \[
-\begin{array}{l}
-toStr  = map\ str \\
-solve = map \ (fst \circ max'')
-\end{array}
+\textstyle
+toStr = map\ str \quad \quad \quad
+solve = map\ (fst \circ \max'')
 \]
 
-Where $f \circ g$ means function composite, i.e. first apply $g$ then apply $f$. $(f \circ g)\ x = f(g(x))$, Read as $f$ after $g$. Map can also be defined from the domain theory point of view. Function $y = f(x)$ defines the map from $x$ in set $X$ to $y$ in set $Y$:
+Where $f \circ g$ is function composition, i.e. first apply $g$ then apply $f$. $(f \circ g)\ x = f(g(x))$, read as $f$ after $g$. From the set theory point of view. Function $y = f(x)$ defines the map from $x$ in set $X$ to $y$ in set $Y$:
 
 \be
 Y = \{ f(x) | x \in X \}
 \ee
 
-This type of set definition is called Zermelo-Frankel set abstraction (known as ZF expression) \cite{algo-fp}. The different
-is that the mapping is from a list (but not set) to another: $Y = [f(x) | x \in Y]$. There can be duplicated elements. For list, such ZF style expression is called {\em list comprehension}.
-
-List comprehension is a powerful tool. As an example, let us see how to realize the permutation algorithm. Extend from generating all-permutations as \cite{algo-fp} and \cite{erlang}, we define a generic $perm(L, r)$, that permutes $r$ out of the total $n$ elements in the list $L$. There are total $P_n^r = \dfrac{n!}{(n-r)!}$ solutions.
+\index{List!ZF expression} \index{List!list comprehension} \label{sec:zf-expr}
+This type of set definition is called Zermelo-Frankel set abstraction (known as ZF expression) \cite{algo-fp}. The difference is that the mapping is from a list (but not set) to another: $Y = [f(x) | x \gets Y]$. There can be duplicated elements. For list, such ZF style expression is called {\em list comprehension}. It is a powerful tool. Let us see how to realize the permutation algorithm for example. Extend from full-permutations\cite{algo-fp}\cite{erlang}, we define a generic $perm\ X\ r$, that permutes $r$ out of the total $n$ elements in list $X$. There are total $P_n^r = \dfrac{n!}{(n-r)!}$ permutations.
 
 \be
-perm(L, r) = \begin{cases}
-  |L| < r\ \text{or}\ r = 0: & [[\ ]] \\
-  otherwise: & [x:ys\ |\ x \in L, ys \in perm(delete(x,L), r-1)] \\
+\resizebox{\linewidth}{!}{\ensuremath{
+perm\ X\ r = \begin{cases}
+  |X| < r\ \text{or}\ r = 0: & [[\ ]] \\
+  \text{otherwise}: & [ x\cons ys \ |\ x \gets X, ys \gets perm\ (delete\ x\ X)\ (r - 1)] \\
   \end{cases}
+}}
 \ee
 
-If pick zero element for permutation, or there are too few (less than $r$), the result is a list of empty list; otherwise, we recursively pick $r-1$ out of the rest $n-1$ elements; then prepend $x$ before each. Below Haskell example program utilizes the list comprehension feature:
+If pick zero element, or there are too few (less than $r$), the result is a list of empty[[\ ]]; otherwise, for every $x$ in $X$, we recursively pick $r-1$ out of the rest $n-1$ elements; then prepend $x$ for each.
 
-\begin{Haskell}
-perm xs r | r == 0 || length xs < r = [[]]
-          | otherwise = [ x:ys | x <-xs,
-                                 ys <- perm (delete x xs) (r-1)]
-\end{Haskell}
-
-For the iterative \textproc{Map} implementation, below algorithm uses a sentinel node to simplify the logic to handle head reference.
+We use a sentinel node in the iterative \textproc{Map} implementation.
 
 \begin{algorithmic}[1]
-\Function{Map}{$f, L$}
-  \State $L' \gets$ \Call{Cons}{$\perp$, NIL} \Comment{Sentinel node}
-  \State $p \gets L'$
-  \While{$L \neq$ NIL}
-    \State $x \gets$ \Call{First}{$L$}
-    \State $L \gets$ \Call{Rest}{$L$}
+\Function{Map}{$f, X$}
+  \State $X' \gets$ \Call{Cons}{$\perp$, NIL} \Comment{the sentinel}
+  \State $p \gets X'$
+  \While{$X \neq$ NIL}
+    \State $x \gets$ \Call{First}{$X$}
+    \State $X \gets$ \Call{Rest}{$X$}
     \State \Call{Rest}{$p$} $\gets$ \Call{Cons}{$f(x)$, NIL}
     \State $p \gets$ \Call{Rest}{$p$}
   \EndWhile
-  \State \Return \Call{Rest}{$L'$} \Comment{Drop the sentinel}
+  \State \Return \Call{Rest}{$X'$} \Comment{discard the sentinel}
 \EndFunction
 \end{algorithmic}
 
 \subsubsection{For each}
 \index{List!for each}
 
-Sometimes we only need to traverse the list, repeatedly process the elements one by one without building the new list. Here is an example that print every element out:
+Sometimes we only need process the elements one by one without building the new list, for example, print every element:
 
 \begin{algorithmic}[1]
-\Function{Print}{$L$}
-  \While{$L \neq$ NIL}
-    \State print \Call{First}{$L$}
-    \State $L \gets$ \Call{Rest}{$L$}
+\Function{Print}{$X$}
+  \While{$X \neq$ NIL}
+    \State print \Call{First}{$X$}
+    \State $X \gets$ \Call{Rest}{$X$}
   \EndWhile
 \EndFunction
 \end{algorithmic}
 
-More generally, we can pass a procedure $P$, then traverse the list and apply $P$ to each element.
+More generally, we pass a procedure $P$, then apply $P$ to each element.
 
 \begin{algorithmic}[1]
-\Function{For-Each}{$P, L$}
-  \While{$L \neq$ NIL}
-    \State \textproc{P}(\Call{First}{$L$})
-    \State $L \gets$ \Call{Rest}{$L$}
+\Function{For-Each}{$P, X$}
+  \While{$X \neq$ NIL}
+    \State \textproc{P}(\Call{First}{$X$})
+    \State $X \gets$ \Call{Rest}{$X$}
   \EndWhile
 \EndFunction
 \end{algorithmic}
 
-\subsubsection{Examples}
-
-As an example, let's see a ``$n$-lights puzzle''\cite{poj-drunk-jailer}. There are $n$ lights in a room, all of them are off. We execute the following $n$ rounds:
+For example, consider the ``$n$-lights puzzle''\cite{poj-drunk-jailer}. There are $n$ lights in a room, all are off. We execute the following for $n$ rounds:
 
 \begin{enumerate}
-\item Switch all the lights in the room (all on);
-\item Switch lights with number 2, 4, 6, ... , that every other light is switched, if the light is on, it will be off;
+\item Switch all lights on;
+\item Switch lights of number 2, 4, 6, ... , that every other light is switched;
 \item Switch every third lights, number 3, 6, 9, ... ;
 \item ...
 \end{enumerate}
 
-And at the last round, only the last light (the $n$-th light) is switched. The question is how many lights are on in the end?
-
-Let's start with a brute-force solution, then improve it step by step. We represent the state of $n$ lights as a list of 0/1 numbers. 0 is off, 1 is on. The initial state are all zeros: [0, 0, ..., 0]. We label the light from 1 to $n$, then map them to ($i$, on/off) pairs:
+At the last round, only the $n$-th light is switched. How many lights are on in the end? We start with a brute-force solution. Represent the $n$ lights as a list of 0/1 numbers (0: off, 1: on). Start from all zeros: [0, 0, ..., 0]. Label the light from 1 to $n$, then map them to ($i$, on/off) pairs:
 
 \[
-lights = map(i \mapsto (i, 0),\ [1, 2, 3, ... n])
+lights = map\ (i \mapsto (i, 0))\ [1, 2, ..., n]
 \]
 
-It binds each number to zero, the result is a list of pairs: $L = [(1, 0), (2, 0), ..., (n, 0)]$. Next we operate this list of pairs for $n$ rounds. In the $i$-th round, switch the second value in this pair if its label is divided by $i$. Consider $1 - 0 = 1$, and $1 - 1 = 0$, we can switch 0/1 value of $x$ by $1 - x$. For light $(j, x)$, if $i | j$, (i.e. $j \bmod i = 0$), then switch, otherwise leave the light untouched.
+It binds each number to zero, i.e., a list of pairs: $L$ = [(1, 0), (2, 0), ..., (n, 0)]. We operate this list of pairs $n$ rounds. In the $i$-th round, for every pair $(j, x)$, if $i | j$ (meaning $j \bmod i = 0$), then switch it on/off. As $1 - 0 = 1$ and $1 - 1 = 0$, we switch $x$ to $1 - x$.
 
 \be
-switch(i, (j, x)) = \begin{cases}
+switch\ i\ (j, x)) = \begin{cases}
   j \bmod i = 0 : & (j, 1 - x) \\
-  otherwise: & (j, x) \\
+  \text{otherwise}: & (j, x) \\
   \end{cases}
 \ee
 
-The $i$-th round for all lights can be realized as map:
-
-\be
-map(switch(i), L)
-\ee
-
-Here we use the Curried form of $switch$, which is equivalent to:
-
-\[
-map((j, x) \mapsto switch(i, (j, x)), L)
-\]
-
-Next, we define a function $op()$, which performs above mapping on $L$ over and over by $n$ rounds. We call this function with $op([1, 2, ..., n], L)$.
+Realize the $i$-th round of operation as $map\ (switch\ i)\ L$ (we use the Curried form of $switch$). Next, define a function $op()$, which performs mapping on $L$ over and over for $n$ rounds: $op\ [1, 2, ..., n]\ L$.
 
 \be
 \begin{array}{rcl}
-op(\nil,\ L) & = & L \\
-op(i:is,\ L) & = & op(is, map(switch(i), L)) \\
+op\ [\ ]\ L & = & L \\
+op\ (i \cons is)\ L & = & op\ is\ (map\ (switch\ i)\ L) \\
 \end{array}
 \ee
 
-At this stage, we can sum the second value of each pair in list $L$ to get the answer.
+Finally, sum the second value of each pair to get the answer.
 
 \be
-solve(n) = sum(map(snd, op([1, 2, ..., n], lights)))
+solve\ n = sum\ (map\ snd\ (op\ [1, 2, ..., n]\ L))
 \ee
 
-Below is the example Haskell implementation of this brute-force solution:
+Below is the example program:
 
 \begin{Haskell}
 solve = sum . (map snd) . proc  where
@@ -1124,13 +1129,12 @@ solve = sum . (map snd) . proc  where
     proc n = operate [1..n] lights
     operate [] xs = xs
     operate (i:is) xs = operate is (map (switch i) xs)
+    switch i (j, x) = if j `mod` i == 0 then (j, 1 - x) else (j, x)
+\end{Haskell}
 
-switch i (j, x) = if j `mod` i == 0 then (j, 1 - x) else (j, x)
-\end{Haskell} %$
+Run from 1 to 100 lights to give below answers (added line breaks):
 
-Run this program from 1 light to 100 lights, let's see what the answers are (we added line breaks):
-
-\begin{verbatim}
+\begin{Verbatim}[fontsize=\footnotesize]
 [1,1,1,
  2,2,2,2,2,
  3,3,3,3,3,3,3,
@@ -1140,293 +1144,233 @@ Run this program from 1 light to 100 lights, let's see what the answers are (we 
  7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
  8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,
  9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,10]
-\end{verbatim}
+\end{Verbatim}
 
-This result is interesting:
-
-\begin{itemize}
-\item the first 3 answers are 1;
-\item the 4-th to the 8-th answers are 2;
-\item the 9-th to the 15-th answers are 3;
-\item ...
-\end{itemize}
-
-It seems that the $i^2$-th to the $((i+1)^2-1)$-th answers are $i$. Actually, we can prove it:
+They form a pattern: the first 3 answers are 1; the 4-th to the 8-th answers are 2; the 9-th to the 15-th answers are 3; ... It seems that from the $i^2$-th to the $((i+1)^2-1)$-th answers are $i$. Let's prove it:
 
 \begin{proof}
-Given $n$ lights labeled from 1 to $n$, consider which lights are on finally. Since the initial states for all lights are off, we can say that, the lights which are manipulated odd times are on. For every light $i$, it will be switched at the $j$ round if $i$ can be divided by $j$ (denote as $j | i$). Only the lights which have odd number of factors are on in the end.
-
-The key point to solve this puzzle, is to find all numbers which have odd number of factors. For any positive integer $n$, let $S$ be the set of all factors of $n$. $S$ is initialized to $\varnothing$. If $p$ is a factor of $n$, there must exist a positive integer $q$ such that $n = p q$ holds. It means $q$ is also a factor of $n$. We add 2 different factors to set $S$ if and only if $p \neq q$, which keeps $|S|$ even all the time unless $p = q$. In such case, $n$ is a square number. We can only add 1 factor to set $S$, which leads to odd number of factors.
+Given $n$ lights labeled from 1 to $n$, all light are off when start. The lights which are switched odd times are on finally. For every light $i$, we switch it at round $j$ if $j$ divides $i$ ($j | i$). Only the lights which have odd number of factors are on in the end. The key point to solve this puzzle, is to find all the numbers that have odd number of factors. For any natural number $n$, let $S$ be the set of all factors of $n$. Initialize $S$ as $\varnothing$. If $p$ is a factor of $n$, there must exist a natural number $q$ such that $n = p q$. It means $q$ is also a factor of $n$. We add 2 different factors to set $S$ if and only if $p \neq q$, which keeps $|S|$ even all the time unless $p = q$. In such case, $n$ is a square number. We can only add 1 factor to set $S$, which leads to odd number of factors.
 \end{proof}
 
-At this stage, we can design a fast solution by finding the number of square numbers under $n$.
+We have a fast solution by counting the square numbers under $n$.
 
 \be
 solve(n) = \lfloor \sqrt{n} \rfloor
 \ee
 
-Below Haskell example program outputs the answer for 1, 2, ..., 100 lights:
+Below example program outputs the answer for 1, 2, ..., 100 lights:
 
 \begin{Haskell}
 map (floor . sqrt) [1..100]
 \end{Haskell}
 
-Map is a generic concept does not limit to list. It can be applied to many complex algebraic structures. The next chapter about binary search tree explains how to map on trees. As long as we can traverse the structure, and the empty is defined, we can use the same mapping idea.
+Map is abstract, does not limit to list, but applies to many complex algebraic structures. The next chapter explains how to map trees. We can apply mapping as long as we can traverse the structure, and the empty is defined.
 
 \subsection{reverse}
 \index{List!reverse} \label{sec:reverse}
-It's a classic exercise to reverse a singly linked-list with minimum space. One must carefully manipulate the node reference, however, there exists easy method to implement reverse:
 
-\begin{enumerate}
-\item Write a purely recursive solution;
-\item Change it to tail-call;
-\item Translate the tail-call solution to imperative operations.
-\end{enumerate}
+It's a good exercise to reverse a singly linked-list with constant space. One must carefully manipulate the node reference, while there is an easy way: (1) Write a purely recursive solution; (2) Change it to tail recursive; (3) Convert to imperative implementation. The purely recursive solution is direct:
 
-The purely recursive solution is straightforward. To reverse a list $L$.
+\[
+\begin{array}{rcl}
+reverse\ [\ ] & = & [\ ] \\
+reverse\ (x \cons xs) & = & append\ (reverse\ xs)\ x \\
+\end{array}
+\]
 
-\begin{itemize}
-\item If $L$ is empty, the reversed result is empty;
-\item Otherwise, recursively reverse sub-list $L'$, then append the first element to the end.
-\end{itemize}
+Next convert it to tail recursive. Use an accumulator to store the reversed part, start from empty: $reverse = reverse'\ [\ ]$
 
 \be
 \begin{array}{rcl}
-reverse(\nil) & = & \nil \\
-reverse(x:xs) & = & append(reverse(xs), x) \\
+reverse'\ a\ [\ ] & = & a \\
+reverse'\ a\ (x \cons xs) & = & reverse'\ (x \cons a)\ xs \\
 \end{array}
 \ee
 
-However, the performance is poor. As it need traverse to the end to append, this algorithm is bound to quadratic time. We can optimize it with tail call, use an accumulator to store the reversed part so far. We initialize the accumulator as empty: $reverse = reverse'(\nil)$.
-
-\be
-\begin{array}{rcl}
-reverse'(A,\ \nil) & = & A \\
-reverse'(A,\ x:xs) & = & reverse'(x:A,\ xs) \\
-\end{array}
-\ee
-
-Different from appending, cons (:) is a constant time operation. The idea is to repeatedly take the elements from the head, and prepend them to the accumulator. It essentially likes to store elements in a stack, then pop them out. The overall performance is $O(n)$, where $n$ is the length. Since tail call need not keep the context, we can optimize it to purely iterative loops:
+Different from appending, cons (:) takes constant time. We repeatedly extract the head element, and prepend to the accumulator. It likes to store the elements in a stack, then pop them out. The overall performance is $O(n)$, where $n$ is the length. Since tail call need not keep the context, we next convert it to iterative loops:
 
 \begin{algorithmic}[1]
-\Function{Reverse}{$L$}
+\Function{Reverse}{$X$}
   \State $A \gets$ NIL
-  \While{$L \neq$ NIL}
-    \State $A \gets $ \textproc{Cons}(\Call{First}{$L$}, $A$)
-    \State $L \gets$ \Call{Rest}{$L$}
+  \While{$X \neq$ NIL}
+    \State $A \gets $ \textproc{Cons}(\Call{First}{$X$}, $A$)
+    \State $X \gets$ \Call{Rest}{$X$}
   \EndWhile
   \State \Return $A$
 \EndFunction
 \end{algorithmic}
 
-However, this algorithm creates a new reversed list, but not mutate the original one. We need change it to in-place mutate $L$ as the below example program:
+However, this implementation creates a new reversed list, but not reverses in-place. We change it further:
 
 \begin{lstlisting}[language=Bourbaki]
 List<T> reverse(List<T> xs) {
-  List<T> p, ys = null
-  while (xs != null) {
-    p = xs
-    xs = xs.next
-    p.next = ys
-    ys = p
-  }
-  return ys
+    List<T> p, ys = null
+    while xs != null {
+        p = xs
+        xs = xs.next
+        p.next = ys
+        ys = p
+    }
+    return ys
 }
 \end{lstlisting}
 
-\begin{Exercise}
-\Question{Given a number from 0 to 1 billion, write a program to give its English representation. For e.g. 123 is `one hundred and twenty three'. What if there is decimal part?}
-\Question{Implement the algorithm to find the maximum value in a list of pairs $[(k, v)]$ in tail call.}
+\begin{Exercise}[label={ex:list-transform}]
+\Question{Find the maximum $v$ in a list of pairs $[(k, v)]$ in tail recursive way.}
 \end{Exercise}
 
+\begin{Answer}[ref = {ex:list-transform}]
+\Question{Find the maximum $v$ in a list of pairs $[(k, v)]$ in tail recursive way.
+\begin{Haskell}
+maxValue ((k, v):kvs) = maxV v kvs where
+  maxV m [] = m
+  maxV m ((_, v):kvs) = maxV (max m v) kvs
+\end{Haskell}
+}
+\end{Answer}
+
 \section{Sub-list}
-\index{List!Extract sub-list}
-Different from array which is capable to slice a continuous segment fast, it typically need linear time to traverse and extract sub-list.
-
-\subsection{take, drop, and split-at}
-\index{List!take} \index{List!drop} \index{List!split at}
-
-Taking the first $n$ elements is essentially to slice the list from 1 to $n$: $sublist(1, n, L)$. If either $n = 0$ or $L = \nil$, the sub-list is empty; otherwise, we recursively take the first $n - 1$ elements from the $L'$, then prepend the first element.
+\index{List!Extract sub-list} \index{List!take} \index{List!drop} \index{List!split at}
+One can slice an array fast, but need linear time to traverse and extract sub-list. $take$ extracts the first $n$ elements. It is equivalent to: $sublist\ 1\ n\ X$. $drop$ discards the first $n$ elements. It is equivalent to: $sublist\ (n+1)\ |X|\ X$, which is symmetric to $take$\footnote{Some programming languages provide built-in implementation, for example in Python: \texttt{xs[:m]} and \texttt{xs[m:]} correspond to $take$ and $drop$.}:
 
 \be
-\begin{array}{rcl}
-take(0, L) & = & \nil \\
-take(n, \nil) & = & \nil \\
-take(n, x:xs) & = & x : take(n - 1, xs) \\
+\resizebox{\linewidth}{!}{\ensuremath{
+\begin{array}{cc}
+  \begin{array}{rcl}
+  take\ 0\ xs & = & [\ ] \\
+  take\ n\ [\ ] & = & [\ ] \\
+  take\ n\ (x \cons xs) & = & x : take\ (n - 1)\ xs \\
+  \end{array}
+&
+  \begin{array}{rcl}
+  drop\ 0\ xs & = & xs \\
+  drop\ n\ [\ ] & = & [\ ] \\
+  drop\ n\ (x \cons xs) & = & drop\ (n - 1)\ xs \\
+  \end{array}
 \end{array}
+}}
 \ee
 
-This algorithm handles the out of bound case like this: if $n > |L|$ or $n$ is negative, it ends up to the edge case that $L$ becomes empty, hence returns the whole list as the result.
-
-Drop, on the other hand, discards the first $n$ elements and returns the rest. It is equivalent to slice the sub-list from right: $sublist(n + 1, |L|, L)$, where $|L|$ is the length. Its implementation is symmetric:
+When $n > |X|$ or $n < 0$, it ends up with the empty list case. We leave the imperative implementation as exercise. We can extract the sub-list at any position for a given length:
 
 \be
-\begin{array}{rcl}
-drop(0, L) & = & L \\
-drop(n, \nil) & = & \nil \\
-drop(n, x:xs) & = & drop(n - 1, xs) \\
-\end{array}
-\ee
-
-We leave the imperative implementation for $take/drop$ as exercise. As the next step, we can develop a algorithm to extract sub-list at any position for a given length:
-
-\be
-sublist(from, cnt, L) = take(cnt, drop(from - 1, L))
+sublist\ s\ n\ X = take\ n\ (drop\ (s - 1)\ X)
 \ee
 
 Or slice the list with left and right boundaries:
 
 \be
-slice(from, to, L) = drop(from - 1, take(to, L))
+slice\ s\ e\ X = drop\ (s - 1)\ (take\ e\ X)
 \ee
 
 \index{List!split at}
-The boundary is defined as $[from, to]$. It includes both ends. We can also split a list at a given position:
+The range $[s, e]$ includes both ends. We can split the list at a position:
 
 \be
-splitAt(i, L) = (take(i, L), drop(i, L))
+splitAt\ i\ X = (take\ i\ X, drop\ i\ X)
 \label{eq:split-at}
 \ee
 
-\begin{Exercise}
-\Question{Define $sublist$ and $slice$ in Curried Form without $L$ as parameter.}
-\end{Exercise}
-
-\subsubsection{conditional take and drop}
 \index{List!take while} \index{List!drop while}
-Instead of specifying number of elements for $take/drop$, one may want to provide a predication. We keep taking or dropping as far as the condition meets. We define such algorithm as $takeWhile/dropWhile$.
-
-$takeWhile/dropWhile$ examine elements one by one against the prediction. They ignore the rest even if some elements satisfy the condition. We'll see this different in the section of filtering.
+We can extend $take/drop$ to keep taking or dropping as far as some condition is satisfied, Define \textit{takeWhile/dropWhile}, that scan every element with a predicate $p$, stop when any element doesn't satisfy. They ignore the rest even if some still satisfy $p$. We'll see this difference in the section of filtering.
 
 \be
-\begin{array}{rcl}
-takeWhile(p,\ \nil) & = & \nil \\
-takeWhile(p,\ x:xs) & = & \begin{cases}
-  p(x) : & x : takeWhile(p, xs) \\
-  otherwise: & \nil \\
-  \end{cases}
+\resizebox{\linewidth}{!}{\ensuremath{
+\begin{array}{cc}
+  \begin{array}{rcl}
+  \textit{takeWhile}\ p\ [\ ] & = & [\ ] \\
+  \textit{takeWhile}\ p\ (x \cons xs) & = & \begin{cases}
+    p(x) : & x : \textit{takeWhile}\ p\ xs \\
+    \text{otherwise}: & [\ ] \\
+    \end{cases}
+  \end{array}
+&
+  \begin{array}{rcl}
+  \textit{dropWhile}\ p\ [\ ] & = & [\ ] \\
+  \textit{dropWhile}\ p\ (x \cons xs) & = & \begin{cases}
+    p(x) : & \textit{dropWhile}\ p\ xs \\
+    \text{otherwise}: & x \cons xs \\
+    \end{cases}
+  \end{array}
 \end{array}
-\ee
-
-Where $p$ is the prediction. When applied to an element, $p$ returns true or false to indicate the condition is satisfied. $dropWhile$ is symmetric:
-
-\be
-\begin{array}{rcl}
-dropWhile(p,\ \nil) & = & \nil \\
-dropWhile(p,\ x:xs) & = & \begin{cases}
-  p(x) : & dropWhile(p, xs) \\
-  otherwise: & x:xs \\
-  \end{cases}
-\end{array}
+}}
 \ee
 
 \subsection{break and group}
-Break and group are operations to re-arrange a list into multiple sub-lists. They typically perform the re-arrangement while traverse the list to keep the performance linear.
-
-\subsubsection{break and span}
 \index{List!break} \index{List!span}
 
-$break/span$ can be considered as a general form of splitting. Instead of splitting at a given position, $break/span$ scans elements with a prediction. It extracts the longest prefix of the list against the condition, and returns it together with the rest as a pair.
-
-There are two different cases. For a given predication, one is to pick the elements satisfied; the other is to pick the elements not satisfied. The former is called $span$, the later is called $break$.
+Break and group re-arrange a list into multiple sub-lists. They typically collect the sub-lists while traversing to achieve linear performance. We can consider $break/span$ generic splitting. Not at a given position, $break/span$ scan the list, extract the longest prefix with a prediction $p$. There are two options for $p$: pick the elements satisfied; or pick those not satisfied. The former is $span$, the later is $break$.
 
 \be
 \begin{array}{rcl}
-span(p,\ \nil) & = & (\nil, \nil) \\
-span(p,\ x:xs) & = & \begin{cases}
-  p(x) : & (x : A,\ B)\ \text{where}\ (A, B) = span(p, xs) \\
-  otherwise : & (\nil,\ x:xs) \\
+span\ p\ [\ ] & = & ([\ ], [\ ]) \\
+span\ p\ (x \cons xs) & = & \begin{cases}
+  p(x) : & (x \cons as, bs),\ \text{where}\ (as, bs) = span\ p\ xs \\
+  \text{otherwise}: & ([\ ], x \cons xs) \\
   \end{cases}
 \end{array}
 \label{eq:span}
 \ee
 
-and we can define $break$ with span by negating the predication in Curried form:
-
-\be
-break(p) = span(\lnot p)
-\ee
-
-Both $span$ and $break$ find the longest {\em prefix}. They stop immediately when the condition does not meet and ignores the rest. Below is the iterative implementation for span:
+We define $break$ by negating the predication: $break\ p = span\ (\lnot p)$. $span$ and $break$ find the longest {\em prefix}. They stop immediately when the condition is broken and ignore the rest. Below is the iterative implementation of span:
 
 \begin{algorithmic}[1]
-\Function{Span}{$p, L$}
-  \State $A \gets $ NIL
-  \While{$L \neq$ NIL and $p$(\Call{First}{$L$})}
-    \State $A \gets $ \textproc{Cons}(\Call{First}{$L$}, $A$)
-    \State $L \gets $ \Call{Rest}{$L$}
-  \EndWhile
-  \State \Return $(A, L)$
-\EndFunction
-\end{algorithmic}
-
-This algorithm creates a new list to hold the longest prefix, another option is to reuse the original list and break it in-place:
-
-\begin{algorithmic}[1]
-\Function{Span}{$p, L$}
-  \State $A \gets L$
+\Function{Span}{$p, X$}
+  \State $A \gets X$
   \State $tail \gets$ NIL
-  \While{$L \neq$ NIL and $p$(\Call{First}{$L$})}
-    \State $tail \gets L$
-    \State $L \gets $ \Call{Rest}{$L$}
+  \While{$X \neq$ NIL and $p$(\Call{First}{$X$})}
+    \State $tail \gets X$
+    \State $X \gets $ \Call{Rest}{$X$}
   \EndWhile
   \If{$tail =$ NIL}
-    \State \Return (NIL, $L$)
+    \State \Return (NIL, $X$)
   \EndIf
   \State \Call{Rest}{$tail$} $\gets$ NIL
-  \State \Return $(A, L)$
+  \State \Return $(A, X)$
 \EndFunction
 \end{algorithmic}
 
-\subsubsection{group}
 \index{List!group}
-span breaks list into two parts, group divides list into multiple sub-lists. For example, we can use group to change a long word into small units, each contains consecutive same characters:
-
-\begin{Haskell}
-group ``Mississippi'' = [``M'', ``i'', ``ss'', ``i'',
-                         ``ss'',``i'', ``pp'', ``i'']
-\end{Haskell}
-
-For another example, given a list of numbers:
+$span$ and $break$ cut the list into two parts, $group$ divides list into multiple sub-lists. For example, group a long string into small units, each contains consecutive same characters:
 
 \[
-L = [15, 9, 0, 12, 11, 7, 10, 5, 6, 13, 1, 4, 8, 3, 14, 2]
+\textit{group}\ \text{``Mississippi''} = [\text{``M'', ``i'', ``ss'', ``i'', ``ss'',``i'', ``pp'', ``i''}]
 \]
 
-We can divide it into small lists, each one is in descending order:
+For another example, given a list of numbers: $X$ = [15, 9, 0, 12, 11, 7, 10, 5, 6, 13, 1, 4, 8, 3, 14, 2], divide it into small descending sub-lists:
 
 \[
-group(L) = [[15, 9, 0], [12, 11, 7], [10, 5], [6], [13, 1], [4], [8, 3], [14, 2]]
+\textit{group}\ X = [[15, 9, 0], [12, 11, 7], [10, 5], [6], [13, 1], [4], [8, 3], [14, 2]]
 \]
 
-These are useful operations. The string groups can be used to build Radix tree, a data structure support fast text search. The number groups can be used to implement nature merge sort algorithm. We'll introduce them in later chapters.
-
-We can abstract the group condition as a relation $\sim$. It tests whether two consecutive elements $x$, $y$ are generic `equivalent': $x \sim y$. We scan and list and compare two elements each time. If they match, we add both to a group; otherwise, only add $x$ to the group, and use $y$ to initialize another group.
+Both are useful. We can build a Radix tree from string groups, support fast text search (chapter 6). We can implement the nature merge sort algorithm from number groups (chapter 13). Abstract the group condition as a relation $\sim$. It tests whether two consecutive elements $x$, $y$ are `equivalent': $x \sim y$. We scan the list, compare two elements each time. If they are equivalent, then add both to a group; otherwise put to two different ones.
 
 \be
+\resizebox{\linewidth}{!}{\ensuremath{
 \begin{array}{rcl}
-group(\sim,\ \nil) & = & [\nil] \\
-group(\sim,\ [x]) & = & [[x]] \\
-group(\sim,\ x:y:xs) & = & \begin{cases}
-  x \sim y : & (x:ys):yss \\
-  otherwise: & [x]:ys:yss \\
+group\ \sim\ [\ ] & = & [[\ ]] \\
+group\ \sim\ [x] & = & [[x]] \\
+group\ \sim\ (x \cons y \cons xs) & = & \begin{cases}
+  x \sim y : & (x \cons ys) \cons yss, \text{where}\ (ys \cons yss) = group\ \sim\ (y \cons xs) \\
+  \text{otherwise}: & [x] \cons ys \cons yss \\
 \end{cases}
 \end{array}
+}}
 \ee
 
-where $(ys:yss) = group(\sim, xs)$. This algorithm is bound to $O(n)$ time, where $n$ is the length. We can also implement the iterative group algorithm. For the none empty list $L$, we initialize the result groups as $[[x_1]]$, where $x_1$ is the first element. We scan the list from the second one, append it to the last group if the two consecutive elements are `equivalent'; otherwise we start a new group.
+It is bound to $O(n)$ time, where $n$ is the length. For the iterative implementation, if $X$ isn't empty, initialize the result groups as $[[x_1]]$. Scan from the second element, append it to the last group if the two consecutive elements are `equivalent'; otherwise start a new group.
 
 \begin{algorithmic}[1]
-\Function{Group}{$\sim, L$}
-  \If{$L = $ NIL}
-    \State \Return [NIL]
+\Function{Group}{$\sim, X$}
+  \If{$X = $ NIL}
+    \State \Return [[\ ]]
   \EndIf
-  \State $x \gets$ \Call{First}{$L$}
-  \State $L \gets$ \Call{Rest}{$L$}
+  \State $x \gets$ \Call{First}{$X$}
+  \State $X \gets$ \Call{Rest}{$X$}
   \State $g \gets [x]$
   \State $G \gets [g]$
-  \While{$L \neq$ NIL}
-    \State $y \gets$ \Call{First}{$L$}
+  \While{$X \neq$ NIL}
+    \State $y \gets$ \Call{First}{$X$}
     \If{$x \sim y$}
       \State $g \gets $ \Call{Append}{$g, y$}
     \Else
@@ -1434,123 +1378,137 @@ where $(ys:yss) = group(\sim, xs)$. This algorithm is bound to $O(n)$ time, wher
       \State $G \gets$ \Call{Append}{$G, g$}
     \EndIf
     \State $x \gets y$
-    \State $L \gets$ \Call{Next}{$L$}
+    \State $X \gets$ \Call{Next}{$X$}
   \EndWhile
   \State \Return $G$
 \EndFunction
 \end{algorithmic}
 
-However, this program performs in quadratic time if the append isn't optimized with the tail reference. If don't care the order, we can alternatively change append to cons. With the group algorithm defined, we can realize the above 2 cases as below:
-
-\[
-group(=, [m,i,s,s,i,s,s,i,p,p,i]) = [[M], [i], [ss], [i], [ss], [i], [pp], [i]]
-\]
-
-and
-\[
-\begin{array}{l}
-group(\geq,  [15, 9, 0, 12, 11, 7, 10, 5, 6, 13, 1, 4, 8, 3, 14, 2]) \\
-  = [[15, 9, 0], [12, 11, 7], [10, 5], [6], [13, 1], [4], [8, 3], [14, 2]]
-\end{array}
-\]
-
-Another method to implement group is to use the $span$ function. Given a predication, span breaks the list into two parts: the longest sub-list satisfies the condition, and the rest. We can repeatedly apply span to the rest part till it becomes empty. However, the predication passed to span is an unary function. It takes an element and tests it. While in group, the predication is a binary function. It takes two elements and compares. We can use Currying: to pass and fix the first element in the binary predication, then use the Curried function to test the other.
+However, the performance downgrades to quadratic without the tail reference optimization for \textproc{Append}. We can change to \textproc{Cons} if don't care the order. We can define the above 2 examples as $\textit{group}\ (=)\ \text{``Mississippi''}$ and $\textit{group}\ (\geq)\ X$. Alternatively, we can realize grouping with $span$: repeatedly apply span to the rest till it becomes empty. However, span takes an unary function as the predication, while the group needs a binary. We solve it with Currying: pass and fix the first argument.
 
 \be
+\resizebox{\linewidth}{!}{\ensuremath{
 \begin{array}{rcl}
-group(\sim,\ \nil) & = & [\nil] \\
-group(\sim,\ x:xs) & = & (x:A) : group(\sim, B) \\
+group\ \sim\ [\ ] & = & [[\ ]] \\
+group\ \sim\ (x \cons xs) & = & (x \cons as) : group\ \sim\ bs, \text{where}\ (as, bs) = span\ (x \sim)\ xs \\
 \end{array}
+}}
 \ee
 
-Where $(A, B) = span(y \mapsto x \sim y, xs)$ is the span result applied to the rest sub-list. Although this new group function generates the correct result for string case:
-
-\begin{Haskell}
-group (==) ``Mississippi''
-[``m'', ``i'', ``ss'', ``i'', ``ss'', ``i'', ``pp'', ``i'']
-\end{Haskell}
-
-However, it can't group the list of numbers correctly with $\leq$ relation:
-
-\begin{Haskell}
-group (>=) [15, 9, 0, 12, 11, 7, 10, 5, 6, 13, 1, 4, 8, 3, 14, 2]
-[[15,9,0,12,11,7,10,5,6,13,1,4,8,3,14,2]]
-\end{Haskell}
-
-When the first number 15 is used as the left hand of $\geq$, it is the maximum value, hence $span$ ends with putting all elements to $A$, and leaves $B$ empty. It is not a defect, but the correct behavior, because group is defined to put equivalent elements together. To be accurate, the equivalent relation ($\sim$) needs satisfy three things: reflexive, transitive, and symmetric.
+\index{equivalent}
+Although the new function groups string correctly, it can't group numbers to descending lists: $\textit{group}\ (\geq)\ X$ = [[15,9,0,12,11,7,10,5,6,13,1,4,8,3,14,2]]. When put the first number 15 as the left hand of $\geq$, it is the maximum , hence $span$ ends with putting all numbers to $as$ and leaves $bs$ empty. It is not a defect, but the correct behavior. Because group is defined to put equivalent elements together. The equivalent relation ($\sim$) must satisfy three axioms: reflexive, symmetric, and transitive:
 
 \begin{enumerate}
-\item \textbf{Reflexive}. $x \sim x$, any element equals to itself;
-\item \textbf{Transitive}. $x \sim y, y \sim z \Rightarrow x \sim z$, if two elements equal, and one of them equals to another, then all three equal;
-\item \textbf{Symmetric}. $x \sim y \Leftrightarrow y \sim x$, the order of comparing two equal elements doesn't affect the result.
+\item \textbf{Reflexive}. $x \sim x$;
+\item \textbf{Symmetric}. $x \sim y \Leftrightarrow y \sim x$.
+\item \textbf{Transitive}. $x \sim y, y \sim z \Rightarrow x \sim z$;
 \end{enumerate}
 
-When group ``Mississippi'', we use the equal ($=$) operator. It conforms the three rules, and generates the correct result. However, when pass Curried ($\geq$) predication for numbers, it violets both reflexive and symmetric rules, hence generates unexpected result. The second algorithm using span, limits its use case to strictly equality; while the first algorithm does not. It only tests the predication for every two elements matches, which is weaker than equality relation.
+When group ``Mississippi'', the equal ($=$) operator satisfies the three axioms, hence generates the correct result. However, the Curried ($\geq$) as an equivalent relationship, violets both reflexive and symmetric axioms, hence generates unexpected result. The second implementation via $span$, limits its use case to strict equivalence; while the first one does not. It only tests the predication for every two elements matches, which is weaker than equivalence.
 
-\begin{Exercise}
-\Question{Change the $take/drop$ algorithm, such that when $n$ is negative, returns $\nil$ for take, and the whole list for drop.}
-\Question{Implement the in-place imperative $take/drop$ algorithms.}
-\Question{Implement the iterative `take while' and `drop while' algorithms.}
+\begin{Exercise}[label={ex:list-take-drop}]
+\Question{Change the $take/drop$ implementation. When $n$ is negative, returns $[\ ]$ for $take$, and the entire list for $drop$.}
+\Question{Implement the in-place imperative $take/drop$.}
+\Question{Define $sublist$ and $slice$ in Curried Form without $X$ as parameter.}
 \Question{Consider the below $span$ implementation:
 \[
 \begin{array}{rcl}
-span(p,\ \nil) & = & (\nil, \nil) \\
-span(p,\ x:xs) & = & \begin{cases}
-  p(x) : & (x:A, B) \\
-  otherwise : & (A, x:B) \\
+span\ p\ [\ ] & = & ([\ ], [\ ]) \\
+span\ p\ (x \cons xs) & = & \begin{cases}
+  p(x) : & (x:as, bs), \text{where}: (as, bs) = span(p, xs) \\
+  \text{otherwise}: & (as, x:bs) \\
 \end{cases}
 \end{array}
 \]
-where $(A, B) = span(p, xs)$. What is the difference between this one and the algorithm we defined previously?}
+What is the difference here?}
 \end{Exercise}
 
+\begin{Answer}[ref = {ex:list-take-drop}]
+\Question{Change the $take/drop$ implementation. When $n$ is negative, returns $[\ ]$ for $take$, and the entire list for $drop$.
+\begin{Haskell}
+safeTake n [] = []
+safeTake n (x:xs) | n <= 0 = []
+                  | otherwise = x : safeTake (n - 1) xs
+
+safeDrop n [] = []
+safeDrop n (x:xs) | n <= 0 = x:xs
+                  | otherwise = safeDrop (n - 1) xs
+\end{Haskell}
+}
+\Question{Implement the in-place imperative $take/drop$.
+
+We need append to/delete from the tail of array, otherwise, need shift elements. Let the length of array $xs$ be $n$, we implement $take(m, xs)$ by deleting $n - m$ elements from tail. For $drop(m, xs)$, we start from $xs[m]$, move every element $xs[i]$ ahead to $xs[i - m]$. Finally remove $m$ elements from the tail.
+\begin{Bourbaki}
+[K] take(Int m, [K] xs) {
+    Int d = length(xs) - m
+    while d > 0 and xs != [] {
+        pop(xs)
+        d--
+    }
+    return xs
+}
+
+[K] drop(Int m, xs) {
+    if m <= 0 then return xs
+    for Int i = m to length(xs) { xs[i - n] = xs[i] }
+    while m > 0 and xs != [] {
+        pop(xs)
+        m--
+    }
+    return xs
+}
+\end{Bourbaki}
+}
+\Question{Define $sublist$ and $slice$ in Curried Form without $X$ as parameter.
+\begin{Haskell}
+sublist from cnt = take cnt . drop (from - 1)
+
+slice from to = drop (from - 1) . take to
+\end{Haskell}
+}
+\Question{Consider the below $span$ implementation:
+\[
+\begin{array}{rcl}
+span\ p\ [\ ] & = & ([\ ], [\ ]) \\
+span\ p\ (x \cons xs) & = & \begin{cases}
+  p(x) : & (x:as, bs), \text{where}\ (as, bs) = span(p, xs) \\
+  \text{otherwise}: & (as, x:bs) \\
+\end{cases}
+\end{array}
+\]
+What is the difference here?
+
+It separates $xs$ into two: all elements satisfying $p$ and the others: $as = [p(a), a \gets xs]$ and $bs = [not\ p(b), b \gets xs]$. $as$ is not necessarily the longest prefix that satisfies $p$, but the longest sub-sequence satisfying $p$.
+}
+\end{Answer}
+
 \section{Fold}
-\index{fold} \label{sec:fold}
+\label{sec:fold}
+\index{fold} \index{List!foldr} \index{List!fold from right}
 
-We've seen most list algorithms share some common structure. This is not by chance. Such commonality is rooted from the recursive nature of list. We can abstract the list algorithms to a higher level concept, fold\footnote{also known as reduce}, which is essentially the initial algebra of all list related computation\cite{unplugged}.
-
-\subsection{fold right}
-\index{List!foldr} \index{List!fold from right}
-
-Compare $sum$, $product$ and $sort$, we can find the common structure.
+Almost all list algorithms share the common structure. It is not by chance. The commonality is rooted from the recursive nature of list. We can abstract the list algorithm to a high level concept, fold\footnote{also known as reduce}, which is essentially the initial algebra of all list computations\cite{unplugged}. Observe $sum$, $product$, and $sort$ for the common structure: the result for empty list is 0 for sum, 1 for product, and $[\ ]$ for sort; the binary operation that applies to the head and the recursive result. It's plus for sum, multiply for product, and ordered insertion for sort. We abstract the result for empty list as the {\em initial value} $z$ (generic zero), the binary operation as $\oplus$. define:
 
 \be
 \begin{array}{rcl}
-h(\nil) & = & z \\
-h(x:xs) & = & x \oplus h(xs)
+h\ \oplus\ z\ [\ ] & = & z \\
+h\ \oplus\ z\ (x \cons xs) & = & x \oplus (h\ \oplus\ z\ xs) \\
 \end{array}
 \ee
 
-There are two things we can abstract as parameters:
-
-\begin{itemize}
-\item The result for empty list. It is 0 for sum, 1 for product, and $\nil$ for sort.
-\item The binary operation applies to the head and the recursive result. It is plus for sum, multiply for product, and ordered-insertion for sort.
-\end{itemize}
-
-We abstract the result for empty list as the {\em initial value}, denoted as $z$ to mimic the generic zero concept. The binary operation as $\oplus$. The above definition can be then parameterized as:
-
-\be
-\begin{array}{rcl}
-h(\oplus, z,\ \nil) & = & z \\
-h(\oplus, z,\ x:xs) & = & x \oplus h(\oplus, z, xs) \\
-\end{array}
-\ee
-
-Let's feed it a list $L = [x_1, x_2, ..., x_n]$, and expand to see how it behaves like:
+Feed a list $X = [x_1, x_2, ..., x_n]$ and expand:
 
 \[
 \begin{array}{rl}
-   & h(\oplus, z, [x_1, x_2, ..., x_n]) \\
-= & x_1 \oplus h(\oplus, z, [x_2, x_3, ..., x_n]) \\
-= & x_1 \oplus (x_2 \oplus h(\oplus, z, [x_3, ..., x_n])) \\
+   & h\ \oplus\ z\ [x_1, x_2, ..., x_n] \\
+= & x_1 \oplus (h\ \oplus\ z\ [x_2, x_3, ..., x_n]) \\
+= & x_1 \oplus (x_2 \oplus (h\ \oplus\ z\ [x_3, ..., x_n])) \\
   & ... \\
-= & x_1 \oplus (x_2 \oplus (... (x_n \oplus h(\oplus, z, \nil))...)) \\
+= & x_1 \oplus (x_2 \oplus (... (x_n \oplus (h\ \oplus\ z\ [\ ]))...)) \\
 = & x_1 \oplus (x_2 \oplus (... (x_n \oplus z)...))
 \end{array}
 \]
 
-We need add the parentheses, because the computation starts from the right-most ($x_n \oplus z$). It repeatedly folds to left towards $x_1$. This is quite similar to a fold-fan in figure \ref{fig:fold-fan}. Fold-fan is made of bamboo and paper. Multiple frames stack together with an axis at one end. The arc shape paper is fully expanded by these frames; We can close the fan by folding the paper. It ends up as a stick.
+The parentheses are necessary, because the computation starts from the right-most ($x_n \oplus z$), repeatedly folds left towards $x_1$. This is quite similar to a fold-fan in \cref{fig:fold-fan}. Fold-fan is made of bamboo and paper. Multiple frames stack together with an axis at one end. The arc shape paper is fully expanded by these frames; We can close the fan by folding the paper. It ends up as a stick.
 
 \begin{figure}[htbp]
   \centering
@@ -1559,68 +1517,62 @@ We need add the parentheses, because the computation starts from the right-most 
   \label{fig:fold-fan}
 \end{figure}
 
-We can consider the fold-fan as a list of bamboo frames. The binary operation is to fold a frame to the top of the stack. The initial stack is empty. To fold the fan, we start from one end, repeatedly apply the binary operation, till all the frames are stacked. The sum and product algorithms do the same thing like folding fan.
+Consider the fold-fan as a list of bamboo frames. The binary operation is to fold a frame to the top of the stack (initialized empty). To fold the fan, start from one end, repeatedly apply the binary operation, till all the frames are stacked. The sum and product algorithms do the same thing essentially.
 
 \[
-\begin{array}{rl}
-sum([1, 2, 3, 4, 5 ]) & = 1 + (2 + (3 + (4 + 5))) \\
-         & = 1 + (2 + (3 + 9)) \\
-         & = 1 + (2 + 12) \\
-         & = 1 + 14 \\
-         & = 15
+\resizebox{\linewidth}{!}{\ensuremath{
+\begin{array}{cc}
+  \begin{array}{rl}
+  sum\ [1, 2, 3, 4, 5 ] & = 1 + (2 + (3 + (4 + 5))) \\
+           & = 1 + (2 + (3 + 9)) \\
+           & = 1 + (2 + 12) \\
+           & = 1 + 14 \\
+           & = 15
+  \end{array}
+&
+  \begin{array}{rl}
+  product\ [1, 2, 3, 4, 5 ] & = 1 \times (2 \times (3 \times (4 \times 5))) \\
+           & = 1 \times (2 \times (3 \times 20)) \\
+           & = 1 \times (2 \times 60) \\
+           & = 1 \times 120 \\
+           & = 120
+  \end{array}
 \end{array}
+}}
 \]
 
-\[
-\begin{array}{rl}
-product([1, 2, 3, 4, 5 ]) & = 1 \times (2 \times (3 \times (4 \times 5))) \\
-         & = 1 \times (2 \times (3 \times 20)) \\
-         & = 1 \times (2 \times 60) \\
-         & = 1 \times 120 \\
-         & = 120
-\end{array}
-\]
-
-We name this kind of process fold. Particularly, since the computation starts from the right end, we denote it $foldr$:
+We name this kind of processes {\em fold}. Particularly, since the computation is from right, we denote it as $foldr$:
 
 \be
 \begin{array}{rcl}
-foldr(f, z,\ \nil) & = & z \\
-foldr(f, z,\ x:xs) & = & f(x, foldr(f, z, xs)) \\
+foldr\ f\ z\ [\ ] & = & z \\
+foldr\ f\ z\ (x \cons xs) & = & f\ x\ (foldr\ f\ z\ xs) \\
 \end{array}
 \ee
 
-We can define sum and product with $foldr$ as below:
+Define sum and product with $foldr$ as below:
 
 \be
 \begin{array}{rl}
 \sum_{i=1}^{n} x_i & = x_1 + (x_2 + (x_3 + ... + (x_{n-1} + x_{n}))...) \\
-             & = foldr(+, 0, [x_1, x_2, ..., x_n])
+             & = foldr\ (+)\ 0\ [x_1, x_2, ..., x_n]
 \end{array}
 \ee
 
 \be
 \begin{array}{rl}
 \prod_{i=1}^{n} x_i & = x_1 \times (x_2 \times (x_3 \times ... + (x_{n-1} \times x_{n}))...) \\
-         & = foldr(\times, 1, [x_1, x_2, ..., x_n])
+         & = foldr\ (\times)\ 1\ [x_1, x_2, ..., x_n]
 \end{array}
 \ee
 
-Or in Curried form: $sum = foldr(+, 0)$, $product = foldr(\times, 1)$. We can also define the insertion sort with $foldr$ as:
-
-\be
-sort = foldr(insert, \nil)
-\ee
-
-\subsection{fold left}
 \index{List!foldl} \index{List!fold from left}
-
-We can convert $foldr$ to tail call. It generates the same result, but computes from left to right. For this reason, we define it as $foldl$:
+Or in Curried form: $sum = foldr\ (+)\ 0$, $product = foldr\ (\times)\ 1$, for insertion-sort, it is: $sort = foldr\ insert\ [\ ]$. Convert $foldr$ to tail recursive. It generates the result from left. denote it as $foldl$:
 
 \be
 \begin{array}{rcl}
-foldl(f, z,\ \nil) & = & z \\
-foldl(f, z,\ x:xs) & = & foldl(f, f(z, x), xs) \\
+foldl\ f\ z\ [\ ] & = & z \\
+foldl\ f\ z\ (x \cons xs) & = & foldl\ f\ (f\ z\ x)\ xs \\
 \end{array}
 \ee
 
@@ -1628,186 +1580,172 @@ Use $sum$ for example, we can see how the computation is expanded from left to r
 
 \[
 \begin{array}{rl}
- & foldl(+, 0, [1, 2, 3, 4, 5]) \\
-= & foldl(+, 0 + 1, [2, 3, 4, 5 ]) \\
-= & foldl(+, (0 + 1) + 2, [3, 4, 5]) \\
-= & foldl(+, ((0 + 1) + 2) + 3, [4, 5]) \\
-= & foldl(+, (((0 + 1) + 2) + 3) + 4, [5]) \\
-= & foldl(+, ((((0 + 1) + 2 + 3) + 4 + 5, \nil) \\
+ & foldl\ (+)\ 0\ [1, 2, 3, 4, 5] \\
+= & foldl\ (+)\ (0 + 1)\ [2, 3, 4, 5 ] \\
+= & foldl\ (+)\ (0 + 1 + 2)\ [3, 4, 5] \\
+= & foldl\ (+)\ (0 + 1 + 2 + 3)\ [4, 5] \\
+= & foldl\ (+)\ (0 + 1 + 2 + 3 + 4)\ [5] \\
+= & foldl\ (+)\ (0 + 1 + 2 + 3 + 4 + 5)\ [\ ] \\
 = & 0 + 1 + 2 + 3 + 4 + 5 \\
 \end{array}
 \]
 
-Here we delay the evaluation of $f(z, x)$ in every step. This is the behavior for lazy-evaluation. Otherwise, they will be evaluated in sequence of $[1, 3, 6, 10, 15]$ in each call. Generally, we can expand $foldl$ as:
+The evaluation of $f(z, x)$ is delayed in every step (the lazy evaluation). Otherwise, they will be evaluated in sequence of $[1, 3, 6, 10, 15]$ in each call. Generally, we can expand $foldl$ as (infix notation):
 
 \be
-foldl(f, z, [x_1, x_2, ..., x_n]) = f( f (...( f ( f(z, x_1), x_2), ..., x_n)
-\ee
-
-Or express as infix:
-
-\be
-foldl(\oplus, z, [x_1, x_2, ..., x_n]) = z \oplus x_1 \oplus x_2 \oplus ... \oplus x_n
+foldl\ (\oplus)\ z\ [x_1, x_2, ..., x_n] = z \oplus x_1 \oplus x_2 \oplus ... \oplus x_n
 \ee
 
 \index{reduce}
-$foldl$ is tail recursive. We can implement it with loops. We initialize the result as $z$, then apply the binary operation on top of it with every element. It is typically called \textproc{Reduce} in most imperative environment.
+$foldl$ is tail recursive. We can convert it to loops, called \textproc{Reduce}.
 
 \begin{algorithmic}[1]
-\Function{Reduce}{$f, z, L$}
-  \While{$L \neq$ NIL}
-    \State $z \gets f(z, $ \Call{First}{$L$} $)$
-    \State $L \gets$ \Call{Rest}{$L$}
+\Function{Reduce}{$f, z, X$}
+  \While{$X \neq$ NIL}
+    \State $z \gets f(z, $ \Call{First}{$X$} $)$
+    \State $X \gets$ \Call{Rest}{$X$}
   \EndWhile
   \State \Return $z$
 \EndFunction
 \end{algorithmic}
 
-Both $foldr$ and $foldl$ have their own suitable use cases. They are not always exchangeable. For example, some container only allows to add element in one end (like stack). We can define a function $\textit{fromList}$ to build such a container from a list (in Curried form):
+Both $foldr$ and $foldl$ have their own suitable use cases. They are not necessarily exchangeable. For example, some container only allows to add element to one end (like stack). We can define a function $\textit{fromList}$ to build such a container from a list (in Curried form):
 
 \[
-\textit{fromList} = foldr(add, empty)
+\textit{fromList} = foldr\ add\ \nil
 \]
 
-Where $empty$ is the empty container. The singly linked-list is such a container. It performs well when add element to the head, but poorly when append to tail. $foldr$ is a natural choice when duplicate a list while keep the order. But $foldl$ will generate a reversed list. As a workaround, to implement the iterative reducing from right, we can first reverse the list, then reduce it:
+Where $\nil$ is the empty container. The singly linked-list is such a container. It performs well (constant time) when add element to the head, but need linear time when append to tail. $foldr$ is a natural choice when duplicate a list while keeping the order. But $foldl$ will generate a reversed list. As a workaround, we first reverse the list, then reduce it:
 
 \begin{algorithmic}[1]
-\Function{Reduce-Right}{$f, z, L$}
-  \State \Return \textproc{Reduce}($f, z$, \Call{Reverse}{$L$})
+\Function{Reduce-Right}{$f, z, X$}
+  \State \Return \textproc{Reduce}($f, z$, \Call{Reverse}{$X$})
 \EndFunction
 \end{algorithmic}
 
-One may think $foldl$ should be the preferred one as it is optimized with tail call, hence fits for both functional and imperative settings. It is also the online algorithm that always holds the result so far. However, $foldr$ plays a critical role when handling infinite list (modeled as stream) with lazy evaluation. For example, below program wraps every natural number to a singleton list, and returns the first 10:
+One may prefer $foldl$ as it is tail recursive, fits for both functional and imperative settings as an online algorithm. However, $foldr$ plays a critical role when handling infinite list (modeled as stream) with lazy evaluation. For example, below program wraps every natural number to a singleton list, and returns the first 10:
 
 \[
 \begin{array}{l}
-take(10, foldr((x, xs) \mapsto [x]:xs, \nil, [1, 2, ...]) \\
+take\ 10\ (foldr\ (x\ xs \mapsto [x] \cons xs)\ [\ ]\ [1, 2, ...]) \\
 \Rightarrow [[1], [2], [3], [4], [5], [6], [7], [8], [9], [10]]
 \end{array}
 \]
 
-It does not work with $foldl$ because the outer most evaluation never ends. We use a unified notation $fold$ when either left or right works. In this book, we also use $fold_l$ and $fold_r$ to emphasis folding over the direction. Although this chapter is about list, the fold concept is generic. It can be applied to other algebraic structures. We can fold a tree (2.6 in \cite{unplugged}), a queue, and many other things as long as they satisfy the following 2 criteria:
+It does not work with $foldl$ or the evaluation never ends. We use a unified notation $fold$ when both fold left and right work. We also use $fold_l$ and $fold_r$ to indicate direction doesn't matter. Although this chapter is about list, the fold concept is generic, applies to other algebraic structures. We can fold a tree (section 2.6 in \cite{unplugged}), a queue, and many other objects as long as the following 2 things are defined: (1) empty (for example the empty tree); (2) decomposed recursive structure (like to decompose a tree into sub-trees and a key). People abstract them further with concepts like foldable, monoid, and traversable.
 
-\begin{itemize}
-\item The empty is defined (like the empty tree);
-\item We can decompose the recursive structure (like decompose tree into sub-trees and key).
-\end{itemize}
+For example, let us implement the $n$-lights puzzle with $fold$ and $map$. In the brute-force solution, we create a list of pairs. Each pair $(i, s)$ has a light number $i$, and on/off state $s$. For every round $j$, switch the $i$-th light when $j | i$. Define this process with $fold$:
 
-People abstract them further with concepts like foldable, monoid, and traversable.
+\[
+foldr\ step\ [(1, 0), (2, 0), ..., (n, 0)]\ [1, 2, ..., n]
+\]
 
-\begin{Exercise}
-\Question{To define insertion-sort with $foldr$, we designe the insert function as $insert(x, L)$, such that it can be expressed as $sort = foldr(insert,\nil)$. The type for $foldr$ is:
+All lights are off at the beginning. We fold the list of round 1 to $n$. Function $step$ takes two parameters: the round number $i$, and the list of pairs: $step\ i\ L\ = map\ (switch\ i)\ L$. The result of $foldr$ is the pairs of light number and the final on/off state. We extract the state out through $map$, and count the number with $sum$:
+
+\be
+sum\ (map\ snd\ (foldr\ step\ [(1, 0), (2, 0), ..., (n, 0)]\ [1, 2, ..., n]))
+\ee
+
+\index{List!concats}
+What if we $fold$ a list of lists with ``$\doubleplus$'' (\cref{eq:concat})? It concatenates them to a list, just like $sum$ to numbers.
+
+\be
+concat = fold_r\ (\doubleplus)\ [\ ]
+\ee
+
+For example: $concat\ [[1], [2, 3, 4], [5, 6, 7, 8, 9]] \Rightarrow [1, 2, 3, 4, 5, 6, 7, 8, 9]$.
+
+\begin{Exercise}[label={ex:list-fold}]
+\Question{To define insertion-sort with $foldr$, we design the insert function as $insert\ x\ X$, and sort as $sort = foldr\ insert\ [\ ]$. The type for $foldr$ is:
 \[
 foldr :: (A \to B \to B) \to B \to [A] \to B
 \]
-Where its first parameter $f$ has the type $A \to B \to B$, the initial value $z$ has the type $B$. It folds on a list of $A$, and builds the result of $B$. How to define the insertion-sort with $foldl$? What is the type signature of $foldl$?}
+Where its first parameter $f$ has the type of $A \to B \to B$, the initial value $z$ has the type $B$. It folds a list of $A$, and builds the result of $B$. How to define the insertion-sort with $foldl$? What is the type of $foldl$?}
+\Question{What's the performance of $concat$? Design a linear time $concat$ algorithm.}
+\Question{Define $map$ in $foldr$.}
 \end{Exercise}
 
-\subsection{example}
-
-As an example, let's see how to implement the $n$-lights puzzle with $fold$ and $map$. In the brute-force solution, we create a list of pairs. Each pair $(i, s)$ has a number $i$, and on/off state $s$. Every round $j$, we scan the lights, toggle the $i$-th switch when the $j$ divides the $i$. We can define this process with $fold$:
-
+\begin{Answer}[ref = {ex:list-fold}]
+\Question{To define insertion-sort with $foldr$, we design the insert function as $insert\ x\ X$, and sort as $sort = foldr\ insert\ [\ ]$. The type for $foldr$ is:
 \[
-fold_r(step, [(1, 0), (2, 0), ..., (n, 0)], [1, 2, ..., n])
+foldr :: (A \to B \to B) \to B \to [A] \to B
+\]
+Where its first parameter $f$ has the type of $A \to B \to B$, the initial value $z$ has the type $B$. It folds a list of $A$, and builds the result of $B$. How to define the insertion-sort with $foldl$? What is the type of $foldl$?
+
+\vspace{3mm}
+
+$foldl$ has the type of $foldl :: (B \to A \to B) \to B \to [A] \to B$. We need swap the arguments of insert for $foldl$:
+\[
+sort = foldl\ (xs\ x \mapsto insert\ x\ xs)\ [\ ]
 \]
 
-As the initial state, all lights are off. We fold on the list of round numbers from 1 to $n$. Function $step$ takes two parameters: the round number $i$, and the list of pairs. It performs switching through $map$:
-
-\[
-fold_r((i, L) \mapsto map(switch(i), L), [(1, 0), (2, 0), ..., (n, 0)], [1, 2, ..., n])
-\]
-
-The $fold_r$ result is the pairs of final on/off state, we next extract the state from each through $map$, and count the number with $sum$:
-
+Or define a $flip$ function:
 \be
-\begin{array}{rl}
-sum(map(snd, & fold_r((i, L) \mapsto \\
- & map(switch(i), L), [(1, 0), (2, 0), ..., (n, 0)], [1, 2, ..., n])))
-\end{array}
+flip\ f\ x\ y = f\ y\ x
 \ee
 
-\subsubsection{concatenate}
-\index{List!concats}
-What if we apply $fold$ on ``$\doubleplus$'' (section \ref{concat}) for a list of lists? It concatenates them to a long list, just like $sum$ to numbers.
+Then define the insertion sort as: $sort = foldl\ (flip\ insert)\ [\ ]$
+}
+\Question{What's the performance of $concat$? Design a linear time $concat$ algorithm.
 
+The performance varies when define $concat$ with $foldl$ and $foldr$. $as \doubleplus bs$ takes $O(m)$ time, where $m = |as|$. When using $foldl$ for $xs_1 \doubleplus xs_2 \doubleplus ... \doubleplus xs_n$, $as$ gets longer and longer, the performance is $O(m_1 + (m_1 + m_2) + ... + \sum_1^{n-1} m_i)$. While using $foldr$ for $xs_1 \doubleplus (xs_2 \doubleplus (... \doubleplus xs_n)...)$, the length of $as$ doesn't keep increasing, but is the length of every $xs_i$. The performance is $O(m_{n-1} + ... + m_2 + m_1)$, bound to linear time. We can expand its definition:
+
+\begin{Haskell}
+concat [] = []
+concat ([]:xss) = concat xss
+concat ((x:xs):xss) = x : concat (xs:xss)
+\end{Haskell}
+}
+\Question{Define $map$ in $foldr$.
 \be
-concat = fold_r(\doubleplus, \nil)
+map\ f = foldr\ (x\ xs \mapsto (f\ x) \cons xs)\ [\ ]
 \ee
-
-This is in Curried form. Its usage is as:
-
-\[
-\begin{array}{l}
-concat([[1], [2, 3, 4], [5, 6, 7, 8, 9]])
-\Rightarrow [1, 2, 3, 4, 5, 6, 7, 8, 9]
-\end{array}
-\]
-
-\begin{Exercise}
-\Question{ What's the performance of $concat$?}
-\Question{Design a linear time $concat$ algorithm}
-\Question{Define $map$ in $foldr$}
-\end{Exercise}
+}
+\end{Answer}
 
 \section{Search and filter}
 
-Search and filter are generic concepts apply to a wide range of things. For list, it often takes linear time to find the result, as we need traverse in most cases.
-
-\subsection{Exist}
 \index{List!elem} \index{List!existence testing}
-
-Given some $a$ of type $A$, and a list of $A$, how to test if $x$ is in the list? The idea is to compare every element in the list with $a$, until either they are equal, or reach to the end:
-
-\begin{itemize}
-\item If the list is empty, then $a$ does not exist;
-\item If the first element equals to $a$, then it exists;
-\item Otherwise, recursively test if $a$ exists in the rest sub-list.
-\end{itemize}
+Search and filter are generic concepts for a wide range of things. For list, it often takes linear time to scan and find the result. First, consider how to test if $x$ is in list $X$? We compare every element with $x$, until either equal or reach to the end:
 
 \be
 \begin{array}{rcl}
-a \in \nil & = & False \\
-a \in (b:bs) & = & \begin{cases}
+a \in [\ ] & = & False \\
+a \in (b \cons bs) & = & \begin{cases}
   b = a : & True \\
   b \neq a : & a \in bs \\
   \end{cases}
 \end{array}
 \ee
 
-This algorithm is also called $elem$. It bounds to $O(n)$ where $n$ is the length. If the list is ordered (ascending for example), one may want to improve the algorithm to logarithm time with the idea of divide and conquer. However, list does not support random access, we can't apply binary search. See chapter 3 for details.
-
-\subsection{Look up}
+The existence check is also called $elem$. The performance is $O(n)$. We can not improve it to $O(\lg n)$ with binary search directly even for ordered list. This is because list does not support constant time random access (chapter 3). Let's extend $elem$. In the $n$-lights puzzle, we use a list of pairs $[(k, v)]$. Every pair contains a key and a value. Such list is called `associate list' (abbrev. assoc list). We can lookup the value with a key.
 \index{List!lookup}
-Let's extend $elem$ a bit. In the $n$-lights puzzle, we use a list of pairs $[(k, v)]$. Every pair contains a key and a value. This kind of list is called `associate list' (or assoc list). If want to look up a given value in such list, we need extract some part (the value) for comparison.
 
 \be
 \begin{array}{rcl}
-lookup(x, \nil) & = & Nothing \\
-lookup(x, (k, v):kvs) & = & \begin{cases}
-  v = x: & Just\ (k, v) \\
-  v \neq x: & lookup(x, kvs) \\
+lookup\ x\ [\ ] & = & \textit{Nothing} \\
+lookup\ x\ ((k, v) \cons kvs) & = & \begin{cases}
+  k = x: & Just\ (k, v) \\
+  k \neq x: & lookup\ x\ kvs \\
   \end{cases}
 \end{array}
 \ee
 
-Different from $elem$, we do not return true/false. Instead, we want to return the pair of key-value when find. However, it is not guaranteed the value always exists. We use an algebraic type called `Maybe'. A type of $\mathbf{Maybe}\ A$ has two different kinds of value. It maybe some $a$ in $A$ of nothing. Denoted as $Just\ a$ or $Nothing$. This is the way to deal with null reference issues(4.2.2 in \cite{unplugged}).
-
-\subsection{find and filter}
+Different from $elem$, we want to find the corresponding value besides the existence of key $x$. However, it is not guaranteed the value always exists. We use the algebraic type class `Maybe'. A type of $\mathbf{Maybe}\ A$ has two kinds of value. It may be some $a$ in $A$ or nothing. Denoted as $Just\ a$ and \textit{Nothing} respectively. This is a way to deal with null reference\footnote{Similar to \texttt{Optional<A>} in some environments.} (4.2.2 in \cite{unplugged}). We can make \textit{lookup} generic, to find the element that satisfies a given predicate:
 \index{List!find} \index{List!filter}
 
-We can make `look up' more generic. Instead of only comparing if the element equals to the given value, we can abstract to find the element that satisfies a specific predicate:
-
 \be
 \begin{array}{rcl}
-find(p,\ \nil) & = & Nothing \\
-find(p,\ (x:xs)) & = & \begin{cases}
+find\ p\ [\ ] & = & \textit{Nothing} \\
+find\ p\ (x \cons xs) & = & \begin{cases}
   p(x) : & Just\ x \\
-  otherwise: & find(p, xs) \\
+  \text{otherwise}: & find\ p\ xs \\
   \end{cases}
 \end{array}
 \ee
 
-Although there can be multiple elements match, the $find$ algorithm picks the first. We can expand it to find all elements. It is often called $filter$ as demonstrated in figure \ref{fig:filter}.
+\label{sec:list-filter}
+Although there can be multiple elements satisfying $p$, the $find$ function picks the first. We can expand to find all, which is called $filter$ as shown in \cref{fig:filter}. Define (ZF expression): $filter\ p\ X = [x | x \gets X, p(x)]$. We can use logic and to chain multiple filters, as: $filter\ (p_1 \land p_2 \land \cdots)\ X = [x | x \gets X,\ p_1(x), p_2(x), \cdots]$\footnote{We may use the simplified notation: $[x \gets X, p_1(x), p_2(x), ...]$, or even $[p_1(x), p_2(x), ...]$ when context is clear}.
 
 \begin{figure}[htbp]
    \centering
@@ -1822,97 +1760,80 @@ Although there can be multiple elements match, the $find$ algorithm picks the fi
    \label{fig:filter}
 \end{figure}
 
-We can define it in ZF expression:
-
-\be
-filter(p, X) = [x_i | x_i \in X, p(x_i)]
-\ee
-
-Different from $find$, when there is no element satisfies the predicate, $filter$ returns the empty list. It scans to examine every element one by one:
+Different from $find$, \textit{filter} returns the empty list instead of \textit{Nothing} when no element satisfies the predicate.
 
 \be
 \begin{array}{rcl}
-filter(p,\ \nil) & = & \nil \\
-filter(p,\ x:xs) & = & \begin{cases}
-  p(x): & x : filter(p, xs) \\
-  otherwise: & filter(p, xs) \\
+filter\ p\ [\ ] & = & [\ ] \\
+filter\ p\ (x \cons xs) & = & \begin{cases}
+  p(x): & x : filter\ p\ xs \\
+  \text{otherwise}: & filter\ p\ xs \\
   \end{cases}
 \end{array}
 \ee
 
-This definition builds the result from right to left. For iterative implementation, if build the result with $append$, it will degrade to $O(n^2)$.
+This definition builds the result from right. For iterative implementation, the performance will drop to $O(n^2)$ with \textproc{Append}. If change to \textproc{Cons}, then the order is reversed. We need further reverse it back in linear time (see the exercise).
 
 \begin{algorithmic}[1]
-\Function{Filter}{$p, L$}
-  \State $L' \gets$ NIL
-  \While{$L \neq$ NIL}
-    \If{$p$(\Call{First}{$L$})}
-      \State $L' \gets$ \textproc{Append}($L'$, \Call{First}{$L$}) \Comment{Linear time}
+\Function{Filter}{$p, X$}
+  \State $X' \gets$ NIL
+  \While{$X \neq$ NIL}
+    \If{$p$(\Call{First}{$X$})}
+      \State $X' \gets$ \textproc{Append}($X'$, \Call{First}{$X$}) \Comment{Linear time}
     \EndIf
-    \State $L \gets$ \Call{Rest}{$L$}
+    \State $L \gets$ \Call{Rest}{$X$}
   \EndWhile
 \EndFunction
 \end{algorithmic}
 
-The right way is to use $cons$ instead, however, it builds the result in the reversed order. We can further reverse it within linear time (see the exercise). The nature to build result from right indicates that we can define filter in $foldr$. We need define a function $f$ to test an element against the predicate, if OK, prepend to the result:
+The nature to build result from right reminds us $foldr$. Define $f$ to test an element against the predicate, and prepend it to the result: $f\ p\ x\ as\ = \textbf{if}\ p\ x\ \textbf{then}\ x \cons as\ \textbf{else}\ as$. Use its Curried form to define $filter$:
 
 \be
-f(x, A) = \begin{cases}
-  p(x): & x : A \\
-  otherwise: & A \\
-  \end{cases}
-\ee
-
-We also need pass the predicate $p$ to $f$. There are actually 3 parameters as $f(p, x, A)$. Filter is defined in $foldr$ with a Curried form of $f$:
-
-\be
-filter(p) = foldr((x, A) \mapsto f(p, x, A), \nil)
+filter\ p = foldr\ (x\ as \mapsto f\ p\ x\ as)\ [\ ]
 \ee
 
 We can further simplify it (called $\eta$-conversion\cite{slpj-book-1987}) as:
 
 \be
-filter(p) = foldr(f(p), \nil)
+filter\ p = foldr\ (f\ p)\ [\ ]
 \ee
 
-Filter is also a generic concept not only limit to list. We can apply a predicate on any traversable structures to extract the result.
+Filter is a generic concept not only limit to list. We can apply a predicate to any traversable structure to extract things.
 
-\subsection{Match}
-\index{List!matching} \index{List!prefix}
-\index{List!suffix} \index{List!infix}
+\index{List!matching} \index{List!prefix} \index{List!suffix} \index{List!infix}
 
-Match is to find a pattern among some structure. Even if we limit to list and string, there are still too many things to cover. We have dedicated chapters about string matching. This section deals with the problem, that given a list $A$, and test if it exits in another list $B$. There are two special cases: to test if $A$ is prefix or suffix of $B$. The $span$ algorithm in (\ref{eq:span}) actually finds a prefix under a certain condition. We can do similar things: to compare each element between $A$ and $B$ from left till meet any different one or reach the end of either list. Define $A \subseteq B$ if $A$ is prefix of $B$:
+Match is to find a pattern from some structure. Even if limit to list and string, there are still too many things to cover (chapter 14). The very basic problem is to test whether list $as$ exits in $bs$ as a sub-list. There are two special cases: to test if $as$ is prefix or suffix of $bs$. The $span$ function actually finds the longest prefix under a given predicate. Similarly, we can compare each element between $as$ and $bs$. Define $as \subseteq bs$ if $as$ is a prefix of $bs$:
 
 \be
 \begin{array}{rcl}
-\nil \subseteq B & = & True \\
-(a:as) \subseteq \nil & = & False \\
-(a:as) \subseteq (b:bs) & = & \begin{cases}
+[\ ] \subseteq bs & = & True \\
+(a \cons as) \subseteq [\ ] & = & False \\
+(a \cons as) \subseteq (b \cons bs) & = & \begin{cases}
   a \neq b: & False \\
   a = b: & as \subseteq bs \\
   \end{cases}
 \end{array}
 \ee
 
-Prefix testing takes linear time as it scans the lists. However, we can not do suffix testing in this way because it is hard to start from the aligned right ends, and scan backwards for lists. This is different from array. Alternatively, we can reverse both lists in linear time, hence change the problem to prefix testing:
+Prefix testing takes linear time to scan the two lists. However, we can not do suffix testing in this way because it is expensive to align the right ends and scan backwards. This is different from array. Alternatively, we can reverse both lists in linear time, convert the problem to prefix testing:
 
 \be
-A \supseteq B = reverse(A) \subseteq reverse(B)
+as \supseteq bs = reverse(as) \subseteq reverse(bs)
 \ee
 
-With $\subseteq$ defined, we can test if a list is the sub-list of another one. We call it infix testing. The idea is to scan the target list, and repeatedly applying the prefix testing:
+With $\subseteq$, we can test if a list is the sub-list of another one (infix testing). Define empty is infix of any list, we repeatedly apply prefix testing while traverse $bs$:
 
 \be
 \begin{array}{rcl}
-infix?(a:as,\ \nil) & = & False \\
-infix?(A,\ B) & = & \begin{cases}
-  A \subseteq B: & True \\
-  otherwise: & infix?(A, B') \\
+\textit{infix}?\ (a \cons as)\ [\ ] & = & False \\
+\textit{infix}?\ as\ (b \cons bs) & = & \begin{cases}
+  as \subseteq (b \cons bs) : & True \\
+  \text{otherwise}: & \textit{infix}?\ as\ bs \\
   \end{cases}
 \end{array}
 \ee
 
-For the edge case that $A$ is empty, we define empty is infix of any list. Because $\nil \subseteq B$ is always true, it gives the right result. It also evaluates $infix?(\nil, \nil)$ correctly. Below is the corresponding iterative implementation:
+Below is the iterative implementation:
 
 \begin{algorithmic}[1]
 \Function{Is-Infix}{$A, B$}
@@ -1930,62 +1851,74 @@ For the edge case that $A$ is empty, we define empty is infix of any list. Becau
 \EndFunction
 \end{algorithmic}
 
-Because prefix testing runs in linear time, and it is called in the loop of scan. This algorithm is bound to $O(nm)$, where $m, n$ are the length of the two lists respectively. It is an interesting problem to improve this `position by position' scan algorithm to linear time, even when we apply it to arrays. Chapter 13 introduces some smart methods, like the Knuth-Morris-Pratt (KMP) algorithm and Boyer-Moore algorithm. Appendix C introduces another method called suffix-tree.
-
-In a symmetric way, we can enumerate all suffixes of $B$, and check if $A$ is prefix of any of them:
+Because prefix testing runs in linear time, and is called in every loop. This implementation is bound to $O(m n)$ time, where $m, n$ are the length of the two lists. Symmetrically, we can enumerate all suffixes of $B$, and test if $A$ is prefix of any:
 
 \be
-infix?(A, B) = \exists S \in \textit{suffixes}(B), A \subseteq S
+\textit{infix}?\ A\ B = \exists S \in \textit{suffixes}\ B, A \subseteq S
 \ee
 
-This can be implemented with list comprehension as below example Haskell program:
+Below example program implements infix testing with list comprehension:
 
 \begin{Haskell}
-isInfixOf a b = (not . null) [ s | s <- tails(b), a `isPrefixOf` s]
+isInfixOf a b = (not . null) [s | s <- tails b, a `isPrefixOf` s]
 \end{Haskell}
 
-Where function \texttt{isPrefixOf} does the prefixing testing, \texttt{tails} generates all suffixes of a given list. We left its implementation as an exercise.
+Where \texttt{isPrefixOf} does the prefixing testing, \texttt{tails} generates all suffixes of a given list (exercise of this section).
 
-\begin{Exercise}
-\Question{Implement the linear time existence testing algorithm.}
-\Question{Implement the iterative look up algorithm.}
-\Question{Implement the linear time filter algorithm through $reverse$.}
-\Question{Implement the iterative prefix testing algorithm.}
-\Question{Implement the algorithm to enumerate all suffixes of a list.}
+\begin{Exercise}[label={ex:list-query}]
+\Question{Implement the linear time filter algorithm through \textit{reverse}.}
+\Question{Enumerate all suffixes of a list.}\label{ex:list-tails}
 \end{Exercise}
+
+\begin{Answer}[ref = {ex:list-query}]
+\Question{Implement the linear time filter algorithm through \textit{reverse}.
+\begin{Bourbaki}
+List<K> filterL((K -> Bool) p, List<K> xs) {
+    List<K> ys = null
+    while xs != null {
+        if p(xs.key) then ys = cons(xs.key, ys)
+        xs = xs.next
+    }
+    return reverse(ys)
+}
+\end{Bourbaki}
+}
+
+\Question{Enumerate all suffixes of a list.
+
+Method 1: repeatedly drop the head of $xs$:
+\[
+[xs, tail\ xs, tail\ (tail\ xs), ..., [\ ]]
+\]
+
+Method 2: use pattern matching to drop the head:
+\begin{Haskell}
+tails [] = [[]]
+tails xs@(_:ys) =  xs : tails ys
+\end{Haskell}
+
+Method 3: use $foldr$, start from $[[\ ]]$, add element to right to build the suffixes:
+\begin{Haskell}
+tails = foldr f [[]] where
+  f x xss@(xs:_) = (x:xs) : xss
+\end{Haskell}
+}
+\end{Answer}
 
 \section{zip and unzip}
 \index{List!zip} \index{List!unzip}
 
-The assoc list of paired values is often used as a light weighted dictionary for small set of data. It is easier to build assoc list than tree or heap based dictionary, although the look up performance of assoc list is linear instead of logarithm. In the `$n$-lights' puzzle, we build the assoc list as below:
-
-\[
-map(i \mapsto (i, 0),\ [1, 2, ..., n])
-\]
-
-More often, we need 'zip' two lists to one. We can define a $zip$ function to do that:
+The assoc list is a light weighted dictionary (map) for small data. It is easier than tree or heap based dictionary. But has the overhead of linear time lookup. In the `$n$-lights' puzzle, we build the assoc list as: $map\ (i \mapsto (i, 0))\ [1, 2, ..., n]$. We define a $zip$ function:
 
 \be
 \begin{array}{rcl}
-zip(A,\ \nil) & = & \nil \\
-zip(\nil,\ B) & = & \nil \\
-zip(a:as,\ b:bs) & = & (a, b) : zip(as, bs) \\
+zip\ as\ [\ ] & = & [\ ] \\
+zip\ [\ ]\ bs & = & [\ ] \\
+zip\ (a \cons as)\ (b \cons bs) & = & (a, b) : zip\ as\ bs \\
 \end{array}
 \ee
 
-This algorithm works even the two lists have different length. The result length equals to the shorter one. We can even use it to zip infinite lists (under lazy evaluation if both are infinite), for example\footnote{In Haskell: \texttt{zip (repeat 0) [1..n]}}:
-
-\[
-zip([0, 0, ...], [1, 2, ..., n])
-\]
-
-For a list of words, we can index them with numbers as:
-
-\[
-zip([1, 2, ...], [a, an, another, ...])
-\]
-
-$zip$ build the result from right. We can also define it with $foldr$. It is bound to $O(m)$ time, where $m$ is the length of the shorter list. When implement the iterative $zip$, the performance will drop to quadratic if using $append$, unless with the reference to the tail position.
+This implementation works even the two lists have different lengths. The result has the same length as the shorter one. We can even zip infinite lists (under lazy evaluation), for example\footnote{Or $zip\ (repeat\ 0)\ [1..n]$, where $repeat\ x = x : repeat\ x$.}: $zip\ [0, 0, ...]\ [1, 2, ..., n]$. For a list of words, we can index it as: $zip$ [1, 2, ...]\ [a, an, another, ...]. $zip$ builds the result from right. We can define it with $foldr$. It is bound to $O(m)$ time, where $m$ is the length of the shorter list. When implement the iterative $zip$, the performance will drop to quadratic if using \textproc{Append}, we can use \textproc{Cons} then reverse the result. However, this method can't handle two infinite lists. In imperative settings, we can reuse $A$ to hold the zip result (treat as transform every element to a pair).
 
 \begin{algorithmic}[1]
 \Function{Zip}{$A, B$}
@@ -1999,59 +1932,34 @@ $zip$ build the result from right. We can also define it with $foldr$. It is bou
 \EndFunction
 \end{algorithmic}
 
-To avoid $append$, we can use 'cons' then reverse the result. However, it can not deal with two infinite lists. In imperative settings, we can also re-use $A$ to store the result (treat it as transform a list of elements to a list of pairs).
-
-We can extend to $zip$ multiple lists to one. Some programming libraries provide, \texttt{zip}, \texttt{zip3}, \texttt{zip4}, ..., till \texttt{zip7}. Sometimes, we don't want to build a list of pairs, but apply a combinator function. For example, given a list of unit prices $[1.00, 0.80, 10.05, ...]$ for fruits: apple, orange, banana, ... When customer has a list of quantities, like $[3, 1, 0, ...]$, means this customer, buys 3 apples, 1 orange, 0 banana, ... Below program generates a payment list:
+We can extend to $zip$ multiple lists. Some programming environments provide, \texttt{zip}, \texttt{zip3}, \texttt{zip4}, ... Sometimes, we want to apply a binary function to combine elements, but not just form a pair. For example, given a list of unit prices $[1.00, 0.80, 10.05, ...]$ for fruits: apple, orange, banana, ... and a list of quantities, like $[3, 1, 0, ...]$, meaning, buy 3 apples, 1 orange, 0 banana, ... Below program generates the payment list:
 
 \[
 \begin{array}{rcl}
-pays(U,\ \nil) & = & \nil \\
-pays(\nil,\ Q) & = & \nil \\
-pays(u:us,\ q:qs) & = & (u \cdot q) : pays(us, qs) \\
+pays\ us\ [\ ] & = & [\ ] \\
+pays\ [\ ]\ qs & = & [\ ] \\
+pays\ (u \cons us)\ (q \cons qs) & = & uq : pays\ us\ qs \\
 \end{array}
 \]
 
-It is same as the $zip$ function except uses multiply but not 'cons' to combine elements. We can abstract the combinator as a function $f$, and pass it to $zip$ to build a generic algorithm:
+\label{sec:list-zipwith}
+It has the same structure as $zip$ except using multiply but not `cons'. We can abstract the binary function as $f$:
 
 \be
 \begin{array}{rcl}
-zipWith(f, A,\ \nil) & = & \nil \\
-zipWith(f, \nil,\ B) & = & \nil \\
-zipWith(f, a:as,\ b:bs) & = & f(a, b) : zipWith(f, as, bs) \\
+zipWith\ f\ as\ [\ ] & = & [\ ] \\
+zipWith\ f\ [\ ]\ bs & = & [\ ] \\
+zipWith\ f\ (a \cons as)\ (b \cons bs) & = & (f\ a\ b) : zipWith\ f\ as\ bs \\
 \end{array}
 \ee
 
-Here is an example that defines the inner-product (or dot-product)\cite{wiki-dot-product} through $zipWith$:
+We can define the inner product (or dot product)\cite{wiki-dot-product} as: $A \cdot B = sum\ (zipWith\ (\cdot)\ A\ B)$, or define the infinite Fibonacci sequence with lazy evaluation:
 
 \be
-A \cdot B = sum(zipWith(\cdot, A, B))
+F = 0 : 1 : zipWith\ (+)\ F\ F'
 \ee
 
-$unzip$ is the inverse operation of $zip$. It converts a list of pairs to two separated lists. Below is its definition with $foldr$ in Curried form:
-
-\be
-unzip = foldr((a, b), (A, B) \mapsto (a : A, b : B), (\nil, \nil))
-\ee
-
-We fold from a pair of empty lists, break $a, b$ from the pairs and prepend them to the two intermediate lists respectively. We can also use $fst$ and $snd$ explicitly as:
-
-\[
-(p, P) \mapsto (fst(p) : fst(P), snd(p) : snd(P))
-\]
-
-For the fruits example, suppose the unit price is stored in a assoc list: $U = [(apple, 1.00), (orange, 0.80), (banana, 10.05), ...]$ for lookup, for example $lookup(melon, U)$. The purchase quantity is a assoc list: $Q = [(apple, 3), (orange, 1), (banana, 0), ...]$. How to calculate the total payment? The straight forward way is to extract the unit price and the quantity lists, then compute their inner-product:
-
-\be
-pay = sum(zipWith(\cdot, snd(unzip(U)), snd(unzip(Q))))
-\ee
-
-As an example, let's see how to use $zipWith$ to define infinite Fibonacci numbers with lazy evaluation:
-
-\be
-F = 0 : 1 : zipWith(+, F, F')
-\ee
-
-Where $F$ is the infinite list of Fibonacci numbers, starts from 0 and 1. $F'$ is the rest Fibonacci numbers without the first one. From the third, every Fibonacci number is the sum of numbers from $F$ and $F'$ at the same position. Below example program list the first 15 Fibonacci numbers:
+Let $F$ be the infinite Fibonacci numbers, starts from 0 and 1. $F'$ drops the head. From the third number, every Fibonacci number is the sum of the corresponding numbers from $F$ and $F'$ at the same position. Below example program takes the first 15 Fibonacci numbers:
 
 \begin{Haskell}
 fib = 0 : 1 : zipWith (+) fib (tail fib)
@@ -2060,53 +1968,46 @@ take 15 fib
 [0,1,1,2,3,5,8,13,21,34,55,89,144,233,377]
 \end{Haskell}
 
-$zip$ and $unzip$ are generic. We can expand to $zip$ two trees, where the nodes contain paired elements from both. When traverse a collection of elements, we can also use the generic $zip$ and $unzip$ to track the path, this is a method to mimic the `parent' reference in imperative implementation (last chapter of \cite{learn-haskell}).
+$unzip$ is the inverse of $zip$. It converts a list of pairs to two separated lists. Define it with $foldr$ in Curried form:
 
-\begin{Exercise}
-\Question{Design the iota ($I$) algorithm for below usages:
+\be
+unzip = foldr\ ((a, b)\ (as, bs) \mapsto (a \cons as, b \cons bs))\ ([\ ], [\ ])
+\ee
+
+For the fruits example, given the unit price as an assoc list: $U$ = [(apple, 1.00), (orange, 0.80), (banana, 10.05), ...], the purchased quantity is also an assoc list: $Q$ = [(apple, 3), (orange, 1), (banana, 0), ...]. We extract the unit prices and the quantities, then compute their inner-product:
+
+\be
+pay = sum\ (zipWith\ (\cdot)\ snd(unzip\ U)\ snd(unzip\ Q))
+\ee
+
+$zip$ and $unzip$ are generic. We can expand to $zip$ two trees, where the nodes contain paired elements from both. When traverse a collection of elements, we can also use the generic $zip$ and $unzip$ to track the path. This is a method to mimic the `parent' reference in imperative implementation (last chapter of \cite{learn-haskell}).
+
+List is fundamental to build more complex data structures and algorithms particularly in functional settings. We introduced elementary algorithms to construct, access, update, and transform list; how to search, filter data, and compute with list. Although most programming environments provide pre-defined tools and libraries to support list, we should not simply treat them as black-boxes. Rabhi and Lapalme introduce many functional algorithms about list\cite{algo-fp}. Haskell library provides detailed documentation about basic list algorithms. Bird gives good examples of folding\cite{fp-pearls}, and introduces about the {\em fold fusion law}.
+
+\begin{Exercise}[label={ex:list-others}]
+\Question{Design the iota (the Greek letter $I$) operator for list, below are the use cases:
   \begin{itemize}
   \item $iota(..., n) = [1, 2, 3, ..., n]$;
   \item $iota(m, n) = [m, m + 1, m + 2, ..., n]$, where $m \leq n$;
-  \item $iota(m, m+a, ..., n) = [m, m + a, m + 2a, ..., n]$;
+  \item $iota(m, m+a, ..., n) = [m, m + a, m + 2a, ..., m + ka]$, where $k$ is the maximum integer satisfying $m + ka \leq n$;
   \item $iota(m, m, ...) = repeat(m) = [m, m, m, ...]$;
   \item $iota(m, ...) = [m, m + 1, m + 2, ... ]$.
   \end{itemize}
-  The last two cases are about infinite list. One possible implementation is through streaming and lazy evaluation (\cite{SICP} and \cite{learn-haskell}).}
+}
 
-\Question{Implement the linear time imperative $zip$ algorithm}
+\Question{Implement the linear time imperative $zip$.}
 
-\Question{Define $zip$ with $foldr$.}
+\Question{Define $zip$ with fold (hint: define fold for two lists $foldr2\ f\ z\ xs\ ys$).}
 
-\Question{For the fruits example, suppose the quantity assoc list only contains the items with none-zero quantity. i.e. instead of
-\[
-Q = [(apple, 3), (banana, 0), (orange, 1), ...]
-\]
-but
-\[
-Q = [(apple, 3), (orange, 1), ...]
-\]
-because customer does not buy banana. Design a program to calculate the total payment.}
+\Question{Implement $lastAt$ with $zip$.} % lastAt k xs = (fst . last) $ zip xs  (drop k xs)
 
-\Question{Implement $lastAt$ with $zip$.}
+\Question{Write a program to remove the duplicated elements in a list while maintain the original order. For imperative implementation, the elements should be removed in-place. What is the complexity? How to simplify it with additional data structure?}
 
-\end{Exercise}
+\Question{List can represent decimal non-negative integer. For example 1024 as list is $4 \rightarrow 2 \rightarrow 0 \rightarrow 1$. Generally, $n = d_m...d_2d_1$ can be represented as $d_1 \rightarrow d_2 \rightarrow ... \rightarrow d_m$. Given two numbers $a$, $b$ in list form. Realize arithmetic operations such as add and subtraction.}
 
-\section{Further reading}
-List is the fundamental thing to build more complex data structures and algorithms particularly in functional settings. We introduced elementary algorithms to construct, access, update, and transform list; how to search, filter data, and compute atop list. Although most programming environments provide pre-defined tools and libraries to support list, we should not simply treat them as black-boxes. Rabhi and Lapalme introduce many functional algorithms about list in \cite{algo-fp}. Haskell library provides detailed documentation about basic list algorithms. There are materials provide good examples of folding, especially in \cite{fp-pearls}. It also introduces about the {\em fold fusion law}.
+\Question{In imperative settings, a circular linked-list is corrupted, that some node points back to previous one, as shown in \cref{fig:circular-list}. When traverse, it falls into infinite loops. Design an algorithm to detect if a list is circular. On top of that, improve it to find the node where loop starts (the node being pointed by two precedents).
 
-\begin{Exercise}
-
-\Question{Design algorithm to remove the duplicated elements in a list. For imperative implementation, the elements should be removed in-place. The original element order should be maintained. What is the complexity of this algorithm? How to simplify it with additional data structure?}
-
-\Question{List can represent decimal non-negative integer. For example 1024 as list is $4 \rightarrow 2 \rightarrow 0 \rightarrow 1$. Generally, $n = d_m...d_2d_1$ can be represented as
-$d_1 \rightarrow d_2 \rightarrow ... \rightarrow d_m$. Given two numbers $a$, $b$ in list form. Realize arithmetic operations such as add and subtraction.}
-
-\Question{In imperative settings, a circular linked-list is corrupted, that some node points back to previous one, as shown in figure \ref{fig:circular-list}. When traverse, it falls into infinite loops. Design an algorithm to detect if a list is circular. On top of that, improve it to find the node where loop starts (the node being pointed by two precedents).}
-
-\end{Exercise}
-
-\begin{figure}[htbp]
-\centering
+\begin{center}
 \begin{tikzpicture}[scale=2]
   % trace
   \draw[dashed, very thin] (-2cm, 1cm) -- (0, 1cm);
@@ -2127,11 +2028,381 @@ $d_1 \rightarrow d_2 \rightarrow ... \rightarrow d_m$. Given two numbers $a$, $b
     \draw[thick, ->] (\deg : 1cm) -- +(\rot : 0.2);
   }
 \end{tikzpicture}
-\caption{A circular linked-list}
+\captionof{figure}{A circular linked-list}
 \label{fig:circular-list}
-\end{figure}
+\end{center}
+}
+\end{Exercise}
+
+\begin{Answer}[ref = {ex:list-others}]
+\Question{Design the iota (the Greek letter $I$) operator for list, below are the use cases:
+  \begin{itemize}
+  \item $iota(..., n) = [1, 2, 3, ..., n]$;
+  \item $iota(m, n) = [m, m + 1, m + 2, ..., n]$, where $m \leq n$;
+  \item $iota(m, m+a, ..., n) = [m, m + a, m + 2a, ..., m + ka]$, where $k$ is the maximum integer satisfying $m + ka \leq n$;
+  \item $iota(m, m, ...) = repeat(m) = [m, m, m, ...]$;
+  \item $iota(m, ...) = [m, m + 1, m + 2, ... ]$.
+  \end{itemize}
+
+1. Tail recursive way to generate $[1, 2, ..., n]$:
+\begin{Haskell}
+iota = iota' [] where
+  iota' ns n | n < 1 = ns
+             | otherwise = iota' (n : ns) (n - 1)
+\end{Haskell}
+
+2. With start value: $[m, m + 1, ..., n]$. Change the lower limit from 1 to $m$:
+\begin{Haskell}
+iota m n = iota' [] n where
+  iota' ns n | n < m = ns
+             | otherwise = iota' (n : ns) (n - 1)
+\end{Haskell}
+
+3. With step: $[m, m + a, m + 2a, ..., m + ka]$, where $k$ is the maximum integer satisfying $m + ka \leq n$.
+
+\begin{Haskell}
+iota m n a | m <= n = m : iota (m + a) n a
+           | otherwise = []
+\end{Haskell}
+
+4. Remove the termination condition to generate open sequence of $n = \infty$: $[m, m + 1, ...]$.
+\begin{Haskell}
+iota m = m : iota (m + 1)
+\end{Haskell}
+
+For example, generate the first 10 natural numbers: \texttt{take 10 (iota 1)}.
+
+5. Remove $+1$, to implement $repeat$:
+\begin{Haskell}
+repeat m = m : repeat m
+\end{Haskell}
+
+Summarize above, we define the $iterate$ function that covers all $iota$ use cases:
+\begin{Haskell}
+iterate f x = x : iterate f (f x)
+
+iota1 n = take n $ iterate (+1) 1
+iota2 m n = takeWhile (<=n) $ iterate (+1) m
+iota3 m n a = takeWhile (<=n) $ iterate (+a) m
+repeat m = iterate id m
+iota5 m = iterate (+1) m
+\end{Haskell}
+}
+
+\Question{Implement the linear time imperative $zip$.
+\begin{Bourbaki}
+[(A, B)] zip([A] xs, [B] ys) {
+    [(A, B)] zs = null
+    while xs != null and ys != null {
+        zs = cons((xs.key, ys.key), zs)
+        xs = xs.next
+        ys = ys.next
+    }
+    return reverse(zs)
+}
+\end{Bourbaki}
+}
+
+\Question{Define $zip$ with fold (hint: define fold for two lists $foldr2\ f\ z\ xs\ ys$).
+
+Define fold for two lists:
+
+\be
+\begin{array}{rcl}
+foldr2\ f\ z\ [\ ]\ ys & = & z \\
+foldr2\ f\ z\ xs\ [\ ] & = & z \\
+foldr2\ f\ z\ (x \cons xs)\ (y \cons ys) & = & foldr2\ f\ (f\ x\ y\ z)\ xs\ ys \\
+\end{array}
+\ee
+
+Then define $zip$ with $foldr2$ (Curried form):
+
+\[
+zip = foldr2\ f\ [\ ], \text{where}\ f\ x\ y\ xys = (x, y) \cons xys
+\]
+}
+
+\Question{Implement $lastAt$ with $zip$.
+
+To index the right $k$-th element, we drop the first $k$ elements of $xs = [x_0, x_1, ..., x_{n-1}]$ to get $ys = drop\ k\ xs$. Then $zip\ xs\ ys$, the last pair is $(x_{n-k-1}, x_{n-1})$.
+\[
+lastAt\ k\ xs = (fst \circ last)\ (zip\ xs\ (drop\ k\ xs))
+\]
+}
+
+\Question{Write a program to remove the duplicated elements in a list while maintain the original order. For imperative implementation, the elements should be removed in-place. What is the complexity? How to simplify it with additional data structure?
+
+\begin{Haskell}
+dedup [] = []
+dedup (x : xs) = x : dedup (filter (x /=) xs)
+\end{Haskell}
+
+We can define $dedup$ with $foldr$:
+
+\begin{Haskell}
+dedup  = foldr f [] where
+  f x xs = x : filter (x /=) xs
+\end{Haskell}
+
+Because we $filter$ for every element, the time is bound to $O(n^2)$. We can use set (see chapter 3, 4) to implement $dedup$ in $O(n \lg n)$ time:
+
+\begin{Haskell}
+dedup = Set.toList . Set.fromList
+\end{Haskell}
+
+The corresponding iterative in-place implementation:
+\begin{Bourbaki}
+[K] dedup([K] xs) {
+    Int n = length(xs)
+    for Int i = 0, i < n, i++ {
+        Int j = i + 1
+        while j < n {
+            if xs[i] == xs[j] {
+                swap(xs[j], xs[n - 1])
+                n--
+            } else {
+                j++
+            }
+        }
+    }
+    Int m = length(xs) - n
+    loop m { pop(xs) }
+    return xs
+}
+\end{Bourbaki}
+}
+
+\Question{List can represent decimal non-negative integer. For example 1024 as list is $4 \rightarrow 2 \rightarrow 0 \rightarrow 1$. Generally, $n = d_m...d_2d_1$ can be represented as $d_1 \rightarrow d_2 \rightarrow ... \rightarrow d_m$. Given two numbers $a$, $b$ in list form. Realize arithmetic operations such as add and subtraction.
+
+\vspace{3mm}
+
+Wrap every digit of a decimal natural number into a list, the higher digit is on the right. Convert $n = (d_m...d_2d_1)_{10}$ to list of [$d_1$, $d_2$, ..., $d_m$]. For example, 1024 is represented as [4, 2, 0, 1]. We can convert such a list back to number, by: $foldr\ (c\ d \mapsto 10d + c)\ 0$. Conversely, below function convert a natural number to list:
+
+\begin{Haskell}
+toList n | n < 10 = [n]
+         | otherwise = (n `mod` 10) : toList (n `div` 10)
+\end{Haskell}
+
+1. Add. 0 is the unit element, i.e., $0 + as = as + 0 = as$, where $0$ is represented as empty list $[\ ]$ or list of all zeros $[0]$.
+
+\[
+\begin{array}{rcl}
+\left[ \ \right] + bs & = & bs \\
+\left[ 0 \right] + bs & = & bs \\
+as + \left[\ \right] & = & as \\
+as + \left[ 0 \right] & = & as \\
+\end{array}
+\]
+
+Add every digit together $d = (a + b) \bmod 10$, and add the carry $c = \lfloor \dfrac{a + b}{10} \rfloor$ to the next digit:
+
+\[
+(a \cons as) + (b \cons bs) = d \cons (as + bs + [c])
+\]
+
+Below is the example program:
+\begin{Haskell}
+add [] bs = bs
+add [0] bs = bs
+add as [] = as
+add as [0] = as
+add (a:as) (b:bs) = ((a + b) `mod` 10) : add as (add bs [(a + b) `div` 10])
+\end{Haskell}
+
+2. Minus. $as - 0 = as$, otherwise subtract each digit of $as$ and $bs$. If the digit $a < b$, we need carry out: $d = 10 + a - b$, and the remaining $as' = as - [1]$.
+
+\begin{Haskell}
+minus as [] = as
+minus as [0] = as
+minus (a:as) (b:bs) | a < b = (10 + a - b) : minus (minus as [1]) bs
+                    | otherwise = (a - b) : minus as bs
+\end{Haskell}
+
+3. Multiply. For $as \times bs$, we multiply every digit $b$ in $bs$ to $as$, then times the by 10 and accumulate the result: $cs' = 10 \times cs + (b \times as)$. When compute $b \times as$, if $b = 0$, then it's $0$; otherwise, multiply $b$ with the first digit $a$ to get $d = ab \bmod 10$, add the carry $c = \lfloor \dfrac{ab}{10} \rfloor$ to the further result:
+
+\[
+b \times (a \cons as) = d : ([c] + (b \times as))
+\]
+
+Below is the corresponding example program:
+
+\begin{Haskell}
+mul as = foldr (\ b cs -> add (mul1 b as) (0:cs)) []
+
+mul1 0 _ = []
+mul1 b [] = []
+mul1 b (a:as) = (b * a `mod` 10) : add [b * a `div` 10] (mul1 b as)
+\end{Haskell}
+
+4. Divide (with remainder). We are going to find $q$ and $r$, such that $as = q \cdot bs + r$, where $q$ is the quotient, $0 \leq r < bs$ is the remainder; $bs$ divides $as$ if $r = 0$. The constraint to $r$ demands us to first define how to test zero and how to compare two numbers. A number is zero if it's an empty list or all digits are 0:
+
+\begin{Haskell}
+isZero = all (== 0)
+\end{Haskell}
+
+To compare $as$ and $bs$, 0 is less than any none zero number; otherwise, compare from the highest bit to the lowest (EQ: equal, LT: less than, GT: greater than):
+
+\begin{Haskell}
+cmp [] [] = EQ
+cmp [] bs = if isZero bs then EQ else LT
+cmp as [] = if isZero as then EQ else GT
+cmp (a:as) (b:bs) = case cmp as bs of EQ -> compare a b
+                                      r -> r
+\end{Haskell}
+
+Then we can define equal, and less than test with $cmp$:
+
+\begin{Haskell}
+eq as bs = EQ == cmp as bs
+lt as bs = LT == cmp as bs
+\end{Haskell}
+
+The brute-force way to implement divide is to repeat minus $bs \neq 0$ from $as$:
+
+\[
+\lfloor as / bs \rfloor = \begin{cases}
+as < bs: & 0 \\
+\text{otherwise}: & 1 + \lfloor (as - bs) / bs \rfloor \\
+\end{cases}
+\]
+
+To improve it, there is analogue to the long division from school math: consider $as = q \cdot bs + r$, let $as = (a_m...a_2a_1)_{10} = [a_1, a_2, ..., a_m]$, we first use the brute force way to divide $a_m$ by $bs$ to get the quotient $q_m$ and the remainder $r_m = a_m - q_m \cdot bs$. Then add the next digit $a_{m-1}$ to divide $10 r_{m} + a_{m-1}$ by $bs$ to get the quotient $q_{m-1}$ and the remainder $r_{m-1}$. Finally, put all digits together. This is exactly the $foldr$ process:
+
+\begin{Haskell}
+ldiv as bs | isZero bs = error "divide by 0"
+           | otherwise = foldr f ([], []) as where
+  f a (qs, rs) = (q:qs, (a:rs) `minus` (q `mul1` bs)) where
+    q =  ndec (a:rs)
+  ndec as = if as `lt` bs then 0 else 1 + ndec (as `minus` bs)
+\end{Haskell}
+}
+
+\Question{In imperative settings, a circular linked-list is corrupted, that some node points back to previous one, as shown in \cref{fig:circular-list}. When traverse, it falls into infinite loops. Design an algorithm to detect if a list is circular. On top of that, improve it to find the node where loop starts (the node being pointed by two precedents).
+\begin{center}
+\begin{tikzpicture}[scale=2]
+  % trace
+  \draw[dashed, very thin] (-2cm, 1cm) -- (0, 1cm);
+  \draw[dashed, very thin] (0,0) circle [radius=1cm];
+
+  % leading nodes
+  \foreach \x in {-2, -1.7, ..., -1.4} {
+    \draw[thick] (\x cm, 1cm) +(-0.1, -0.1) rectangle ++(0.1, 0.1);
+    \draw[thick, ->] (\x cm, 1cm) -- +(0.2, 0);
+  }
+
+  % cricular starting points
+  \draw[thick, ->] (-0.3cm, 1cm) -- (-0.1cm, 1cm);
+
+  % circular nodes
+  \foreach \deg/\rot in {90/0, 60/-30, 30/-60, 0/-90, 180/90, 150/60, 120/30} {
+    \draw[thick] (\deg : 1cm) +(-0.1, -0.1) rectangle ++(0.1, 0.1);
+    \draw[thick, ->] (\deg : 1cm) -- +(\rot : 0.2);
+  }
+\end{tikzpicture}
+\captionof{figure}{List with cycle}
+\label{fig:circular-list}
+\end{center}
+
+If a list has cycle, the traverse will not stop. Consider two runners in a circle, the faster runner will catch, meet, surpass the slower one again and again\footnote{Strictly speaking, it's limit to continuous situation. For discrete case like linked-list, they meet if the two speed integers co-prime.}. We use two pointers to traverse the list: $p$ moves 1 node a time, $q$ moves 2 nodes a time. If they meet at sometime, then there is a circle.
+
+\begin{Bourbaki}
+Bool hasCycle(List<K> h) {
+    var p = h, q = h
+    while p != null and q != null {
+        p = p.next
+        q = q.next
+        if q == null then return False
+        q = q.next
+        if p == q return True
+    }
+    return False
+}
+\end{Bourbaki}
+
+Robert W. Folyd calls this method `tortoise and hare' algorithm. We can further find the node where the circle starts. As shown in \cref{fig:circular-catching}, let OA has $k$ nodes. The loop starts from A. The circle contains $n$ nodes. When $p$ arrives at $A$, the faster pointer (doubled speed) $q$ will arrives at $B$. From this time point, the two pointers loop. $p$ is behind $q$ by $k$ nodes. From circle perspective, it equivalent to $q$ is going to catch up $p$, which is ahead of $n - k$ nodes. It takes time of:
+
+\[
+ t = \dfrac{n - k}{2v - v} = \dfrac{n - k}{v}
+\]
+
+\begin{center}
+\begin{tikzpicture}[scale=2]
+  % trace
+  \draw[dashed, very thin] (-2cm, 1cm) -- (0, 1cm);
+  \draw[dashed, very thin] (0,0) circle [radius=1cm];
+
+  % label line
+  \draw[very thin] (0, 0) -- (0, 1.4cm);
+  \draw[very thin] (0, 0) -- (15:1.4cm);
+  \draw[very thin] (-2cm, 1cm) -- +(0, 0.4cm);
+
+  % label and arrows
+  \draw[very thin, <->] (-2cm, 1.2cm) node[above]{$O$} -- (-1cm, 1.2cm) node[above]{$k$} -- (0, 1.2cm) node[above]{$A\ p$};
+  \draw[very thin, <->] (0, 1.2cm) arc [start angle = 90, end angle = 15, radius=1.2cm] node[right]{$B\ q$};
+  \draw (45:1.2cm) node[above]{$k$};
+  \draw[very thin, <->] (15:0.5cm) arc [start angle = 15, end angle = -270, radius=0.5cm];
+  \draw (-135:0.5cm) node[left]{$n-k$};
+
+  % leading nodes
+  \foreach \x in {-2, -1.7, ..., -1.4} {
+    \draw[thick] (\x cm, 1cm) +(-0.1, -0.1) rectangle ++(0.1, 0.1);
+    \draw[thick, ->] (\x cm, 1cm) -- +(0.2, 0);
+  }
+
+  % cricular starting points
+  \draw[thick, ->] (-0.3cm, 1cm) -- (-0.1cm, 1cm);
+
+  % circular nodes
+  \foreach \deg/\rot in {90/0, 60/-30, 30/-60, 0/-90, 180/90, 150/60, 120/30} {
+    \draw[thick] (\deg : 1cm) +(-0.1, -0.1) rectangle ++(0.1, 0.1);
+    \draw[thick, ->] (\deg : 1cm) -- +(\rot : 0.2);
+  }
+\end{tikzpicture}
+\captionof{figure}{Tortoise and hare}
+\label{fig:circular-catching}
+\end{center}
+
+When meet, $p$ moves from $A$ by distance of $v\dfrac{n-k}{v} = n - k$. $p$ will arrive at $A$ again after moving forward $k$ nodes. At this time, if reset $q$ to the head $O$, let it move 1 node a time. Then $q$ will arrive at $A$ after $k$ nodes too, i.e., $p$ and $q$ meet at $A$. Although we assumed $k < n$, it's true also for $k \geq n$.
+
+\begin{proof}
+$p$ and $q$ start from the head. When $p$ arrives at $A$, $q$ will arrive at a place in the circle pass A by $k \bmod n$ nodes. Convert to $q$ will catch up $p$ ahead of $n - (k \bmod n)$ nodes. It takes time:
+
+\[
+t = \dfrac{n - (k \bmod n)}{2v - v} = \dfrac{n - (k \bmod n)}{v}
+\]
+
+When meet, $p$ moves from $A$ by distance of $v\dfrac{n - (k \bmod n)}{v} = n - (k \bmod n)$. If $p$ further moves forward $k$, it will arrives at the place of $(k \bmod n) + n - (k \bmod n) = n$, it's exactly at $A$ again. At this time after $p$ and $q$ meet, if reset $q$ to the head $O$, let it move 1 node a time. Then $a$ will arrive at $A$ after $k$ nodes too, i.e., $p$ and $q$ meet at $A$ again.
+\end{proof}
+
+We can implement a program to find A:
+
+\begin{Bourbaki}
+Optional<List<K>> findCycle(List<K> h) {
+    var p = h, q = h
+    while p != null and q != null {
+        p = p.next
+        q = q.next
+        if q == null then return Optional.Nothing
+        q = q.next
+        if p == q {
+            q = h
+            while p != q {
+                p = p.next
+                q = q.next
+            }
+            return Optional.of(p)
+        }
+    }
+    return Optional.Nothing
+}
+\end{Bourbaki}
+}
+\end{Answer}
 
 \ifx\wholebook\relax \else
+\section{Answers}
+\shipoutAnswer
+
 \begin{thebibliography}{99}
 
 \bibitem{fp-pearls}

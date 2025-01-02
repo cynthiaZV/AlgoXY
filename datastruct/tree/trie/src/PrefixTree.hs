@@ -34,8 +34,8 @@ empty = PrefixTree Nothing []
 
 leaf v = PrefixTree (Just v) []
 
-insert (PrefixTree _ ts) [] v = PrefixTree (Just v) ts
-insert (PrefixTree v' ts) k v = PrefixTree v' (ins ts) where
+insert [] v (PrefixTree _ ts) = PrefixTree (Just v) ts
+insert k v (PrefixTree v' ts) = PrefixTree v' (ins ts) where
     ins [] = [(k, leaf v)]
     ins ((k', t) : ts) | match k k' = (branch k v k' t) : ts
                        | otherwise  = (k', t) : ins ts
@@ -46,7 +46,7 @@ match (a:_) (b:_) = a == b
 
 branch a v b t = case lcp a b of
   (c, [], b') -> (c, PrefixTree (Just v) [(b', t)])
-  (c, a', []) -> (c, insert t a' v)
+  (c, a', []) -> (c, insert a' v t)
   (c, a', b') -> (c, PrefixTree Nothing [(a', leaf v), (b', t)])
 
 -- longest common prefix
@@ -62,8 +62,7 @@ lookup ks (PrefixTree v ts) = case find (\(s, t) -> s `isPrefixOf` ks) ts of
   Just (s, t) -> lookup (drop (length s) ks) t
 
 fromList :: Eq k => [([k], v)] -> PrefixTree k v
-fromList = foldl ins empty where
-    ins t (k, v) = insert t k v
+fromList = foldr (uncurry insert) empty
 
 fromString :: (Enum v, Num v) => String -> PrefixTree Char v
 fromString = fromList . (flip zip [1..]) . words
@@ -87,7 +86,7 @@ startsWith k (PrefixTree _ ts) =
 
 enum = concatMap (\(k, t) -> [(k ++ a, b) | (a, b) <- startsWith [] t])
 
--- ITU-T keypad mapping
+-- ITU-T keypad (T9) mapping
 mapT9 = Map.fromList [('1', ",."), ('2', "abc"), ('3', "def"), ('4', "ghi"),
                       ('5', "jkl"), ('6', "mno"), ('7', "pqrs"), ('8', "tuv"),
                       ('9', "wxyz")]
@@ -97,9 +96,11 @@ rmapT9 = Map.fromList $ concatMap (\(d, s) -> [(c, d) | c <- s]) $ Map.toList ma
 
 digits = map (\c -> Map.findWithDefault '#' c rmapT9)
 
-findT9 _ [] = [[]]
-findT9 (PrefixTree _ ts) k = concatMap find pfx where
-  find (s, t) = map (take (length k) . (s++)) $ findT9 t (drop (length s) k)
+-- Given a list of digits, find all candidate words (including partial words)
+-- with T9 map from a dictionary (implemented in prefix Tree).
+findT9 [] _ = [[]]
+findT9 k (PrefixTree _ ts) = concatMap find pfx where
+  find (s, t) = map (take (length k) . (s++)) $ findT9 (drop (length s) k) t
   pfx = [(s, t) | (s, t) <- ts, let ds = digits s in
               ds `isPrefixOf` k || k `isPrefixOf` ds]
 
@@ -107,7 +108,7 @@ findT9 (PrefixTree _ ts) k = concatMap find pfx where
 get n k t = take n $ startsWith k t
 
 --
-example = insert (fromString "a place where animals are for public to see") "zoo" 0
+example = insert "zoo" 0 (fromString "a place where animals are for public to see")
 
 -- test data
 assocs = [[("a", 1), ("an", 2), ("another", 7), ("boy", 3), ("bool", 4), ("zoo", 3)],
@@ -142,7 +143,9 @@ verifyStartsWith = all verifyLookup [("a", 5), ("a", 6), ("a", 7), ("ab", 2),
 
 verifyT9 = all verify' $ concatMap (tail . inits) ["4663", "22", "2668437"]
   where
-    t9lst = [("home", 1), ("good", 2), ("gone", 3), ("hood", 4), ("a", 5), ("another", 6), ("an", 7)]
+    t9lst = zip ["home", "good", "gone", "hood", "a", "another", "an"] [1..]
     verify' ds = ((==) `on` sort . nub) as bs where
-      as = findT9 (fromList t9lst) ds
+      as = findT9 ds (fromList t9lst)
       bs = filter ((==) ds . digits) (map (take (length ds) . fst) t9lst)
+
+verifyAll = and [verify, verifyKeys, verifyStartsWith, verifyT9]

@@ -10,7 +10,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Before build
         run: |
           sed -i 's/SimSun/Noto Serif CJK SC/; s/SimHei/Noto Sans CJK SC/; s/Consolas/FreeMono/' prelude.sty
@@ -18,7 +18,7 @@ jobs:
         uses: xu-cheng/texlive-action/full@v1
         with:
           run: |
-            apk add make imagemagick graphviz font-noto-cjk ttf-freefont
+            apk add make font-noto-cjk ttf-freefont
             make
       - name: After build
         run: |
@@ -26,7 +26,7 @@ jobs:
           mv algoxy-en.pdf "algoxy-en-$GIT_HASH.pdf"
           mv algoxy-zh-cn.pdf "algoxy-zh-cn-$GIT_HASH.pdf"
       - name: Upload Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: algoxy
           path: algoxy-*.pdf

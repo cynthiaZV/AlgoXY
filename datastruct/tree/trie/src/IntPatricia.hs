@@ -29,21 +29,20 @@ module IntPatricia where
 import Data.Bits
 import Test.QuickCheck hiding ((.&.))
 import Data.Maybe (isNothing)
+import Prelude hiding (lookup)
+import Data.List (sort)
 
 {------------------------------------
-  1. Big Edian integer tree
+  Big Edian integer tree
 -------------------------------------}
 data IntTree a = Empty
                | Leaf Key a
                | Branch Prefix Mask (IntTree a) (IntTree a) -- prefix, mask, left, right
+               deriving (Show)
 
 type Key = Int
 type Prefix = Int
 type Mask = Int
-
-{-----------------------------------
-  2. helpers
------------------------------------}
 
 -- join 2 nodes together.
 -- (prefix1, tree1) ++ (prefix2, tree2)
@@ -71,13 +70,13 @@ lcp p1 p2 = (p, m) where
 -- For a number x = 00...0,1,a(i-1)...a(1)
 -- the result is i
 highestBit :: Int -> Int
-highestBit x = if x==0 then 0 else 1+highestBit (shiftR x 1)
+highestBit x = if x==0 then 0 else 1 + highestBit (shiftR x 1)
 
 -- For a number x = a(n),a(n-1)...a(i),a(i-1),...,a(0)
 -- and a mask m = 100..0 (=2^i)
 -- the result is a(n),a(n-1)...a(i),00..0
 mask :: Int -> Mask -> Int
-mask x m = (x .&. complement (m-1)) -- complement means bitwise not.
+mask x m = (x .&. complement (m - 1)) -- complement means bitwise not.
 
 
 -- Test if the next bit after mask bit is zero
@@ -96,61 +95,39 @@ zero x m = x .&. (shiftR m 1) == 0
 match :: Key -> Prefix -> Mask -> Bool
 match k p m = (mask k m) == p
 
-{--------------------------------------
-  3. Insertion
---------------------------------------}
-
--- if user insert a value already binding with existed key,
--- just over write the previous value
--- usage: insert tree key x
-insert :: IntTree a -> Key -> a -> IntTree a
-insert t k x
+-- overwrite the previous value for duplicated key.
+insert :: Key -> a -> IntTree a -> IntTree a
+insert k x t
    = case t of
        Empty -> Leaf k x
        Leaf k' x' -> if k == k' then Leaf k x
                      else join k (Leaf k x) k' t
        Branch p m l r
           | match k p m -> if zero k m
-                           then Branch p m (insert l k x) r
-                           else Branch p m l (insert r k x)
+                           then Branch p m (insert k x l) r
+                           else Branch p m l (insert k x r)
           | otherwise -> join k (Leaf k x) p t
 
-{-----------------------------------
-  4. Look up
---------------------------------------}
-
--- look up a key
-lookup :: IntTree a -> Key -> Maybe a
-lookup Empty _ = Nothing
-lookup (Leaf k' v) k = if k == k' then Just v else Nothing
-lookup (Branch p m l r) k | match k p m = if zero k m then lookup l k else lookup r k
+lookup :: Key -> IntTree a -> Maybe a
+lookup _ Empty = Nothing
+lookup k (Leaf k' v) = if k == k' then Just v else Nothing
+lookup k (Branch p m l r) | match k p m = if zero k m then lookup k l else lookup k r
                           | otherwise = Nothing
-
-{---------------------------------
-  5. Test helper
----------------------------------}
 
 -- Generate a Int tree from a list
 -- Usage: fromList [(k1, x1), (k2, x2),..., (kn, xn)]
-fromList :: [(Key, a)] -> IntTree a
-fromList xs = foldl ins Empty xs where
-    ins t (k, v) = insert t k v
+-- fromList :: [(Key, a)] -> IntTree a
+fromList = foldr (uncurry insert) Empty
 
-toString :: (Show a)=>IntTree a -> String
-toString t =
-    case t of
-      Empty -> "."
-      Leaf k x -> (show k) ++ ":" ++ (show x)
-      Branch p m l r -> "[" ++ (show p) ++ "@" ++ (show m) ++ "]" ++
-                        "(" ++ (toString l) ++ ", " ++ (toString r) ++ ")"
+foldpre _ z Empty = z
+foldpre f z (Leaf k v) = f k v z
+foldpre f z (Branch p m l r) = foldpre f (foldpre f z r) l
 
-{---------------------------------
-  6. Test cases
-----------------------------------}
-testIntTree = "t=" ++ (toString t) ++ "\nlookup t 4: " ++ (show $ lookup t 4) ++
-              "\nlookup t 0: " ++ (show $ lookup t 0)
-    where
-      t = fromList [(1, 'x'), (4, 'y'), (5, 'z')]
+toList = foldpre (\k v xs -> (k, v):xs) []
+
+keys = fst . unzip . toList
+
+values = snd . unzip . toList
 
 -- Verification
 
@@ -165,5 +142,18 @@ instance Arbitrary Sample where
 
 prop_build :: Sample -> Bool
 prop_build (S kvs ks') = let t = fromList kvs in
-  (all (\(k, v) -> Just v == lookup t k) kvs ) &&
-  (all (isNothing . lookup t) ks')
+  (all (\(k, v) -> Just v == lookup k t) kvs ) &&
+  (all (isNothing . (flip lookup) t) ks')
+
+prop_traverse :: Sample -> Bool
+prop_traverse (S kvs _) = (sort kvs) == (sort $ toList $ fromList kvs)
+
+prop_preorder :: Sample -> Bool
+prop_preorder (S kvs _) = sorted $ keys $ fromList kvs where
+  sorted [] = True
+  sorted xs = and $ zipWith (<=) xs (tail xs)
+
+testAll = do
+  mapM quickCheck [prop_build, prop_traverse, prop_preorder]
+
+-- example: t = fromList [(1, 'x'), (4, 'y'), (5, 'z')]

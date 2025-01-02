@@ -19,13 +19,13 @@
 
 \author{Xinyu LIU
 \thanks{{\bfseries Xinyu LIU} \newline
-  Email: liuxinyu95@gmail.com \newline}
+  Email: liuxinyu99@hotmail.com \newline}
   }
 
 \maketitle
 \fi
 
-\markboth{Binary Heaps}{Elementary Algorithms}
+%\markboth{Binary Heaps}{Elementary Algorithms}
 
 \ifx\wholebook\relax
 \chapter{Binary Heaps}
@@ -35,25 +35,24 @@
 \section{Definition}
 \label{introduction} \index{Binary heap}
 
-Heaps are widely used for sorting, priority scheduling and graph algorithms, and etc.\cite{wiki-heap}. The most popular implementation models the heap as a complete binary tree in array\cite{CLRS}. The most efficient heap sort algorithm developed by R.W. Floyd is also based on this method\cite{wiki-heapsort}\cite{rosetta-heapsort}. For the generic heap definition, we can implement with varies data structures but not limit to array. In this chapter, we focus on the heaps implemented with binary trees, including leftist heap, skew heap, and splay heap\cite{okasaki-book}. A heap is either empty, or stores comparable elements that satisfies a property and three operations:
+Heaps are widely used for sorting, priority scheduling, graph algorithms, and etc.\cite{wiki-heap}. The most popular implementation uses array to represent the heap as a complete binary tree\cite{CLRS}. Robert W. Floyd developed an efficient heap sort algorithm based on this idea\cite{wiki-heapsort}\cite{rosetta-heapsort}. We can implement the heap with varies data structures but not limit to array. This chapter focuses on the heaps implemented with binary trees, including leftist heap, skew heap, and splay heap\cite{okasaki-book}. A heap is either empty, or stores comparable elements that satisfy a property, and define the following operations:
 
 \begin{enumerate}
 \item \textbf{The heap property}: the top element is always the minimum;
-\item \textbf{Pop}: removes the top element from the heap and maintain the heap property: the new top is still the minimum in the rest;
+\item \textbf{Pop}: removes the top element from the heap and maintain the heap property: the new top is still the minimum of the rest;
 \item \textbf{Insert}: add a new element to the heap and maintain the heap property;
 \item \textbf{Other}: operations like merge also maintain the heap property.
 \end{enumerate}
 
-Because elements are comparable, we can also define the heap always keeps the maximum on top. We call the heap with the minimum on top as {\em min-heap}, the maximum on top as {\em max-heap}. When implement heap with a tree, we can put the minimum (or the maximum) in the root. After pop, we remove the root, and rebuild the tree from the sub-trees. We call the heap implemented with binary tree as {\em binary heap}. This chapter gives three types of binary heap.
+Alternatively, we can define the heap that always keeps the maximum on the top. We call the heap with the minimum on the top as {\em min-heap}, the maximum on the top as {\em max-heap}. When implement heap with a tree, we can put the minimum (or the maximum) in the root. After pop, remove the root, and rebuild the tree from the sub-trees. We call the heap implemented with binary tree as {\em binary heap}.
 
 \section{Binary heap by array}
 \label{ibheap} \index{binary heap by array} \index{complete binary tree}
 
-The first implementation is to represent the a complete binary tree with an array. The complete binary tree is `almost' full. The full binary tree of depth $k$ contains $2^k - 1$ nodes. We can number every node top-down, from left to right as 1, 2, ..., $2^k -1$. The node number $i$ in the complete binary tree is located at the same position in the full binary tree. The leaves only appear in the bottom layer, or the second last layer. Figure \ref{fig:tree-array-map} shows a complete binary tree and the array. As the complete binary tree, the $i$-th cell in array corresponds to a node, its parent node maps to the $\lfloor i/2 \rfloor$-th cell; the left sub-tree maps to the $2i$-th cell, and the right sub-tree maps to the $2i + 1$-th cell. If any sub-tree maps to an index out of the array bound, then the sub-tree does not exist (i.e. leaf node). We can define the map as below (index starts from 1):
+The first implementation is to represent the complete binary tree with array. The complete binary tree is `almost' full. The full binary tree of depth $k$ contains $2^k - 1$ nodes. We can number every node top-down, from left to right as 1, 2, ..., $2^k -1$. The node number $i$ in a complete binary tree is located at the same position in the full binary tree. The leaves only appear in the bottom layer, or the second last layer. \Cref{fig:tree-array-map} shows a complete binary tree and the array. The $i$-th cell in array corresponds to a node, its parent maps to the $\lfloor i/2 \rfloor$-th cell; the left sub-tree maps to the $2i$-th cell, and the right sub-tree maps to the $(2i + 1)$-th cell. If any sub-tree maps to an index out of the array bound, then the sub-tree does not exist (i.e. leaf node). We can define the map as below (index starts from 1):
 
 \begin{figure}[htbp]
 \centering
-   \includegraphics[scale=0.45]{img/tree-array-map-tree}
    \includegraphics[scale=0.5]{img/binary-tree-in-array}
  \caption{Map between a complete binary tree and an array.} \label{fig:tree-array-map}
 \end{figure}
@@ -69,7 +68,7 @@ right(i)  & = 2i + 1 \\
 \subsection{Heapify}
 \index{Binary heap!Heapify}
 
-Heapify is the process maintain heap property, keep the minimum element on the top. For binary heap, we can obtain a stronger property as the binary tree is recursive: every sub-tree stores its minimum element in the root. In other words, every sub-tree is also a binary heap. Consider the min-heap represented with array, for any cell index $i$, we examine if all the elements in sub-trees are greater then or equal to it ($\geq$). Exchange when not satisfies. Repeat this for all sub-trees rooted at $i$.
+Heapify is the process that maintains heap property, keeping the minimum element on the top. For binary heap, we obtain a stronger property as the binary tree is recursive: every sub-tree stores its minimum element in the root. In other words, every sub-tree is also a binary heap. For the cell indexed $i$ in array representation, we examine whether all the sub-tree elements are greater than or equal to it ($\geq$), exchange when do not satisfy.
 
 \begin{algorithmic}[1]
 \Function{Heapify}{$A, i$}
@@ -93,7 +92,7 @@ Heapify is the process maintain heap property, keep the minimum element on the t
 \EndFunction
 \end{algorithmic}
 
-For index $i$ in array $A$, any sub-tree node should not be less than $A[i]$. Otherwise, we exchange $A[i]$ with the smallest one, and recursively check the sub-trees. As the process time is proportion to the height of the tree, \textproc{Heapify} is bound to $O(\lg n)$, where $n$ is the length of the array. Figure \ref{fig:heapify} gives the steps when apply \textproc{Heapify} from $2$ to array [1, 13, 7, 3, 10, 12, 14, 15, 9, 16]. The result is [1, 3, 7, 9, 10, 12, 14, 15, 13, 16].
+Because we recursive check sub-trees, the process time is proportion to the height of the tree. \textproc{Heapify} is bound to $O(\lg n)$, where $n$ is the length of the array. \Cref{fig:heapify} gives the steps when apply \textproc{Heapify} from $2$ to array [1, 13, 7, 3, 10, 12, 14, 15, 9, 16]. The result is [1, 3, 7, 9, 10, 12, 14, 15, 13, 16].
 
 \begin{figure}[htbp]
   \centering
@@ -105,7 +104,7 @@ For index $i$ in array $A$, any sub-tree node should not be less than $A[i]$. Ot
 \subsection{Build}
 \index{Binary heap!build}
 
-We can build heap from arbitrary array with \textproc{Heapify}. List how many nodes in each level of a complete binary tree: $1, 2, 4, 8, ...$. They are all power of 2 except for the last level. Because the tree is not necessarily full, there are at most $2^{p-1}$ nodes, where $p$ is the smallest integer satisfying $2^p - 1 \geq n$, and $n$ is the length of the array. Skip all leaves because \textproc{Heapify} takes no effect on them, we start applying \textproc{Heapify} to the last branch node (which index $\leq \lfloor n/2 \rfloor$) bottom-up. The build function is defined as below:
+We can build heap from an array with \textproc{Heapify}. List the numberf of nodes in each level of a complete binary tree: $1, 2, 4, 8, ...$. They are all powers of 2 except for the last level, because the tree is not necessarily full. There are at most $2^{p-1}$ nodes, where $p$ is the smallest integer satisfying $2^p - 1 \geq n$, and $n$ is the length of the array. Skip all leaves because \textproc{Heapify} takes no effect on them, we start applying \textproc{Heapify} to the last branch node (indexed at $\leq \lfloor n/2 \rfloor$) bottom-up. The build function is defined as below:
 
 \begin{algorithmic}[1]
 \Function{Build-Heap}{$A$}
@@ -116,7 +115,7 @@ We can build heap from arbitrary array with \textproc{Heapify}. List how many no
 \EndFunction
 \end{algorithmic}
 
-Although \textproc{Heapify} is bound $O(\lg n)$ time, \textproc{Build-Heap} is bound to $O(n)$, but not $O(n \lg n)$. We skip all leaves, check and move down a level at most for $1/4$ nodes; check and move down two levels at most for $1/8$ nodes; check and move down three levels at most for $1/16$ nodes... the total comparison and move times is up to:
+Although \textproc{Heapify} is bound $O(\lg n)$ time, \textproc{Build-Heap} is bound to $O(n)$, but not $O(n \lg n)$. We skip all leaves, check and move down a level at most for $1/4$ nodes; check and move down two levels at most for $1/8$ nodes; check and move down three levels at most for $1/16$ nodes... the total number of comparisons and moves  is up to:
 
 \be
 S = n (\frac{1}{4} + 2 \frac{1}{8} + 3 \frac{1}{16} + ...)
@@ -130,7 +129,7 @@ Multiply by 2 for both sides:
 \label{eq:build-heap-2}
 \ee
 
-Subtract (\ref{eq:build-heap-1}) from (\ref{eq:build-heap-2}):
+Subtract \cref{eq:build-heap-1} from \cref{eq:build-heap-2}:
 
 \bea*{rcll}
 2S - S & = & n [\dfrac{1}{2} + (2 \dfrac{1}{4} - \dfrac{1}{4}) + (3 \dfrac{1}{8} - 2 \dfrac{1}{8}) + ...] & \text{shift by one and subtract} \\
@@ -139,7 +138,7 @@ Subtract (\ref{eq:build-heap-1}) from (\ref{eq:build-heap-2}):
 \eea*
 
 
-Figure \ref{fig:build-heap-3} shows the steps to build a min-heap from array $[4, 1, 3, 2, 16, 9, 10, 14, 8, 7]$. The black node is where \textproc{Heapify} is applied. The grey nodes are swapped to maintain the heap property.
+\Cref{fig:build-heap-3} shows the steps to build a min-heap from array $[4, 1, 3, 2, 16, 9, 10, 14, 8, 7]$. The black node is where \textproc{Heapify} is applied. The grey nodes are swapped to maintain the heap property.
 
 \begin{figure}[htbp]
   \centering
@@ -150,19 +149,11 @@ Figure \ref{fig:build-heap-3} shows the steps to build a min-heap from array $[4
 
 \subsection{Heap operations}
 
-Heap operations include access the top, pop, look up the top $k$ elements, decrease an element in min-heap (or increase an element in max-heap), and insert a new element. For binary heap, the root stores the minimum element, corresponding to the first cell in array:
-
 \index{Binary heap!top}
-\begin{algorithmic}[1]
-\Function{Top}{$A$}
-  \State \Return $A[1]$
-\EndFunction
-\end{algorithmic}
+Heap operations include access the top, pop, lookup the top $k$ elements, decrease an element in min-heap (or increase an element in max-heap), and insert. The root of the binary heap, which is the first array cell stores the minimum: $Top(A) = A[1]$.
 
-\subsubsection{Pop}
 \index{Binary heap!pop}
-
-After pop, the remaining elements in array shift ahead by one. However, after removed the root of the binary tree, the rest is not a binary tree any more. To avoid such situation, we swap the first and the last element in array, then reduce the array length by one. It equivalent to remove a leaf but not the root. We then apply \textproc{Heapify} to recover the heap property:
+After pop, the remaining elements all shift ahead a cell of the array. However, without the root, the rest is not a binary tree any more. Alternatively, we swap the head and the tail of the array, then reduce the array length by one. It's equivalent to remove a leaf but not the root. We then apply \textproc{Heapify} to the root to recover the heap property:
 
 \begin{algorithmic}[1]
 \Function{Pop}{$A$}
@@ -176,28 +167,22 @@ After pop, the remaining elements in array shift ahead by one. However, after re
 \EndFunction
 \end{algorithmic}
 
-It takes constant time to remove the last element from array, hence pop is also bound to $O(\lg n)$ time as same as \textproc{Heapify}.
-
-\subsubsection{Top-k}
 \index{Binary heap!top-k}
-
-We can obtain top $k$ elements by repeatedly applying pop.
+It takes constant time to remove the last element from array, pop is bound to $O(\lg n)$ time as it calls \textproc{Heapify}. We can develop a solution to find the top $k$ elements from an array. First build a heap from the array, then repeatedly pop $k$ times:
 
 \begin{algorithmic}[1]
 \Function{Top-k}{$A, k$}
   \State $R \gets [\ ]$
   \State \Call{Build-Heap}{$A$}
-  \Loop \ \textproc{Min}(k, |$A$|) times \Comment{cut off when $k$ out of array bound}
+  \Loop \ \textproc{Min}(k, |$A$|) times \Comment{cut off when $k > |A|$}
     \State \textproc{Append}($R$, \Call{Pop}{$A$})
   \EndLoop
   \State \Return $R$
 \EndFunction
 \end{algorithmic}
 
-\subsubsection{Increase priority}
 \index{Binary heap!decrease key}
-
-We can implement a priority queue with heap, to schedule tasks with priorities. Every time, we peek the high priority task to execute. To make an urgent task run earlier, we can increase its priority. It corresponds to decrease an element in a min-heap, as shown in \ref{fig:decrease-key-2}.
+Further, we can implement a {\em priority queue} to schedule tasks with priorities. Every time, we peek the highest priority task to run. To run an urgent task earlier, we can increase its priority, meaning to decrease an element in a min-heap, as shown in \cref{fig:decrease-key-2}.
 
 \begin{figure}[htbp]
   \centering
@@ -206,7 +191,7 @@ We can implement a priority queue with heap, to schedule tasks with priorities. 
   \label{fig:decrease-key-2}
 \end{figure}
 
-The heap property may not be satisfied when decrease some element in a min-heap. Let the decreased element indexed at $i$ in the array, below function resumes the heap property bottom-up. It is bound to $O(\lg n)$ time.
+The heap property may be broken when decrease some element in a min-heap. Let the decreased element be $A[i]$, below function resumes the heap property bottom-up. It is bound to $O(\lg n)$ time.
 
 \begin{algorithmic}[1]
 \Function{Heap-Fix}{$A, i$}
@@ -217,10 +202,9 @@ The heap property may not be satisfied when decrease some element in a min-heap.
 \EndFunction
 \end{algorithmic}
 
-\subsubsection{Insertion}
 \index{Binary heap!insertion} \index{Binary heap!push}
 
-We can realize push with \textproc{Heap-Fix} \cite{CLRS}. Use min-heap for example, we append the new element $k$ to the tail of the array, then apply \textproc{Heap-Fix} to recover the heap property:
+We can realize push with \textproc{Heap-Fix} \cite{CLRS}. Append the new element $k$ to the tail, then apply \textproc{Heap-Fix} to recover the heap property:
 
 \begin{algorithmic}[1]
 \Function{Push}{$A, k$}
@@ -232,7 +216,7 @@ We can realize push with \textproc{Heap-Fix} \cite{CLRS}. Use min-heap for examp
 \subsection{Heap sort}
 \label{heap-sort} \index{Heap sort}
 
-We can sort elements with heap. Build a min-heap from a collection of $n$ elements, the repeatedly pop the top element to obtain the ascending result. It takes $O(n)$ time to build the heap. The pop is bound to $O(\lg n)$ time, and runs for $n$ times. Therefore, the total time is bound to $O(n \lg n)$. The space is bound to $O(n)$ as we need another list to hold the result.
+We can sort elements with heap. Build a min-heap from $n$ elements (with $(n)$ time), then repeatedly pop the top to build the ascending result. Each pop is bound to $O(\lg n)$ time, the total time is bound to $O(n \lg n)$. Besides, we need another list of length $n$ to hold the result.
 
 \begin{algorithmic}[1]
 \Function{Heap-Sort}{$A$}
@@ -245,7 +229,7 @@ We can sort elements with heap. Build a min-heap from a collection of $n$ elemen
 \EndFunction
 \end{algorithmic}
 
-Robert. W. Floyd gave a fast implementation with max-heap. The top stores the maximum one. Every time, swap the head and the tail elements in the array. After that the maximum is stored to the expected position, and the previous tail becomes the new top. We next decrease the heap size by one, and apply \textproc{Heapify} to maintain the heap property. Repeat this till the heap size decrease to one. This algorithm needn't the additional space to store the result.
+Floyd developed a fast implementation with max-heap. Every time, swap the head and the tail of the array. The maximum is swapped to the expected position, the tail; and the previous tail becomes the new top. Next decrease the heap size by one, and apply \textproc{Heapify} to restore the heap property. Repeat this till the heap size decrease to one. This algorithm needn't the additional space.
 
 \begin{algorithmic}[1]
 \Function{Heap-Sort}{$A$}
@@ -259,7 +243,7 @@ Robert. W. Floyd gave a fast implementation with max-heap. The top stores the ma
 \EndFunction
 \end{algorithmic}
 
-\begin{Exercise}
+\begin{Exercise}[label={ex:arrayed-binary-heap}]
 \Question{Consider another idea about in-place heap sort: Build a min-heap from the array $A$, the first element $a_1$ is in the right position. Treat the rest $[a_2, a_3, ..., a_n]$ as the new heap, and apply \textproc{Heapify} from $a_2$. Repeat this till the last element. Is this method correct?
 \begin{algorithmic}[1]
 \Function{Heap-Sort}{$A$}
@@ -284,235 +268,97 @@ Robert. W. Floyd gave a fast implementation with max-heap. The top stores the ma
 }
 \end{Exercise}
 
-\begin{Answer}
+\begin{Answer}[ref = {ex:arrayed-binary-heap}]
 \Question{No, it is not correct. The sub-array $[a_2, a_3, ..., a_n]$ can't map back to binary heap. It's insufficient to only apply \textproc{Heapify} from $a_2$, we need run \textproc{Build-Heap} to rebuild the heap.}
+
 \Question{For the same reason, it does not work.}
 \end{Answer}
 
-\section{Leftist heap and Skew heap, the explicit binary heaps}
+\section{Leftist heap and skew heap}
 \label{ebheap}
 
-Instead of using implicit binary tree by array, it is natural to
-consider why we can't use explicit binary tree to realize heap?
-
-There are some problems must be solved if we turn into explicit
-binary tree as the under ground data structure.
-
-The first problem is about the \textproc{Heap-Pop} or \textproc{Delete-Min} operation.
-Consider the binary tree is represented in form of left, key, and right as
-$(L, k, R)$, which is shown in figure \ref{fig:lvr}
+With an explicit binary tree, after pop the root, there remain two sub-trees. Both are heaps as shown in \cref{fig:lvr}. How can we merge them to a new heap? To maintain the heap property, the new root must be the minimum of the remaining. We can give the two edge cases easily:
 
 \begin{figure}[htbp]
-    \centering
-    \includegraphics[scale=0.8]{img/lvr}
-    \caption{A binary tree, all elements in children are not less than $k$.} \label{fig:lvr}
+  \centering
+  \includegraphics[scale=0.5]{img/lkr}
+  \caption{Merge left and right sub-trees after pop.}
+  \label{fig:lvr}
 \end{figure}
-
-If $k$ is the top element, all elements in left and right children are not less
-than $k$ in a min-heap. After $k$ is popped, only left and right children are left.
-They have to be merged to a new tree. Since heap property should be maintained
-after merge, the new root is still the smallest element.
-
-Because both left and right children are binary trees conforming heap property,
-the two trivial cases can be defined immediately.
 
 \[
-merge(H_1, H_2) = \left \{
-  \begin{array}
-  {r@{\quad:\quad}l}
-  H_2 & H_1 = \phi \\
-  H_1 & H_2 = \phi \\
-  ? & otherwise
-  \end{array}
-\right.
+\begin{array}{rcl}
+merge\ \nil\ R & = & R \\
+merge\ L\ \nil & = & L \\
+merge\ L\ R & = & ? \\
+\end{array}
 \]
 
-Where $\phi$ means empty heap.
+Both left and right sub-trees are heaps. If neither is empty, each root stores the minimum respectively. We compare the two roots, and peek the smaller one as the new root. Let $L = (A, x, B)$, $R = (A', y, B')$, where $A$, $A'$, $B$, $B'$ are sub-trees. If $x < y$, then $x$ is the new root. We keep $A$, and merge $B$ and $R$ recursively; alternatively, we can keep $B$, and merge $A$ and $R$. The new heap can be $(merge\ A\ R, x, B)$ or $(A, x, merge\ B\ R)$. We always merge the right sub-tree for simplicity. This method generates the {\em leftist heap}.
 
-If neither left nor right child is empty, because they all fit
-heap property, the top elements of them are all the minimum respectively.
-We can compare these two roots,
-and select the smaller as the new root of the merged heap.
+\subsection{Leftist heap}
+\index{Leftist heap} \index{Leftist heap!rank} \index{Leftist heap!S-value}
 
-For instance, let $L = (A, x, B)$ and $R = (A', y, B')$, where $A$, $A'$, $B$,
-and $B'$ are all sub trees. If $x < y$, $x$ will be the new root.
-We can either keep $A$, and recursively merge $B$ and $R$; or
-keep $B$, and merge $A$ and $R$, so the new heap can be one
-of the following.
-
-\begin{itemize}
-\item $(merge(A, R), x, B)$
-\item $(A, x, merge(B, R))$
-\end{itemize}
-
-Both are correct. One simplified solution is to only merge the right
-sub tree. {\em Leftist} tree provides a systematically approach based on this
-idea.
-
-% ================================================================
-%                 Definition
-% ================================================================
-\subsection{Definition}
-\index{Leftist heap}
-
-The heap implemented by Leftist tree is called Leftist heap. Leftist
-tree is first introduced by C. A. Crane in 1972\cite{wiki-leftist-tree}.
-
-\subsubsection{Rank (S-value)}
-\index{Leftist heap!rank}
-\index{Leftist heap!S-value}
-
-In Leftist tree, a rank value (or $S$ value) is defined for each node.
-Rank is the distance to the nearest external node. Where external node
-is the NIL concept extended from the leaf node.
-
-For example, in figure \ref{fig:rank}, the rank of NIL
-is defined 0, consider the root node 4, The nearest external node is
-the child of node 8. So the rank of root node 4 is 2. Because node
-6 and node 8 both only contain NIL, so their rank values are 1.
-Although node 5 has non-NIL left child, However, since the right
-child is NIL, so the rank value, which is the minimum distance
-to NIL is still 1.
+The leftist heap is implemented with leftist tree. C. A. Crane in 1972\cite{wiki-leftist-tree} developed the leftist tree. He defines a rank for every node (also known as $S$-value) as the distance to the nearest NIL. The rank of NIL is 0. As shown in \cref{fig:rank}, The nearest leaf node to 4 is 8, the rank of 4 is 2; Both 6 and 8 are leaves, their ranks are 1. Although the left sub-tree of 5 is not empty, its right sub-tree is NIL, hence the rank is 1. Define the merge method with rank as below. Denote the rank of the left and right sub-trees be $r_l$, $r_r$ respectively:
 
 \begin{figure}[htbp]
-   \begin{center}
-     \includegraphics[scale=0.5]{img/rank}
-     \caption{$rank(4) = 2$, $rank(6) = rank(8) = rank(5) = 1$.} \label{fig:rank}
-   \end{center}
+  \centering
+  \includegraphics[scale=0.6]{img/rank}
+  \caption{$rank(4) = 2$, $rank(6) = rank(8) = rank(5) = 1$.}
+  \label{fig:rank}
 \end{figure}
 
-\subsubsection{Leftist property}
+\begin{enumerate}
+\item Always merge the right sub-tree;
+\item When $r_l < r_r$, swap the left and right sub-trees.
+\end{enumerate}
 
-With rank defined, we can create a strategy when merging.
-
-\begin{itemize}
-\item Every time when merging, we always merge to right child; Denote the rank
-of the new right sub tree as $r_r$;
-\item Compare the ranks of the left and right children, if the rank of
-left sub tree is $r_l$ and $r_l < r_r$, we swap the left and the right children.
-\end{itemize}
-
-We call this `Leftist property'. In general, a Leftist tree always
-has the shortest path to some external node on the right.
-
-Leftist tree tends to be very unbalanced, However, it ensures important
-property as specified in the following theorem.
+We call this merge method the `leftist property'. Basically, a leftist tree always has the shortest path to some NIL on the right. Although it seems unbalanced, there is critical fact:
 
 \begin{theorem}
-If a Leftist tree $T$ contains $n$ internal nodes, the path from root to the
-rightmost external node contains at most $\lfloor \log (n+1) \rfloor$ nodes.
+For a leftist tree $T$ of $n$ nodes, the path from the root to the rightmost NIL has at most $\lfloor \log (n + 1) \rfloor$ nodes.
 \end{theorem}
 
-We skip the proof here, readers can refer to \cite{brono-book} and \cite{TAOCP}
-for more information. With this theorem, algorithms operate along this path are
-all bound to $O(\lg n)$.
+We skip the proof \cite{brono-book} \cite{TAOCP}. This theorem ensures any algorithm processes along this path is bound to $O(\lg n)$ time. We define the leftist tree as a binary tree plus an additional rank. Let the none empty leftist tree be $(r, L, k, R)$:
 
-We can reuse the binary tree definition, and augment with a rank field to
-define the Leftist tree, for example in form of $(r, k, L, R)$ for non-empty
-case. Below Haskell code defines the Leftist tree.
+\lstset{frame = single}
+\begin{Haskell}
+data LHeap a = Empty | Node Int (LHeap a) a (LHeap a)
+\end{Haskell}
 
-\lstset{language=Haskell}
-\begin{lstlisting}
-data LHeap a = E -- Empty
-             | Node Int a (LHeap a) (LHeap a) -- rank, element, left, right
-\end{lstlisting}
-
-For empty tree, the rank is defined as zero. Otherwise, it's the value
-of the augmented field. A $rank(H)$ function can be
-given to cover both cases.
+Function $rank$ returns the rank value:
 
 \be
-rank(H) = \left \{
-  \begin{array}
-  {r@{\quad:\quad}l}
-  0 & H = \phi \\
-  r & otherwise, H = (r, k, L, R)
-  \end{array}
-\right.
+\begin{array}{rcl}
+rank\ \nil & = & 0 \\
+rank\ (r, L, k, R) & = & r \\
+\end{array}
 \ee
 
-Here is the example Haskell rank function.
-
-\lstset{language=Haskell}
-\begin{lstlisting}
-rank E = 0
-rank (Node r _ _ _) = r
-\end{lstlisting}
-
-In the rest of this section, we denote $rank(H)$ as $r_H$
-
-% ================================================================
-%                 Merge
-% ================================================================
-\subsection{Merge}
 \index{Leftist heap!merge}
-
-In order to realize `merge', we need develop the auxiliary algorithm
-to compare the ranks and swap the children if necessary.
+Define an auxiliary $make$ function. It compares the ranks of the sub-trees and swap them if necessary.
 
 \be
-mk(k, A, B) = \left \{
-  \begin{array}
-  {r@{\quad:\quad}l}
-  (r_A + 1, k, B, A) & r_A < r_B \\
-  (r_B + 1, k, A, B) & otherwise
-  \end{array}
-\right.
+make(A, k, B) = \begin{cases}
+  rank(A) < rank(B) : & (1 + rank(A), B, k, A) \\
+  \text{otherwise}: & (1 + rank(B), A, k, B) \\
+  \end{cases}
 \ee
 
-This function takes three arguments, a key and two sub trees $A$, and $B$.
-if the rank of $A$ is smaller, it builds a bigger tree with $B$ as the left child,
-and $A$ as the right child. It increment the rank of $A$ by 1 as the
-rank of the new tree; Otherwise if $B$ holds the smaller rank, then $A$ is
-set as the left child, and $B$ becomes the right. The resulting rank
-is $r_b + 1$.
-
-The reason why rank need be increased by one is because there
-is a new key added on top of the tree. It causes the rank
-increasing.
-
-Denote the key, the left and right children for $H_1$ and $H_2$ as
-$k_1, L_1, R_1$, and $k_2, L_2, R_2$ respectively.
-The $merge(H_1, H_2)$ function can be completed by using this auxiliary
-tool as below
+For the two trees $A$ and $B$, if $rank(A)$ is smaller, set $B$ as the left sub-tree, and $A$ as the right. The rank of the new node is $1 + rank(A)$; otherwise if $rank(B)$ is smaller, set $A$ as the left sub-tree, and $B$ as the right. The rank of the new node is $1 + rank(B)$. Given two leftist heaps, and denote them as $H_1 = (r_1, L_1, K_1, R_1)$ and $H_2 = (r_2, L_2, k_2, R_2)$ if not empty, define merge:
 
 \be
-merge(H_1, H_2) = \left \{
-  \begin{array}
-  {r@{\quad:\quad}l}
-  H_2 & H_1 = \phi \\
-  H_1 & H_2 = \phi \\
-  mk(k_1, L_1, merge(R_1, H_2)) & k_1 < k_2 \\
-  mk(k_2, L_2, merge(H_1, R_2)) & otherwise
-  \end{array}
-\right.
+\begin{array}{rcl}
+  \textit{merge}\ \nil\ H_2 & = & H_2 \\
+  \textit{merge}\ H_1\ \nil & = & H_1 \\
+  \textit{merge}\ H_1\ H_2 & = & \begin{cases}
+  k_1 < k_2 : & make(L_1, k_1, \textit{merge}\ R_1\ H_2)  \\
+  \text{otherwise}: & make(L_2, k_2, \textit{merge}\ H_1\ R_2) \\
+  \end{cases}
+\end{array}
 \ee
 
-The $merge$ function is always recursively called on the right side,
-and the Leftist property is maintained. These facts ensure the performance
-being bound to $O(\lg n)$.
-
-The following Haskell example code implements the merge program.
-
-\lstset{language=Haskell}
-\begin{lstlisting}
-merge E h = h
-merge h E = h
-merge h1@(Node _ x l r) h2@(Node _ y l' r') =
-    if x < y then makeNode x l (merge r h2)
-    else makeNode y l' (merge h1 r')
-
-makeNode x a b = if rank a < rank b then Node (rank a + 1) x b a
-                 else Node (rank b + 1) x a b
-\end{lstlisting}
-
-\subsubsection{Merge operation in implicit binary heap by array}
-\index{Binary heap!merge}
-
-Implicit binary heap by array performs very fast in most cases, and
-it fits modern computer with cache technology well. However, merge
-is the algorithm bounds to $O(n)$ time. The typical realization is to
-concatenate two arrays together and make a heap for this array \cite{NIST}.
+We always $merge$ to the right sub-tree recursively to maintain the leftist property. It is bound to $O(\lg n)$ time. The binary heap implemented with array performs well in most cases, suitable for the modern cache technology. However, it takes $O(n)$ time to merge, because it needs concatenate two arrays, and rebuild the heap\cite{NIST}:
 
 \begin{algorithmic}[1]
 \Function{Merge-Heap}{$A, B$}
@@ -521,668 +367,345 @@ concatenate two arrays together and make a heap for this array \cite{NIST}.
 \EndFunction
 \end{algorithmic}
 
-% ================================================================
-%                 Basic heap operations
-% ================================================================
-\subsection{Basic heap operations}
+\index{Leftist heap!top} \index{Leftist heap!pop}
 
-Most of the basic heap operations can be implemented with $merge$
-algorithm defined above.
-
-\subsubsection{Top and pop}
-\index{Leftist heap!top}
-\index{Leftist heap!pop}
-Because the smallest element is always held in root, it's trivial
-to find the minimum value. It's constant $O(1)$ operation. Below
-equation extracts the root from non-empty heap $H = (r, k, L, R)$.
-The error handling for empty case is skipped here.
+We can access the top of the leftist heap in constant time(assume it is not empty):
 
 \be
-top(H) = k
+top\ (r, L, k, R) = k
 \ee
 
-For pop operation, firstly, the top element is removed, then
-left and right children are merged to a new heap.
+After pop the root, we merge the two sub-trees in $O(\lg n)$ time.
 
 \be
-pop(H) = merge(L, R)
+pop\ (r, L, k, R) = merge\ L\ R
 \ee
 
-Because it calls $merge$ directly, the pop operation on Leftist heap is bound
-to $O(\lg n)$.
-
-\subsubsection{Insertion}
-\index{Leftist heap!insertion}
-
-To insert a new element, one solution is to create a single
-leaf node with the element, and then merge this leaf node to
-the existing Leftist tree.
+\index{Leftist heap!insert}
+To insert a new element $k$, create a leaf of $k$, then merge it to the heap:
 
 \be
-insert(H, k) = merge(H, (1, k, \phi, \phi))
+insert\ k\ H = merge\ (1, \nil, k, \nil)\ H
 \ee
 
-It is $O(\lg n)$ algorithm since insertion also calls $merge$ directly.
-
-There is a convenient way to build the Leftist heap from
-a list. We can continuously insert the elements one by one
-to the empty heap. This can be realized by folding.
-
-\be
-build(L) = fold(insert, \phi, L)
-\ee
-
-Figure \ref{fig:leftist-tree} shows one example Leftist tree
-built in this way.
-
-\begin{figure}[htbp]
-   \begin{center}
-   	  \includegraphics[scale=0.5]{img/leftist-tree}
-    \caption{A Leftist tree built from list $\{9, 4, 16, 7, 10, 2, 14, 3, 8, 1\}$.}
-    \label{fig:leftist-tree}
-   \end{center}
-\end{figure}
-
-The following example Haskell code gives reference implementation
-for the Leftist tree operations.
-
-\lstset{language=Haskell}
-\begin{lstlisting}
-insert h x = merge (Node 1 x E E) h
-
-findMin (Node _ x _ _) = x
-
-deleteMin (Node _ _ l r) = merge l r
-
-fromList = foldl insert E
-\end{lstlisting}
-
-% ================================================================
-%                 Heap sort
-% ================================================================
-\subsection{Heap sort by Leftist Heap}
 \index{Leftist heap!heap sort}
-
-With all the basic operations defined, it's straightforward to
-implement heap sort. We can firstly turn the list into a Leftist
-heap, then continuously extract the minimum
-element from it.
-
-\be
-sort(L) = heapSort(build(L))
-\ee
-
-\be
-heapSort(H) = \left \{
-  \begin{array}
-  {r@{\quad:\quad}l}
-  \phi & H = \phi \\
-  \{top(H)\} \cup heapSort(pop(H)) & otherwise
-  \end{array}
-\right.
-\ee
-
-Because pop is logarithm operation, and it is recursively called $n$ times,
-this algorithm takes $O(n \lg n)$ time in total. The following Haskell
-example program implements heap sort with Leftist tree.
-
-\lstset{language=Haskell}
-\begin{lstlisting}
-heapSort = hsort . fromList where
-    hsort E = []
-    hsort h = (findMin h):(hsort $ deleteMin h)
-\end{lstlisting} %$
-
-
-
-% ================================================================
-%                 Skew Heap
-% ================================================================
-
-\subsection{Skew heaps}
-\label{skew-heap}
-\index{Skew heap}
-
-Leftist heap leads to quite unbalanced structure sometimes. Figure \ref{fig:unbalanced-leftist-tree}
-shows one example. The Leftist tree is built by folding on
-list $\{16, 14, 10, 8, 7, 9, 3, 2, 4, 1\}$.
+We can build a leftist heap from a list as (Curried form): $build = fold_r\ insert\ \nil$. Then repeatedly pop the minimum to output the sorted result:
 
 \begin{figure}[htbp]
-   \begin{center}
-   	  \includegraphics[scale=0.3]{img/unbalanced-leftist-tree}
-    \caption{A very unbalanced Leftist tree build from list $\{16, 14, 10, 8, 7, 9, 3, 2, 4, 1\}$.}
-    \label{fig:unbalanced-leftist-tree}
-   \end{center}
+  \centering
+  \includegraphics[scale=0.5]{img/leftist-tree}
+  \caption{Build the leftist heap from $[9, 4, 16, 7, 10, 2, 14, 3, 8, 1]$.}
+  \label{fig:leftist-tree}
 \end{figure}
-
-Skew heap (or {\em self-adjusting heap}) simplifies Leftist heap realization
-and intends to solve the balance issue\cite{wiki-skew-heap} \cite{self-adjusting-heaps}.
-
-When construct the Leftist heap, we swap the left and right children during merge
-if the rank on left side is less than the right side. This comparison-and-swap strategy
-doesn't work when either sub tree has only one child. Because
-in such case, the rank of the sub tree is always 1 no matter how
-big it is. A `Brute-force' approach is to swap the left and right children
-every time when merge. This idea leads to Skew heap.
-
-\subsubsection{Definition of Skew heap}
-
-Skew heap is the heap realized with Skew tree. Skew tree is a special
-binary tree. The minimum element is stored in root. Every sub tree is
-also a skew tree.
-
-It needn't keep the rank (or $S$-value) field. We can reuse the
-binary tree definition for Skew heap. The tree is either empty,
-or in a pre-order form $(k, L, R)$. Below Haskell code defines
-Skew heap like this.
-
-\lstset{language=Haskell}
-\begin{lstlisting}
-data SHeap a = E -- Empty
-             | Node a (SHeap a) (SHeap a) -- element, left, right
-\end{lstlisting}
-
-\subsubsection{Merge}
-\index{Skew heap!merge}
-\index{Skew heap!insertion}
-\index{Skew heap!top}
-\index{Skew heap!pop}
-
-The merge algorithm tends to be very simple.
-When merge two non-empty Skew
-trees, we compare the roots, and pick the smaller
-one as the new root, then the other tree contains the bigger
-element is merged onto one sub tree, finally,
-the tow children are swapped. Denote $H_1 = (k_1, L_1, R_1)$
-and $H_2 =(k_2, L_2, R_2)$ if they are not empty.
-if $k_1 < k_2$ for instance, select $k_1$ as the new root. We can
-either merge $H_2$ to $L_1$, or merge $H_2$ to $R_1$.
-Without loss of generality, let's merge to $R_1$.
-And after swapping the two children, the final result
-is $(k_1, merge(R_1, H_2), L_1)$. Take account of
-edge cases, the merge algorithm is defined as the
-following.
 
 \be
-merge(H_1, H_2) = \left \{
-  \begin{array}
-  {r@{\quad:\quad}l}
-  H_1 & H_2 = \phi \\
-  H_2 & H_1 = \phi \\
-  (k_1, merge(R_1, H_2), L_1) & k_1 < k_2 \\
-  (k_2, merge(H_1, R_2), L_2) & otherwise
-  \end{array}
-\right.
+sort = heapSort \circ build
 \ee
 
-All the rest operations, including insert, top and pop are all
-realized as same as the Leftist heap by using merge, except that
-we needn't the rank any more.
+Where
 
-Translating the above algorithm into Haskell yields the following
-example program.
+\be
+\begin{array}{rcl}
+heapSort\ \nil & = & [\ ] \\
+heapSort\ H & = & (top\ H) : heapSort\ (pop\ H) \\
+\end{array}
+\ee
 
-\lstset{language=Haskell}
-\begin{lstlisting}
-merge E h = h
-merge h E = h
-merge h1@(Node x l r) h2@(Node y l' r') =
-    if x < y then Node x (merge r h2) l
-    else Node y (merge h1 r') l'
+It pops $n$ times, each takes $O(\lg n)$ time. The total time is bound to $O(n \lg n)$.
 
-insert h x = merge (Node x E E) h
+\subsection{Skew heap}
+\label{skew-heap} \index{Skew heap}
 
-findMin (Node x _ _) = x
-
-deleteMin (Node _ l r) = merge l r
-\end{lstlisting}
-
-Different from the Leftist heap, if we feed ordered list to Skew heap, it can build a
-fairly balanced binary tree as illustrated in figure \ref{fig:skew-tree}.
+Leftist heap may lead to unbalanced tree in some cases as shown in \cref{fig:unbalanced-leftist-tree}. Skew heap is a self-adjusting heap. It simplifies the leftist heap and improves balance\cite{wiki-skew-heap} \cite{self-adjusting-heaps}. To build the leftist heap, we swap the left and right sub-trees when the rank on left is smaller than the right. However, this method can't handle the case that either sub-tree has a NIL node. The rank is always 1 no matter how big the sub-tree is. Skew heap always swaps the sub-trees for simplification.
 
 \begin{figure}[htbp]
-   \begin{center}
-   	  \includegraphics[scale=0.5]{img/skew-tree}
-    \caption{Skew tree is still balanced even the input is an ordered list $\{1, 2, ..., 10\}$.}
-    \label{fig:skew-tree}
-   \end{center}
+  \centering
+  \includegraphics[scale=0.45]{img/unbalanced-leftist-tree}
+  \caption{Leftist heap built from $[16, 14, 10, 8, 7, 9, 3, 2, 4, 1]$.}
+  \label{fig:unbalanced-leftist-tree}
 \end{figure}
 
+Skew heap is implemented with skew tree. A skew tree is a binary tree. The root stores the minimum element, every sub-tree is also a skew tree. Skew tree needn't the rank. We can directly re-use the binary tree definition. Denote the none empty tree as $(L, k, R)$.
 
-% ================================================================
-%                 Splay Heap
-% ================================================================
+\begin{Haskell}
+data SHeap a = Empty | Node (SHeap a) a (SHeap a)
+\end{Haskell}
+
+\index{Skew heap!merge} \index{Skew heap!insertion} \index{Skew heap!top} \index{Skew heap!pop}
+
+When merge two none empty skew trees $H_1 = (L_1, k_1, R_1)$ and $H_2 =(L_2, k_2, R_2)$, if $k_1 < k_2$, then choose $k_1$ (otherwise $k_2$) as the new root. Then merge the greater one with a sub-tree. We can either merge $H_2$ with $L_1$, or merge $H_2$ with $R_1$. We choose $R_1$, and swap the left and right sub-trees. The result is $(\textit{merge}\ R_1\ H_2, k_1, L_1)$.
+
+\be
+\begin{array}{rcl}
+\textit{merge}\ \nil\ H_2 & = & H_2 \\
+\textit{merge}\ H_1\ \nil & = & H_1 \\
+\textit{merge}\ H_1\ H_2\ & = & \begin{cases}
+  k_1 < k_2: & (\textit{merge}\ R_1\ H_2, k_1, L_1) \\
+  \text{otherwise}: & (\textit{merge}\ H_1\ R_2, k_2, L_2) \\
+\end{cases}
+\end{array}
+\ee
+
+The other operations, including insert, top, and pop are implemented with \textit{merge}. Skew heap outputs a balanced tree even for ordered list as shown in \cref{fig:skew-tree}.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[scale=0.5]{img/skew-tree}
+  \caption{Skew tree built from $[1, 2, ..., 10]$.}
+  \label{fig:skew-tree}
+\end{figure}
 
 \section{Splay heap}
-\label{splayheap}
-\index{Splay heap}
+\label{splayheap} \index{Splay heap}
 
-The Leftist heap and Skew heap show the fact that it's quite possible to realize
-heap data structure with explicit binary tree.
-Skew heap gives one method to solve the tree balance problem. Splay heap
-on the other hand, use another method to keep the tree balanced.
+Both leftist heap and skew heap are implemented with binary trees. If change to binary search tree, then the minimum will not be in root. We need $O(\lg n)$ time to locate the minimum. The performance downgrades if the tree is not balanced. Although we can use the red-black tree to secure balancing, the splay tree provides a simple solution. It dynamically `splays' to balance the tree. Splay tree takes cache-like approach. It rotates the node currently being accessed to the root, reduces the access time for the next visit. We define such operation as 'splay'. The tree tends to be more balanced after multiple splays. Most splay tree operations perform in amortized $O(\lg n)$ time. Sleator and Tarjan developed splay tree in 1985\cite{wiki-splay-tree}\cite{self-adjusting-trees}.
 
-The binary trees used in Leftist heap and Skew heap
-are not Binary Search tree (BST). If we turn the underground
-data structure to binary search tree, the minimum(or maximum)
-element is not root any more. It takes $O(\lg n)$ time
-to find the minimum(or maximum) element.
+\index{Splay heap!splay}
+We give two implementations. The first is pattern matching, it needs match multiple cases; the second has the uniformed form, but the implementation is complex. When access node $x$, denote the parent node as $p$, and grand parent node (if there is) as $g$. There are 3 cases, each has two symmetric sub-cases. \Cref{fig:splay} shows one:
 
-Binary search tree becomes inefficient if it isn't well
-balanced. Most operations degrade to $O(n)$ in the worst case.
-Although red-black tree can be used to realize
-binary heap, it's overkill. Splay tree provides a light weight
-implementation with acceptable dynamic balancing result.
+\begin{enumerate}
+\item {\em Zig-zig}: Both $x$ and $p$ are on the left; or on the right. We rotate twice to make $x$ as root.
 
+\item {\em Zig-zag}: $x$ is on the left, while $p$ is on the right; or $x$ is on the right, while $P$ is on the left. After rotation, $x$ becomes the root, $p$ and $g$ are siblings.
 
-% ================================================================
-%                 Definition
-% ================================================================
-\subsection{Definition}
-
-Splay tree uses cache-like approach. It keeps rotating the current
-access node close to the top, so that the node can be accessed fast
-next time. It defines such kinds of operation as ``Splay''. For the
-unbalanced binary search tree, after several splay operations, the
-tree tends to be more and more balanced. Most basic operations of
-Splay tree perform in amortized $O(\lg n)$ time. Splay tree was invented
-by Daniel Dominic Sleator and Robert Endre Tarjan in 1985\cite{wiki-splay-tree}
-\cite{self-adjusting-trees}.
-
-\subsubsection{Splaying}
-\index{Splay heap!splaying}
-
-There are two methods to do splaying. The first one need deal
-with many different cases, but can be implemented fairly easy with
-pattern matching. The second one has a uniformed form, but the implementation
-is complex.
-
-Denote the node currently being accessed as $X$, the parent node as $P$,
-and the grand parent node as $G$ (If there are).  There are 3 steps for
-splaying. Each step contains 2 symmetric cases. For illustration
-purpose, only one case is shown for each step.
-
-\begin{itemize}
-\item {\em Zig-zig step.} As shown in figure \ref{fig:zig-zig}, in this case,
-$X$ and $P$ are children on the same side of $G$, either both on left or right. By
-rotating 2 times, $X$ becomes the new root.
+\item {\em Zig}: $p$ is the root, we rotate to make $x$ as root.
+\end{enumerate}
 
 \begin{figure}[htbp]
   \centering
-  \subcaptionbox{$X$ and $P$ are both left children or both right children.}{\includegraphics[scale=0.4]{img/zig-zig-a}}
-  \subcaptionbox{$X$ becomes new root after rotating 2 times.}{\includegraphics[scale=0.4]{img/zig-zig-b}}
-  \caption{Zig-zig case.} \label{fig:zig-zig}
+  \includegraphics[scale=0.45]{img/splay}
+  \caption{\textbf{zig-zig}: $x$ and $p$ are both on left or right, $x$ becomes the new root. \textbf{zig-zag}: $x$ and $p$ are on different sides, $x$ becomes the new root, $p$ and $g$ are siblings. \textbf{zig}: $p$ is the root, rotate to make $x$ as the root.}
+  \label{fig:splay}
 \end{figure}
 
-\item {\em Zig-zag step.} As shown in figure \ref{fig:zig-zag}, in this
-case, $X$ and $P$ are children on different sides. $X$ is on the left,
-$P$ is on the right. Or $X$ is on the right, $P$ is on the left.
-After rotation, $X$ becomes the new root, $P$ and $G$ are siblings.
-
-\begin{figure}[htbp]
-  \centering
-  \subcaptionbox{$X$ and $P$ are children on different sides.}{\includegraphics[scale=0.4]{img/zig-zag-a}}
-  \subcaptionbox{$X$ becomes new root. $P$ and $G$ are siblings.}{\includegraphics[scale=0.4]{img/zig-zag-b}}
-  \caption{Zig-zag case.} \label{fig:zig-zag}
-\end{figure}
-
-\item {\em Zig step.} As shown in figure \ref{fig:zig}, in this case,
-$P$ is the root, we rotate the tree, so that $X$ becomes new root.
-This is the last step in splay operation.
-
-\begin{figure}[htbp]
-  \centering
-  \subcaptionbox{$P$ is the root.}{\includegraphics[scale=0.4]{img/zig-a}}
-  \subcaptionbox{Rotate the tree to make $X$ be new root.}{\includegraphics[scale=0.4]{img/zig-b}}
-  \caption{Zig case.} \label{fig:zig}
-\end{figure}
-
-\end{itemize}
-
-Although there are 6 different cases, they can be handled in the
-environments support pattern matching. Denote the non-empty binary tree
-in form $T=(L, k, R)$,. when access key $Y$ in tree $T$, the splay
-operation can be defined as below.
+There are total 6 cases. Let the none empty tree be $T=(L, k, R)$, define splay as below when access element $y$:
 
 \be
-splay(T, X) = \left \{
-  \begin{array}
-  {r@{\quad:\quad}l}
-  (a, X, (b, P, (c, G, d))) & T = (((a, X, b), P, c), G, d), X = Y \\
-  (((a, G, b), P, c), X, d) & T= (a, G, (b, P, (c, X, d))), X = Y \\
-  ((a, P, b), X, (c, G, d)) & T = (a, P, (b, X, c), G, d), X = Y \\
-  ((a, G, b), X, (c, P, d)) & T = (a, G, ((b, X, c), P, d)), X = Y \\
-  (a, X, (b, P, c)) & T = ((a, X, b), P, c), X = Y \\
-  ((a, P, b), X, c) & T = (a, P, (b, X, c)), X = Y \\
-  T &  otherwise
-  \end{array}
-\right.
+\begin{array}{rcll}
+splay\ y\ (((a, x, b), p, c), g, d) & = & \begin{cases}
+    x = y: & (a, x, (b, p, (c, g, d))) \\
+    \text{otherwise}: & T \\
+  \end{cases} & \text{zig-zig} \\
+splay\ y\ (a, g, (b, p, (c, x, d))) & = & \begin{cases}
+    x = y: & (((a, g, b), p, c), x, d) \\
+    \text{otherwise}: & T \\
+  \end{cases} & \text{zig-zig symmetric} \\
+splay\ y\ (a, p, (b, x, c), g, d) & = & \begin{cases}
+    x = y: & ((a, p, b), x, (c, g, d)) \\
+    \text{otherwise}: & T \\
+  \end{cases} & \text{zig-zag} \\
+splay\ y\ (a, g, ((b, x, c), p, d)) & = & \begin{cases}
+    x = y: & ((a, g, b), x, (c, p, d)) \\
+    \text{otherwise}: & T \\
+  \end{cases} & \text{zig-zag symmetric} \\
+splay\ y\ ((a, x, b), p, c) & = & \begin{cases}
+    x = y: & (a, x, (b, p, c)) \\
+    \text{otherwise}: & T \\
+  \end{cases} & \text{zig} \\
+splay\ y\ (a, p, (b, x, c)) & = & \begin{cases}
+    x = y: & ((a, p, b), x, c) \\
+    \text{otherwise}: & T \\
+  \end{cases} & \text{zig symmetric} \\
+splay\ y\ T & = & T & \text{others} \\
+\end{array}
 \ee
 
-The first two clauses handle the 'zig-zig' cases; the next two
-clauses handle the 'zig-zag' cases; the last two clauses handle
-the zig cases. The tree aren't changed for all other situations.
-
-The following Haskell program implements this splay function.
-
-\lstset{language=Haskell}
-\begin{lstlisting}
-data STree a = E -- Empty
-             | Node (STree a) a (STree a) -- left, key, right
-
--- zig-zig
-splay t@(Node (Node (Node a x b) p c) g d) y =
-    if x == y then Node a x (Node b p (Node c g d)) else t
-splay t@(Node a g (Node b p (Node c x d))) y =
-    if x == y then Node (Node (Node a g b) p c) x d else t
--- zig-zag
-splay t@(Node (Node a p (Node b x c)) g d) y =
-    if x == y then Node (Node a p b) x (Node c g d) else t
-splay t@(Node a g (Node (Node b x c) p d)) y =
-    if x == y then Node (Node a g b) x (Node c p d) else t
--- zig
-splay t@(Node (Node a x b) p c) y = if x == y then Node a x (Node b p c) else t
-splay t@(Node a p (Node b x c)) y = if x == y then Node (Node a p b) x c else t
--- otherwise
-splay t _ = t
-\end{lstlisting}
-
-With splay operation defined, every time when insert a new key,
-we call the splay function to adjust the tree.
-If the tree is empty, the result is a leaf; otherwise we compare this key
-with the root, if it is less than the root, we recursively insert it into
-the left child, and perform splaying after that; else the key is inserted
-into the right child.
+The tree is unchanged for all other cases. Every time when insert, we trigger splay to adjust the balance. If the tree is empty, the result is a leaf; otherwise, compare the new element and the root, then recursively insert to left (less than) or right (greater than) sub-tree and splay.
 
 \be
-insert(T, x) = \left \{
-  \begin{array}
-  {r@{\quad:\quad}l}
-  (\phi, x, \phi) & T = \phi \\
-  splay((insert(L, x), k, R), x) & T = (L, k, R), x < k \\
-  splay(L, k, insert(R, x)) & otherwise
-  \end{array}
-  \right.
+\begin{array}{rcl}
+insert\ y\ \nil & = & (\nil, y, \nil) \\
+insert\ y\ (L, x, R) & = & \begin{cases}
+  y < x: & splay\ y\ (insert\ y\ L, x, R)  \\
+  \text{otherwise}: & splay\ y\ (L, x, insert\ y\ R) \\
+\end{cases}
+\end{array}
 \ee
-
-The following Haskell program implements this insertion algorithm.
-
-\lstset{language=Haskell}
-\begin{lstlisting}
-insert E y = Node E y E
-insert (Node l x r) y
-    | x > y     = splay (Node (insert l y) x r) y
-    | otherwise = splay (Node l x (insert r y)) y
-\end{lstlisting}
-
-Figure \ref{fig:splay-result} shows the result of using this function.
-It inserts the ordered elements $\{1, 2, ..., 10\}$
-one by one to the empty tree. This would build a very poor result
-which downgrade to linked-list with normal binary search tree.
-The splay method creates more balanced result.
 
 \begin{figure}[htbp]
   \centering
   \includegraphics[scale=0.5]{img/splay-tree}
-  \caption{Splaying helps improving the balance.}
+  \caption{Splay tree built from $[1, 2, ..., 10]$.}
   \label{fig:splay-result}
 \end{figure}
 
-Okasaki found a simple rule for Splaying \cite{okasaki-book}.
-Whenever we follow
-two left branches, or two right branches continuously, we rotate
-the two nodes.
-
-Based on this rule, splaying can be realized in such a way.
-When we access node for a key $x$ (can be during the process of
-inserting a node, or looking up a node, or deleting a node), if
-we traverse two left branches or two right branches, we
-partition the tree in two parts $L$ and $R$, where $L$ contains all
-nodes smaller than $x$, and $R$ contains all the rest.
-We can then create a new tree (for instance in insertion),
-with $x$ as the root, $L$ as the left child, and $R$ being the right child.
-The partition process is recursive, because it will splay
-its children as well.
+\Cref{fig:splay-result} gives the splay tree built from $[1, 2, ..., 10]$. It generates a relative balanced tree. Okasaki gives a simple rule for splaying \cite{okasaki-book}. Whenever follow two left or two right branches continuously, rotate the two nodes. When access $x$, if have moved left or right twice, then partition $T$ as $L$ and $R$ recursively, where $L$ contains all elements less than $x$, while $R$ contains the remaining. Then create a new tree with $x$ as the root, and $L$, $R$ as the sub-trees.
 
 \be
-partition(T, p) = \left \{
-  \begin{array}
-  {r@{\quad:\quad}l}
-  (\phi, \phi) & T = \phi \\
-  (T, \phi) & T = (L, k, R) \land R = \phi \\
-  ((L, k, L'), k', A, B) & \begin{array}{l} \\
-                             T = (L, k, (L', k', R')) \\
-                             k < p, k' < p \\
-                             (A, B) = partition(R', p)
-                           \end{array} \\
-  ((L, k, A), (B, k', R')) & \begin{array}{l} \\
-                               T = (L, K, (L', k', R')) \\
-                               k < p \leq k' \\
-                               (A, B) = partition(L', p) \\ \\
-                             \end{array} \\
-  (\phi, T) & T = (L, k, R) \land L = \phi \\
-  (A, (L', k', (R', k, R)) & \begin{array}{l} \\
-                               T = ((L', k', R'), k, R) \\
-                               p \leq k, p \leq k' \\
-                               (A, B) = partition(L', p)
-                             \end{array} \\
-  ((L', k', A), (B, k, R)) & \begin{array}{l} \\
-                               T = ((L', k', R'), k, R) \\
-                               k' \leq p \leq k \\
-                               (A, B) = partition(R', p)
-                             \end{array}
-  \end{array}
-  \right.
+%% \resizebox{\linewidth}{!}{\ensuremath{
+\begin{array}{l}
+\begin{array}{rcl}
+partition\ y\ \nil & = & (\nil, \nil) \\
+partition\ y\ (L, x, R) & = &  \\
+\end{array} \\
+\quad
+\begin{cases}
+  x < y & \begin{cases}
+      R = \nil & (T, \nil) \\
+      R = (L', x', R') & \begin{cases}
+          x' < y & (((L, x, L'), x', A), B) \\
+                  & \text{where: }(A, B) = partition\ y\ R' \\
+          \text{otherwise} & ((L, x, A), (B, x', R')) \\
+                      & \text{where: }(A, B) = partition\ y\ L' \\
+        \end{cases} \\
+    \end{cases} \\
+  \text{otherwise} & \begin{cases}
+      L = \nil & (\nil, T) \\
+      L = (L', x', R') & \begin{cases}
+         y < x' & (A, (L', x', (R', x, R))) \\
+                 & \text{where: }(A, B) = partition\ y\ L' \\
+         \text{otherwise} & ((L', x', A), (B, x, R)) \\
+                 & \text{where: }(A, B) = partition\ y\ R' \\
+      \end{cases} \\
+    \end{cases}
+  \end{cases} \\
+\end{array}
+%% }}
 \ee
 
-Function $partition(T, p)$ takes a tree $T$, and a pivot $p$ as arguments.
-The first clause is edge case. The partition result for empty is
-a pair of empty left and right trees. Otherwise, denote the tree
-as $(L, k, R)$. we need compare the pivot $p$ and the root $k$.
-If $k < p$, there are two sub-cases. one is trivial case that
-$R$ is empty. According to the property of binary search tree,
-All elements are less than $p$, so the result pair is $(T, \phi)$;
-For the other case, $R = (L', k', R')$, we need further compare
-$k'$ with the pivot $p$. If $k' < p$ is also true, we recursively
-partition $R'$ with the pivot, all the elements less than $p$ in
-$R'$ is held in tree $A$, and the rest is in tree $B$. The
-result pair can be composed with two trees, one is $((L, k, L'), k', A)$;
-the other is $B$. If the key of the right sub tree is not less than
-the pivot, we recursively partition $L'$ with the pivot to give
-the intermediate pair $(A, B)$, the final pair trees can be
-composed with $(L, k, A)$ and $(B, k', R')$. There are symmetric
-cases for $p \leq k$. They are handled in the last three clauses.
+We \textit{partition}s the tree $T$ with a pivot $y$. For empty tree, the result is $(\nil, \nil)$; otherwise for tree $(L, x, R)$, if $x < y$, there are two sub-cases: (1) $R$ is empty. All elements in the tree are less then $y$, the result is $(T, \nil)$; (2) $R = (L', x', R')$. If $x' < y$, then recursively partition $R'$ with $y$. Put all elements less than $y$ in $A$, and the rest in $B$. The result is a pair of trees: $((L, x, L'), x', A)$ and $B$. If $x' > y$, then recursively partition $L'$ with $y$ into $(A, B)$. The result is also a pair of $(L, x, A)$ and $(B, x', R')$. The result is symmetric when $y < x$.
 
-Translating the above algorithm into Haskell yields the following partition
-program.
-
-\begin{lstlisting}
-partition E _ = (E, E)
-partition t@(Node l x r) y
-    | x < y =
-        case r of
-          E -> (t, E)
-          Node l' x' r' ->
-              if x' < y then
-                  let (small, big) = partition r' y in
-                  (Node (Node l x l') x' small, big)
-              else
-                  let (small, big) = partition l' y in
-                  (Node l x small, Node big x' r')
-    | otherwise =
-        case l of
-          E -> (E, t)
-          Node l' x' r' ->
-              if y < x' then
-                  let (small, big) = partition l' y in
-                  (small, Node l' x' (Node r' x r))
-              else
-                  let (small, big) = partition r' y in
-                  (Node l' x' small, Node big x r)
-\end{lstlisting}
-
-% ================================================================
-%                 Basic heap operations
-% ================================================================
-\index{Splay heap!insertion}
-Alternatively, insertion can be realized with $partition$ algorithm.
-When insert a new element $k$ into
-the splay heap $T$, we can first partition the heap into two trees, $L$ and $R$. Where
-$L$ contains all nodes smaller than $k$, and $R$ contains the rest.
-We then construct a new node, with $k$ as the root and $L$, $R$ as the children.
+\index{Splay heap!insert}
+Alternatively, we can define insert with $partition$. When insert element $k$ to $T$, first partition the heap to two sub-trees of $L$ and $R$, satisfying $L < k < R$ (that $L$ contains all elements smaller than $k$, and $R$ contains the rest). Then create a new tree of $(L, k, R)$ (rooted at $k$, with $L$, $R$ as sub-trees).
 
 \be
-insert(T, k) = (L, k, R), (L, R) = partition(T, k)
+insert\ k\ T = (L, k, R), \text{where}\ (L, R) = partition\ k\ T
 \ee
 
-The corresponding Haskell example program is as the following.
-
-\lstset{language=Haskell}
-\begin{lstlisting}
-insert t x = Node small x big where (small, big) = partition t x
-\end{lstlisting}
-
-\subsubsection{Top and pop}
-\index{Splay heap!top}
-\index{Splay heap!pop}
-Since splay tree is just a special binary search tree, the minimum
-element is stored in the left most node. We need keep traversing
-the left child to realize the top operation. Denote the none empty
-tree $T=(L, k, R)$, the $top(T)$ function can be defined as below.
+\index{Splay heap!top} \index{Splay heap!pop}
+Since splay tree is essentially a binary search tree, the minimum is at the left most. We keep traversing the left sub-tree to access the `top' of the heap:
 
 \be
-top(T) = \left \{
-  \begin{array}
-  {r@{\quad:\quad}l}
-  k & L = \phi \\
-  top(L) & otherwise
-  \end{array}
-  \right.
+\begin{array}{rcl}
+top\ (\nil, k, R) & = & k \\
+top\ (L, k, R) & = & top\ L \\
+\end{array}
 \ee
 
-This is exactly the $min(T)$ algorithm for binary search tree.
-
-For pop operation, the algorithm need remove the minimum element from the
-tree. Whenever there
-are two left nodes traversed, the splaying operation should be performed.
+This is equivalent to $\min$ for the binary search tree (alternatively, we can define: $top =\min$). For pop, we remove the minimum and splay when move left twice.
 
 \be
-pop(T) = \left \{
-  \begin{array}
-  {r@{\quad:\quad}l}
-  R & T = (\phi, k, R) \\
-  (R', k, R) & T = ((\phi, k', R'), k, R) \\
-  (pop(L'), k', (R', k, R)) & T = ((L', k', R'), k, R)
-  \end{array}
-  \right.
+\begin{array}{rcl}
+pop\ (\nil, k, R) & = & R \\
+pop\ ((\nil, k', R'), k, R) & = & (R', k, R) \\
+pop\ ((L', k', R'), k, R) & = & (pop\ L', k', (R', k, R)) \\
+\end{array}
 \ee
 
-Note that the third clause performs splaying without explicitly call
-the $partition$ function. It utilizes the property of binary
-search tree directly.
+The third row performs splaying based on the binary search tree property without calling \textit{partition}. Top and pop both are bound to $O(\lg n)$ time when the splay tree is balanced.
 
-Both the top and pop algorithms are bound to $O(\lg n)$ time because
-the splay tree is balanced.
-
-The following Haskell example programs implement the top and pop
-operations.
-
-\lstset{language=Haskell}
-\begin{lstlisting}
-findMin (Node E x _) = x
-findMin (Node l x _) = findMin l
-
-deleteMin (Node E x r) = r
-deleteMin (Node (Node E x' r') x r) = Node r' x r
-deleteMin (Node (Node l' x' r') x r) = Node (deleteMin l') x' (Node r' x r)
-\end{lstlisting}
-
-\subsubsection{Merge}
 \index{Splay heap!merge}
-Merge is another basic operation for heaps as it is widely used in Graph algorithms. By using the $partition$ algorithm, merge can be realized in $O(\lg n)$ time.
-
-When merging two splay trees, for non-trivial case, we can take the root of the first tree as the new root, then partition the second tree with this new root as the pivot. After that we recursively merge
-the children of the first tree to the partition result. This algorithm is defined as the following.
+We can implement $merge$ in $O(\lg n)$ time with $partition$. When merge two none-empty trees, we choose either root as the pivot to partition the other, then recursively merge the sub-trees:
 
 \be
-merge(T_1, T_2) = \left \{
-  \begin{array}
-  {r@{\quad:\quad}l}
-  T_2 & T_1 = \phi \\
-  (merge(L, A), k, merge(R, B)) & T_1 = (L, k, R), (A, B) = partition(T_2, k)
-  \end{array}
-  \right.
+\begin{array}{rcl}
+merge\ T\ \nil & = & T \\
+merge\ \nil\ T & = & T \\
+merge\ (L, x, R)\ T & = & ((merge\ L\ L')\ x\ (merge\ R\ R')) \\
+\end{array}
 \ee
 
-If the first heap is empty, the result is definitely the second heap. Otherwise,
-denote the first splay heap as $(L, k, R)$, we partition $T_2$ with $k$ as the
-pivot to yield $(A, B)$, where $A$ contains all the elements in $T_2$ which are
-less than $k$, and $B$ holds the rest. We next recursively merge $A$ with $L$;
-and merge $B$ with $R$ as the new children for $T_1$.
+where
 
-Translating the definition to Haskell gives the following example program.
+\[
+  (L', R') = partition\ x\ T
+\]
 
-\lstset{language=Haskell}
-\begin{lstlisting}
-merge E t = t
-merge (Node l x r) t = Node (merge l l') x (merge r r')
-    where (l', r') = partition t x
-\end{lstlisting}
+\section{Summary}
 
-% ================================================================
-%                 Heap sort
-% ================================================================
-\subsection{Heap sort}
+We give the generic definition of binary heap in this chapter. There are several implementations. The array based representation is suitable for imperative implementation. It maps a complete binary tree to array, supporting random access in constant time. We directly use the binary tree to implement the heap in functional way. Most operations are bound to $O(\lg n)$ time, some are amortized $O(1)$ time\cite{okasaki-book}. When extend from the binary tree to $k$-ary tree, we obtain binomial heap, Fibonacci heap, and pairing heap (See chapter 10).
 
-Since the internal implementation of the Splay heap is completely
-transparent to the heap interface, the heap sort algorithm can
-be reused. It means that the heap sort algorithm is generic no
-matter what the underground data structure is.
-
-% ================================================================
-%                 Short summary
-% ================================================================
-\section{Notes and short summary}
-
-In this chapter, we define binary heap more general
-so that as long as the heap property is maintained, all binary
-representation of data structures can be used to implement binary heap.
-
-This definition doesn't limit to the popular array based binary
-heap, but also extends to the explicit binary heaps including Leftist
-heap, Skew heap and Splay heap. The array based binary heap
-is particularly convenient for the imperative implementation
-because it intensely uses random index access which can be mapped to
-a completely binary tree. It's hard to find directly functional
-counterpart in this way.
-
-However, by using explicit binary tree, functional implementation
-can be achieved, most of them have $O(\lg n)$ worst case
-performance, and some of them even reach $O(1)$ amortize time.
-Okasaki in \cite{okasaki-book} shows detailed analysis of these data
-structures.
-
-In this chapter, only purely functional realization for Leftist heap,
-Skew heap, and Splay heap are explained, they can all be realized
-in imperative approaches.
-
-It's very natural to extend the concept from binary tree to
-$k$-ary ($k$-way) tree, which leads to other useful heaps such as
-Binomial heap, Fibonacci heap and pairing heap. They are introduced
-in the following chapters.
-
-% ================================================================
-%                 Exercise
-% ================================================================
-\begin{Exercise}
-\begin{itemize}
-\item Realize the imperative Leftist heap, Skew heap, and Splay heap.
-\end{itemize}
+\begin{Exercise}[label={ex:other-binary-heaps}]
+\Question{Implement leftist heap and skew heap imperatively.} % exclude splay heap
+\Question{Define fold for heap.}
 \end{Exercise}
+
+\begin{Answer}[ref = {ex:other-binary-heaps}]
+\Question{Implement leftist heap and skew heap imperatively.
+
+We add a parent reference in the node definition for easy back-tracking.
+
+\begin{Bourbaki}
+data Node<T> {
+    T value
+    Int rank = 1
+    Node<T> left = null, right = null, parent = null
+}
+\end{Bourbaki}
+
+When merge two leftist heaps, we firstly top-down merge along the right sub-tree, then bottom-up update the rank along the parent reference. Swap the sub-trees if the left has the smaller rank. To simplify the empty tree handling, we use a sentinel node.
+
+\begin{Bourbaki}
+Node<T> merge(Node<T> a, Node<T> b) {
+    var h = Node(null)  // the sentinel node
+    while a != null and b != null {
+        if b.value < a.value then swap(a, b)
+        var c = Node(a.value, parent = h, left = a.left)
+        h.right = c
+        h = c
+        a = a.right
+    }
+    h.right = if a != null then a else b
+    while h.parent != null {
+        if rank(h.left) < rank(h.right) then swap(h.left, h.right)
+        h.rank = 1 + rank(h.right)
+        h = h.parent
+    }
+    h = h.right
+    if h != null then h.parent = null
+    return h
+}
+
+Int rank(Node<T> x) = if x != null then x.rank else 0
+
+Node<T> insert(Node<T> h, T x) = merge(Node(x), h)
+
+T top(Node<T> h) = h.value
+
+Node<T> pop(Node<T> h) = merge(h.left, h.right)
+\end{Bourbaki}
+
+It's simpler to merge skew heaps, as we needn't update the rank, the parent, or back-track.
+
+\begin{Bourbaki}
+data Node<T> {
+    T value
+    Node<T> left = null, right = null
+}
+\end{Bourbaki}
+
+Below is the merge function, the others are same as the leftist heap.
+\begin{Bourbaki}
+Node<T> merge(Node<T> a, Node<T> b) {
+    var h = Node(None)
+    var root = h
+    while a != null and b != null {
+        if b.value < a.value then swap(a, b)
+        var c = Node(a.value, left = null, right = a.left)
+        h.left = c
+        h = c
+        a = a.right
+    }
+    h.left = if a != null then a else b
+    root = root.left
+    return root
+}
+\end{Bourbaki}
+}
+\Question{Define fold for heap.
+
+\[
+\begin{array}{rcl}
+fold\ f\ z\ \nil & = & z \\
+fold\ f\ z\ H & = & fold\ f\ (f\ (top\ H)\ z)\ (pop\ H) \\
+\end{array}
+\]
+}
+\end{Answer}
 
 \section{Appendix - example programs}
 
-For the complete binary tree represented by array, access parent, and sub-trees with bit-wise operation (index from 0):
+Access parent, and sub-trees in a complete binary tree with bit-wise operation (index from 0) for the array representation:
 
 \begin{lstlisting}[language = Bourbaki]
 Int parent(Int i) = ((i + 1) >> 1) - 1
@@ -1238,7 +761,7 @@ K pop([K] a, Less<K> lt) {
 }
 \end{lstlisting}
 
-Obtain the top-$k$ elements:
+Find the top-$k$ elements:
 
 \begin{lstlisting}[language = Bourbaki]
 [K] topk([K] a, Int k, Less<K> lt) {
@@ -1269,7 +792,7 @@ void heapFix([K] a, Int i, Less<K> lt) {
 }
 \end{lstlisting}
 
-Push new element:
+Push:
 
 \begin{lstlisting}[language = Bourbaki]
 void push([K] a, K k, less<K> lt) {
@@ -1295,8 +818,8 @@ void heapSort([K] a, less<K> lt) {
 Merge two leftist heaps:
 
 \begin{Haskell}
-merge E h = h
-merge h E = h
+merge Empty h = h
+merge h Empty = h
 merge h1@(Node _ x l r) h2@(Node _ y l' r') =
     if x < y then makeNode x l (merge r h2)
     else makeNode y l' (merge h1 r')
@@ -1308,8 +831,8 @@ makeNode x a b = if rank a < rank b then Node (rank a + 1) x b a
 Merge two skew heaps:
 
 \begin{Haskell}
-merge E h = h
-merge h E = h
+merge Empty h = h
+merge h Empty = h
 merge h1@(Node x l r) h2@(Node y l' r') =
     if x < y then Node x (merge r h2) l
     else Node y (merge h1 r') l'
@@ -1331,14 +854,14 @@ splay t@(Node a g (Node (Node b x c) p d)) y =
 -- zig
 splay t@(Node (Node a x b) p c) y = if x == y then Node a x (Node b p c) else t
 splay t@(Node a p (Node b x c)) y = if x == y then Node (Node a p b) x c else t
--- 否则
+-- others
 splay t _ = t
 \end{Haskell}
 
-Insert new element to the splay heap:
+Splay heap insert:
 
 \begin{Haskell}
-insert E y = Node E y E
+insert Empty y = Node Empty y Empty
 insert (Node l x r) y
     | x > y     = splay (Node (insert l y) x r) y
     | otherwise = splay (Node l x (insert r y)) y
@@ -1347,11 +870,11 @@ insert (Node l x r) y
 Partition the splay tree:
 
 \begin{Haskell}
-partition E _ = (E, E)
+partition Empty _ = (Empty, Empty)
 partition t@(Node l x r) y
     | x < y =
         case r of
-          E -> (t, E)
+          Empty -> (t, Empty)
           Node l' x' r' ->
               if x' < y then
                   let (small, big) = partition r' y in
@@ -1361,7 +884,7 @@ partition t@(Node l x r) y
                   (Node l x small, Node big x' r')
     | otherwise =
         case l of
-          E -> (E, t)
+          Empty -> (Empty, t)
           Node l' x' r' ->
               if y < x' then
                   let (small, big) = partition l' y in
@@ -1374,7 +897,8 @@ partition t@(Node l x r) y
 Merge two splay trees:
 
 \begin{Haskell}
-merge E t = t
+merge t Empty = t
+merge Empty t = t
 merge (Node l x r) t = Node (merge l l') x (merge r r')
     where (l', r') = partition t x
 \end{Haskell}
@@ -1423,7 +947,7 @@ Splay tree, Wikipedia. \url{https://en.wikipedia.org/wiki/Splay_tree}
 Sleator, Daniel D.; Tarjan, Robert E. (1985), ``Self-Adjusting Binary Search Trees'', Journal of the ACM 32(3):652 - 686, doi: 10.1145/3828.3835
 
 \bibitem{NIST}
-NIST, ``binary heap''. \url{http://xw2k.nist.gov/dads//HTML/binaryheap.html}
+NIST, ``binary heap''. \url{http://xw2k.nist.gov/dads/HTML/binaryheap.html}
 
 \end{thebibliography}
 
